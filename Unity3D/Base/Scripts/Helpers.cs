@@ -694,33 +694,28 @@ namespace RatKing.Base {
 		///////////////////////////////////////////////////////
 
 		public static class Pathfinding {
-			public class Node {
-				public Node parent = null;
-				public Waypoint block;
+			public class Node<T> where T : IPosition {
+				public Node<T> parent = null;
+				public Waypoint<T> block;
 				public int F = 0;
 				public int G = 0;
 				public int H = 0;
-				public Node(Waypoint block) { this.block = block; }
-				public Node(Waypoint block, Node parent, int F, int G, int H) { this.block = block; this.parent = parent; this.F = F; this.G = G; this.H = H; }
+				public Node(Waypoint<T> block) { this.block = block; }
+				public Node(Waypoint<T> block, Node<T> parent, int F, int G, int H) { this.block = block; this.parent = parent; this.F = F; this.G = G; this.H = H; }
 			};
 
 			// Finds A Path Between Two Blocks, Returns The Path In An Array
-			public static bool Find(Waypoint A, Waypoint B, out Waypoint[] path, int maxLength, bool ignoreCreatures) {
+			public static bool Find<T>(Waypoint<T> A, Waypoint<T> B, out Waypoint<T>[] path, int maxLength, bool ignoreCreatures) where T : IPosition {
 				if (A == null || B == null) {
 					path = null;
 					return false;
 				}
-				//if (A == B)
-				//{
-				//		path = null;
-				//			return false;
-				//}
 
 				path = null;
-				List<Node> open = new List<Node>(maxLength);
-				List<Node> closed = new List<Node>(maxLength);
-				Node current = null;
-				open.Add(new Node(A));
+				List<Node<T>> open = new List<Node<T>>(maxLength);
+				List<Node<T>> closed = new List<Node<T>>(maxLength);
+				Node<T> current = null;
+				open.Add(new Node<T>(A));
 
 				// pathfinding!
 				for (;;) {
@@ -738,7 +733,7 @@ namespace RatKing.Base {
 					// target found? -> end the search!
 					if (current.block == B) {
 						int pathLength = 0;
-						Node counter = current;
+						Node<T> counter = current;
 
 						do // go backwards, for counting only
 						{
@@ -747,7 +742,7 @@ namespace RatKing.Base {
 							++pathLength;
 						} while (counter != null);
 
-						path = new Waypoint[pathLength];
+						path = new Waypoint<T>[pathLength];
 
 						// go forward, for building path
 						for (int i = 0; i < pathLength; ++i) {
@@ -764,7 +759,7 @@ namespace RatKing.Base {
 					// iterate through connections
 					int nm = current.block.neighbours.Count;
 					for (int i = 0; i < nm; ++i) {
-						Waypoint neighBlock = current.block.neighbours[i];
+						Waypoint<T> neighBlock = current.block.neighbours[i];
 						if (neighBlock == null || (!ignoreCreatures && neighBlock != B && neighBlock.creature != null))
 							continue;
 
@@ -773,22 +768,22 @@ namespace RatKing.Base {
 							continue;
 
 						// node is already in open list?
-						Node oldNode = open.Find(n => n.block == neighBlock);
+						Node<T> oldNode = open.Find(n => n.block == neighBlock);
 						if (oldNode != null) {
 							if (G < oldNode.G) {
 								oldNode.G = G;
 								oldNode.F = G + oldNode.H;
 								oldNode.parent = current;
-								open.Sort((Node a, Node b) => a.F - b.F);
+								open.Sort((Node<T> a, Node<T> b) => a.F - b.F);
 							}
 						}
 						else {
-							int H = Position2.GetManhattanDistance(neighBlock.pos, B.pos);
+							int H = neighBlock.pos.GetManhattanDistanceTo(B.pos);
 							// int H = Mathf.RoundToInt(Mathf.Abs(neighBlock.worldPos.x - B.worldPos.x) + Mathf.Abs(neighBlock.worldPos.y - B.worldPos.y) + Mathf.Abs(neighBlock.worldPos.z - B.worldPos.z));
 							int F = G + H;
-							Node newNode = new Node(neighBlock, current, F, G, H);
+							Node<T> newNode = new Node<T>(neighBlock, current, F, G, H);
 							open.Add(newNode);
-							open.Sort((Node a, Node b) => a.F - b.F);
+							open.Sort((Node<T> a, Node<T> b) => a.F - b.F);
 						}
 					}
 				}
@@ -820,46 +815,49 @@ namespace RatKing.Base {
 	///////////////////////////////////////////////////////
 
 	// a 3d waypoint for pathfinding
-	public class Waypoint {
-		public Position3 pos;
+	public class Waypoint<T> where T : IPosition {
+		public T pos;
 		public Vector3 worldPos;
 		public bool solid;
-		public List<Waypoint> neighbours = new List<Waypoint>();
+		public List<Waypoint<T>> neighbours = new List<Waypoint<T>>();
 		public Creature creature;
 		public Creature nextCreature;
 		//public int type;
-		public Waypoint(int x, int y, bool solid) { pos = new Position3(x, y); worldPos = pos.ToVector2(); this.solid = solid; }
-		public Waypoint(Position3 pos, bool solid) { this.pos = pos; worldPos = pos.ToVector2(); this.solid = solid; }
+		public Waypoint(T pos, bool solid) { this.pos = pos; worldPos = pos.ToVector(); this.solid = solid; }
+	}
+
+	public interface IPosition {
+		Vector3 ToVector();
+		int GetDistanceTo(IPosition other);
+		int GetSqrDistanceTo(IPosition other);
+		int GetManhattanDistanceTo(IPosition other);
+		int GetSqrManhattanDistanceTo(IPosition other);
 	}
 
 	// integer 3d position
 	[System.Serializable]
-	public struct Position3 {
+	public struct Position3 : IPosition {
 		public int x, y, z;
 		public Position3(Vector3 v) { x = Mathf.RoundToInt(v.x); y = Mathf.RoundToInt(v.y); z = Mathf.RoundToInt(v.z); }
 		public Position3(int x = 0, int y = 0, int z = 0) { this.x = x; this.y = y; this.z = z; }
 		public void Set(int x = 0, int y = 0, int z = 0) { this.x = x; this.y = y; this.z = z; }
-		public static int GetDistance(Position3 a, Position3 b) {
-			float abx = (float)(a.x - b.x);
-			float aby = (float)(a.y - b.y);
-			float abz = (float)(a.z - b.z);
-			return (int)Mathf.Sqrt(abx * abx + aby * aby + abz * abz);
+		//
+		public int GetDistanceTo(IPosition other) {
+			return (int)(other.ToVector() - ToVector()).magnitude;
 		}
-		public static int GetSqrDistance(Position3 a, Position3 b) {
-			int abx = a.x - b.x;
-			int aby = a.y - b.y;
-			int abz = a.z - b.z;
-			return abx * abx + aby * aby + abz * abz;
+		public int GetSqrDistanceTo(IPosition other) {
+			return (int)(other.ToVector() - ToVector()).sqrMagnitude;
 		}
-		public static int GetManhattanDistance(Position3 a, Position3 b) {
-			return Mathf.Abs(a.x - b.x) + Mathf.Abs(a.y - b.y) + Mathf.Abs(a.z - b.z);
+		public int GetManhattanDistanceTo(IPosition other) {
+			var v = other.ToVector();
+			return (int)(Mathf.Abs(x - v.x) + Mathf.Abs(y - v.y) + Mathf.Abs(z - v.z));
 		}
-		public static int GetSqrManhattanDistance(Position3 a, Position3 b) {
-			int md = GetManhattanDistance(a, b);
+		public int GetSqrManhattanDistanceTo(IPosition other) {
+			int md = GetManhattanDistanceTo(other);
 			return md * md;
 		}
-		public Vector3 ToVector3() { return new Vector3((float)x, (float)y, (float)z); }
-		public Vector3 ToVector3(float width) { return new Vector3(x * width, y * width, z * width); }
+		public Vector3 ToVector() { return new Vector3((float)x, (float)y, (float)z); }
+		public Vector3 ToVector(float width) { return new Vector3(x * width, y * width, z * width); }
 		//
 		public static bool operator ==(Position3 a, Position3 b) { return a.x == b.x && a.y == b.y && a.z == b.z; }
 		public static bool operator !=(Position3 a, Position3 b) { return a.x != b.x || a.y != b.y || a.z != b.z; }
@@ -875,29 +873,26 @@ namespace RatKing.Base {
 
 	// integer 2d position
 	[System.Serializable]
-	public struct Position2 {
+	public struct Position2 : IPosition {
 		public int x, y;
 		public Position2(int x = 0, int y = 0) { this.x = x; this.y = y; }
 		public void Set(int x = 0, int y = 0) { this.x = x; this.y = y; }
-		public static int GetDistance(Position2 a, Position2 b) {
-			float abx = (float)(a.x - b.x);
-			float aby = (float)(a.y - b.y);
-			return (int)Mathf.Sqrt(abx * abx + aby * aby);
+		//
+		public int GetDistanceTo(IPosition other) {
+			return (int)(other.ToVector() - ToVector()).magnitude;
 		}
-		public static int GetSqrDistance(Position2 a, Position2 b) {
-			int abx = a.x - b.x;
-			int aby = a.y - b.y;
-			return abx * abx + aby * aby;
+		public int GetSqrDistanceTo(IPosition other) {
+			return (int)(other.ToVector() - ToVector()).sqrMagnitude;
 		}
-		public static int GetManhattanDistance(Position2 a, Position2 b) {
-			return Mathf.Abs(a.x - b.x) + Mathf.Abs(a.y - b.y);
+		public int GetManhattanDistanceTo(IPosition other) {
+			var v = other.ToVector();
+			return (int)(Mathf.Abs(x - v.x) + Mathf.Abs(y - v.y));
 		}
-		public static int GetSqrManhattanDistance(Position2 a, Position2 b) {
-			//return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
-			int md = GetManhattanDistance(a, b);
+		public int GetSqrManhattanDistanceTo(IPosition other) {
+			int md = GetManhattanDistanceTo(other);
 			return md * md;
 		}
-		public Vector2 ToVector2() { return new Vector2((float)x, (float)y); }
+		public Vector3 ToVector() { return new Vector3((float)x, (float)y, 0f); }
 		//
 		public static bool operator ==(Position2 a, Position2 b) { return a.x == b.x && a.y == b.y; }
 		public static bool operator !=(Position2 a, Position2 b) { return a.x != b.x || a.y != b.y; }
