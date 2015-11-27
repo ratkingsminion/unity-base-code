@@ -838,9 +838,12 @@ namespace RatKing.Base {
 	[System.Serializable]
 	public struct Position3 : IPosition {
 		public int x, y, z;
-		public Position3(Vector3 v) { x = Mathf.RoundToInt(v.x); y = Mathf.RoundToInt(v.y); z = Mathf.RoundToInt(v.z); }
+		public static Position3 RoundedVector(Vector3 v) { return new Position3(Mathf.RoundToInt(v.x), Mathf.RoundToInt(v.y), Mathf.RoundToInt(v.z)); }
+		public static Position3 FlooredVector(Vector3 v) { return new Position3(Mathf.FloorToInt(v.x), Mathf.FloorToInt(v.y), Mathf.FloorToInt(v.z)); }
+		public static Position3 CeiledVector(Vector3 v) { return new Position3(Mathf.CeilToInt(v.x), Mathf.CeilToInt(v.y), Mathf.CeilToInt(v.z)); }
 		public Position3(int x = 0, int y = 0, int z = 0) { this.x = x; this.y = y; this.z = z; }
-		public void Set(int x = 0, int y = 0, int z = 0) { this.x = x; this.y = y; this.z = z; }
+		public void Set(int x, int y, int z) { this.x = x; this.y = y; this.z = z; }
+		public void Reset() { x = y = z = 0; }
 		//
 		public int GetDistanceTo(IPosition other) {
 			return (int)(other.ToVector() - ToVector()).magnitude;
@@ -862,7 +865,10 @@ namespace RatKing.Base {
 		public static bool operator ==(Position3 a, Position3 b) { return a.x == b.x && a.y == b.y && a.z == b.z; }
 		public static bool operator !=(Position3 a, Position3 b) { return a.x != b.x || a.y != b.y || a.z != b.z; }
 		public static Position3 operator +(Position3 a, Position3 b) { return new Position3(a.x + b.x, a.y + b.y, a.z + b.z); }
+		public static Position3 operator -(Position3 a, Position3 b) { return new Position3(a.x - b.x, a.y - b.y, a.z - b.z); }
 		public static Position3 operator *(Position3 p, int i) { return new Position3(p.x * i, p.y * i, p.z * i); }
+		public static Position3 operator /(Position3 p, int i) { return new Position3(p.x / i, p.y / i, p.z / i); }
+		public static Position3 operator %(Position3 p, int i) { return new Position3(p.x % i, p.y % i, p.z % i); }
 		//
 		//public override bool Equals(object o) { try { return (bool)(this == (Position3)o); } catch { return false; } }
 		public override bool Equals(object o) { Position3 p = (Position3)o; return p == this; }
@@ -875,8 +881,12 @@ namespace RatKing.Base {
 	[System.Serializable]
 	public struct Position2 : IPosition {
 		public int x, y;
+		public static Position2 RoundedVector(Vector2 v) { return new Position2(Mathf.RoundToInt(v.x), Mathf.RoundToInt(v.y)); }
+		public static Position2 FlooredVector(Vector2 v) { return new Position2(Mathf.FloorToInt(v.x), Mathf.FloorToInt(v.y)); }
+		public static Position2 CeiledVector(Vector2 v) { return new Position2(Mathf.CeilToInt(v.x), Mathf.CeilToInt(v.y)); }
 		public Position2(int x = 0, int y = 0) { this.x = x; this.y = y; }
-		public void Set(int x = 0, int y = 0) { this.x = x; this.y = y; }
+		public void Set(int x, int y) { this.x = x; this.y = y; }
+		public void Reset() { x = y = 0; }
 		//
 		public int GetDistanceTo(IPosition other) {
 			return (int)(other.ToVector() - ToVector()).magnitude;
@@ -899,6 +909,8 @@ namespace RatKing.Base {
 		public static Position2 operator +(Position2 a, Position2 b) { return new Position2(a.x + b.x, a.y + b.y); }
 		public static Position2 operator -(Position2 a, Position2 b) { return new Position2(a.x - b.x, a.y - b.y); }
 		public static Position2 operator *(Position2 p, int i) { return new Position2(p.x * i, p.y * i); }
+		public static Position2 operator /(Position2 p, int i) { return new Position2(p.x / i, p.y / i); }
+		public static Position2 operator %(Position2 p, int i) { return new Position2(p.x % i, p.y % i); }
 		//
 		public static Position2 zero = new Position2(0, 0);
 		//
