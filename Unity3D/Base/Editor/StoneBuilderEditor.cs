@@ -1,10 +1,17 @@
-﻿using UnityEngine;
+﻿#if UNITY_2_6 || UNITY_2_6_1 || UNITY_3_0 || UNITY_3_0_0 || UNITY_3_1 || UNITY_3_2 || UNITY_3_3 || UNITY_3_4 || UNITY_3_5 || UNITY_4_0 || UNITY_4_0_1 || UNITY_4_1 || UNITY_4_2 || UNITY_4_3 || UNITY_4_5 || UNITY_4_6 || UNITY_4_7
+	#define UNITY_OLD
+#else
+	#define UNITY_5
+#endif
+
+
+using UnityEngine;
 using UnityEditor;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.IO;
 
-// STONE BUILDER v0.2
+// STONE BUILDER v0.3
 // Standalone build editor for Unity
 // 2015 (c) ratking (www.ratking.de)
 
@@ -16,22 +23,29 @@ using System.IO;
 // TODO: also remove "additional files" and "levels" that are missing
 // TODO: target format of packing should be choosable
 // TODO: enable packing on mac, and even linux
+// TODO: option for autoincreasing version number?
 
 namespace RatKing.Base {
 
 	[System.Serializable]
 	public class StoneBuilderEditor : ScriptableObject {
-		public string buildPath = "C:/BUILDS";
+		// saved in file (ie. gets versioned):
 		public string gameShortName = "AppName";
 		public string subfolderName = "GameFolder";
-		public string version = "0.0.1";
-		[SerializeField]
-		public List<bool> targetsActive = new List<bool>();
 		[SerializeField,]
 		public List<Object> levels = new List<Object>();
 		[SerializeField]
 		public Object[] includedFiles = new Object[0];
+		// saved in playerprefs (ie. individual for each workstation):
+		[System.NonSerialized]
+		public string version = "0.0.1";
+		[System.NonSerialized]
+		public string buildPath = "C:/BUILDS";
+		[System.NonSerialized]
+		public List<bool> targetsActive = new List<bool>();
+		[System.NonSerialized]
 		public BuildOptions optionsMask;
+		[System.NonSerialized]
 		public bool openAfterBuild;
 	}
 
@@ -41,7 +55,7 @@ namespace RatKing.Base {
 	public class StoneBuilder : EditorWindow {
 		class Target {
 			public static int indexer;
-            public int index;
+			public int index;
 			public string name;
 			public string save;
 			public string shortPath;
@@ -56,17 +70,18 @@ namespace RatKing.Base {
 					target = target,
 					suffix = suffix
 				};
-                if (settings != null && settings.targetsActive.Count < indexer + 1) {
-					settings.targetsActive.Add(active);
+				if (settings != null && settings.targetsActive.Count < indexer + 1) {
+					settings.targetsActive.Add(PlayerPrefs.GetInt(shortPath, active ? 1 : 0) == 1);
 				}
 				++indexer;
-            }
+			}
 			public bool GetActive() {
 				return settings == null ? false : settings.targetsActive[index];
 			}
 			public void SetActive(bool active) {
 				if (settings != null) {
 					settings.targetsActive[index] = active;
+					PlayerPrefs.SetInt(shortPath, active ? 1 : 0);
 				}
 			}
 		}
@@ -87,7 +102,11 @@ namespace RatKing.Base {
 		static void Init() {
 			targets.Clear();
 			var w = GetWindow(typeof(StoneBuilder));
+#if UNITY_5
 			w.titleContent = new GUIContent("Stone Builder");
+#else
+			w.title = "Stone Builder";
+#endif
 		}
 
 		/// <summary>
@@ -102,6 +121,9 @@ namespace RatKing.Base {
 				StoneBuilderEditor asset = ScriptableObject.CreateInstance<StoneBuilderEditor>();
 				if (asset != null) {
 					asset.name = "StoneBuilderSettings";
+					if (!Directory.Exists(Application.dataPath + "/Resources")) {
+						Directory.CreateDirectory(Application.dataPath + "/Resources");
+					}
 					AssetDatabase.CreateAsset(asset, "Assets/Resources/StoneBuilderSettings.asset");
 					AssetDatabase.SaveAssets();
 				}
@@ -109,7 +131,11 @@ namespace RatKing.Base {
 			}
 			if (findSettings != null && findSettings.Length > 0) {
 				var path = AssetDatabase.GUIDToAssetPath(findSettings[0]);
+#if UNITY_5
 				settings = AssetDatabase.LoadAssetAtPath<StoneBuilderEditor>(path);
+#else
+				settings = (StoneBuilderEditor)AssetDatabase.LoadAssetAtPath(path, typeof(StoneBuilderEditor));
+#endif
 				if (settings != null) {
 					settingsObj = new SerializedObject(settings);
 					settingsObj.Update();
@@ -123,6 +149,12 @@ namespace RatKing.Base {
 		static void GetTargets() {
 			GetSettings();
 			sevenZipPath = EditorPrefs.GetString("sevenzippath", sevenZipPath);
+			if (settings != null) {
+				settings.version = PlayerPrefs.GetString("version", settings.version);
+				settings.buildPath = PlayerPrefs.GetString("buildpath", settings.buildPath);
+				settings.optionsMask = (BuildOptions)PlayerPrefs.GetInt("optionsmask", (int)settings.optionsMask);
+				settings.openAfterBuild = PlayerPrefs.GetInt("openafterbuild", settings.openAfterBuild ? 1 : 0) == 1;
+			}
 			//
 			targets.Clear();
 			Target.indexer = 0;
@@ -140,14 +172,14 @@ namespace RatKing.Base {
 			for (var iter = targets.GetEnumerator(); iter.MoveNext(); ++i) {
 				targetNames[i] = iter.Current.Value.name;
 			}
-        }
+		}
 
 		//
 
 		/// <summary>
 		/// Text area where you can write stuff. It saves the value
 		/// </summary>
-		void TextArea(string label, ref string value, string saveInEditorPrevs = "") {
+		void TextArea(string label, ref string value, string saveInEditorPrevs = "", string saveInPlayerPrevs = "") {
 			GUILayout.BeginHorizontal();
 			GUILayout.Label(label, new[] { GUILayout.Width(90), GUILayout.ExpandWidth(false) });
 			var newValue = GUILayout.TextField(value, new[] { GUILayout.Width(10), GUILayout.ExpandWidth(true) });
@@ -156,6 +188,9 @@ namespace RatKing.Base {
 				value = newValue.Trim();
 				if (saveInEditorPrevs != "") {
 					EditorPrefs.SetString(saveInEditorPrevs, value);
+				}
+				if (saveInPlayerPrevs != "") {
+					PlayerPrefs.SetString(saveInPlayerPrevs, value);
 				}
 			}
 		}
@@ -175,8 +210,8 @@ namespace RatKing.Base {
 
 			TextArea("App Name", ref settings.gameShortName);
 			TextArea("Folder Name", ref settings.subfolderName);
-			TextArea("Version", ref settings.version);
-			TextArea("Build path", ref settings.buildPath);
+			TextArea("Version", ref settings.version, "", "version");
+			TextArea("Build path", ref settings.buildPath, "", "buildpath");
 
 			EditorGUILayout.Space();
 
@@ -229,12 +264,23 @@ namespace RatKing.Base {
 				}
 			}
 			GUILayout.Label("Build options (" + optionsCount + "/" + optionsCountMax + "):");
-			settings.optionsMask = (BuildOptions)EditorGUILayout.EnumMaskPopup(GUIContent.none, settings.optionsMask);
-
+#if UNITY_5
+			var newOptionsMask = (BuildOptions)EditorGUILayout.EnumMaskPopup(GUIContent.none, settings.optionsMask);
+#else
+			var newOptionsMask = (BuildOptions)EditorGUILayout.EnumMaskField(settings.optionsMask);
+#endif
+			if (settings.optionsMask != newOptionsMask) {
+				settings.optionsMask = newOptionsMask;
+				PlayerPrefs.SetInt("optionsmask", (int)newOptionsMask);
+			}
 
 			EditorGUILayout.Space();
 
-			settings.openAfterBuild = GUILayout.Toggle(settings.openAfterBuild, "Open folder afterwards");
+			var newOpenAfterBuild = GUILayout.Toggle(settings.openAfterBuild, "Open folder afterwards");
+			if (settings.openAfterBuild != newOpenAfterBuild) {
+				settings.openAfterBuild = newOpenAfterBuild;
+				PlayerPrefs.SetInt("openafterbuild", newOpenAfterBuild ? 1 : 0);
+			}
 			
 			EditorGUILayout.Space();
 
@@ -354,7 +400,7 @@ namespace RatKing.Base {
 		static void CopyAdditionalFiles(string path) {
 			for (int i = 0; i < settings.includedFiles.Length; ++i) {
 				var assetPath = AssetDatabase.GetAssetPath(settings.includedFiles[i]);
-                var fileName = Path.GetFileName(assetPath);
+				var fileName = Path.GetFileName(assetPath);
 				var sourceName = Application.dataPath + "/../" + assetPath;
 				File.Copy(sourceName, path + fileName, true);
 			}
@@ -465,7 +511,7 @@ namespace RatKing.Base {
 			var levelPaths = new string[settings.levels.Count];
 			for (int i = 0; i < levelPaths.Length; ++i) {
 				levelPaths[i] = AssetDatabase.GetAssetPath(settings.levels[i]);
-            }
+			}
 			res = BuildPipeline.BuildPlayer(levelPaths, path + settings.gameShortName + suffix, buildTarget, options);
 
 			if (res != "") {
