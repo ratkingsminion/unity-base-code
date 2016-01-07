@@ -21,6 +21,7 @@ namespace RatKing.Base {
 		public float innerCircleFactor = 1f;
 		[SerializeField]
 		string floorLayerName = "Default";
+		public ParticleSystem floorDust;
 		[Header("Sounds")]
 		public GameObject soundJump;
 		public GameObject soundWalk;
@@ -35,7 +36,7 @@ namespace RatKing.Base {
 		public Rigidbody rb { get; private set; }
 		public CapsuleCollider capsule { get; private set; }
 		//
-		bool jumping = false;
+		float jumping = 0f;
 		float walkTimer = 0f;
 		//
 		static int floorLayerMask = 1;
@@ -64,13 +65,18 @@ namespace RatKing.Base {
 			rb = GetComponent<Rigidbody>();
 		}
 
-		public void Jump() {
-			if (!onFloor || jumping)
+		public void Jump(float factor = 1f) {
+			if (!onFloor || jumping > 0f || factor <= 0.1f) {
 				return;
-			jumping = true;
-			rb.AddForce(transform.up * jumpForce, ForceMode.Acceleration);
-			if (soundJump != null)
+			}
+			if (Physics.SphereCast(new Ray(transform.position + Vector3.up * (capsule.center.y + capsule.height * 0.5f - capsule.radius * 2f), Vector3.up), capsule.radius, capsule.radius + 0.35f)) {
+				return;
+			}
+			jumping = 0.08f; // time to jump, TODO should be calculated
+			rb.AddForce(transform.up * jumpForce * factor, ForceMode.Acceleration);
+			if (soundJump != null) {
 				Instantiate(soundJump, transform.position, transform.rotation);
+			}
 		}
 
 		void FixedUpdate() {
@@ -88,8 +94,9 @@ namespace RatKing.Base {
 				r *= innerCircleFactor;
 				Vector3 p = c + ((i == numRays) ? Vector3.zero : new Vector3(Mathf.Sin(f) * r, 0f, Mathf.Cos(f) * r));
 				float d2 = d + floorDepth;
-				if (!Physics.Raycast(p, Vector3.down, out hit, d2, floorLayerMask))
+				if (!Physics.Raycast(p, Vector3.down, out hit, d2, floorLayerMask)) {
 					continue;
+				}
 				if (Vector3.Angle(hit.normal, Vector3.up) < slopeMax) {
 					onFloor = true;
 					if (hit.distance < dist) dist = hit.distance;
@@ -97,14 +104,22 @@ namespace RatKing.Base {
 			}
 
 			float diff = dist - d;
-			if (onFloor && diff > legHeight) // 0f)
+			if (onFloor && diff > legHeight) { // 0f)
 				onFloor = false;
+			}
 
-			if (jumping && onFloor) onFloor = false;
-			else if (jumping && !onFloor) jumping = false;
+			//if (jumping && onFloor) onFloor = false;
+			//else if (jumping && !onFloor) jumping = false;
+			if (jumping > 0f) {
+				jumping -= Time.deltaTime;
+				onFloor = false;
+			}
 
+			if (floorDust != null) {
+				floorDust.enableEmission = onFloor && (new Vector2(rb.velocity.x, rb.velocity.z).sqrMagnitude > 10f);
+			}
 			if (onFloor) {
-				pos.y -= diff;
+				pos.y -= diff * (diff > 0f ? 1f : 0.25f);
 				transform.position = pos;
 
 				rb.velocity = Vector3.zero;
@@ -122,7 +137,8 @@ namespace RatKing.Base {
 					0f,
 					zSpeed * globalFactor);
 
-				rb.AddForce(transform.TransformDirection(velocityChange), ForceMode.VelocityChange);
+				//rb.AddForce(transform.TransformDirection(velocityChange), ForceMode.VelocityChange);
+				rb.velocity = transform.TransformDirection(velocityChange);
 
 				if (xSpeed != 0f || zSpeed != 0f) {
 					if (walkTimer < Time.time) {
