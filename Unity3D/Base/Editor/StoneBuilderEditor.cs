@@ -4,6 +4,10 @@
 	#define UNITY_5
 #endif
 
+#if UNITY_5 && !UNITY_5_0 && !UNITY_5_1 && !UNITY_5_2
+	#define HAS_SCENEMANAGER
+#endif
+
 
 using UnityEngine;
 using UnityEditor;
@@ -11,7 +15,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.IO;
 
-// STONE BUILDER v0.3
+// STONE BUILDER v0.4
 // Standalone build editor for Unity
 // 2015 (c) ratking (www.ratking.de)
 
@@ -47,6 +51,8 @@ namespace RatKing.Base {
 		public BuildOptions optionsMask;
 		[System.NonSerialized]
 		public bool openAfterBuild;
+		[System.NonSerialized]
+		public bool ignorePDB = true;
 	}
 
 	//
@@ -154,6 +160,7 @@ namespace RatKing.Base {
 				settings.buildPath = PlayerPrefs.GetString("buildpath", settings.buildPath);
 				settings.optionsMask = (BuildOptions)PlayerPrefs.GetInt("optionsmask", (int)settings.optionsMask);
 				settings.openAfterBuild = PlayerPrefs.GetInt("openafterbuild", settings.openAfterBuild ? 1 : 0) == 1;
+				settings.ignorePDB = PlayerPrefs.GetInt("ignorepdb", settings.ignorePDB ? 1 : 0) == 1;
 			}
 			//
 			targets.Clear();
@@ -352,6 +359,12 @@ namespace RatKing.Base {
 
 				TextArea("Path of 7Zip", ref sevenZipPath, "sevenzippath");
 
+				var newIgnorePDB = GUILayout.Toggle(settings.ignorePDB, "Don't include PDB files (for debugging)");
+				if (settings.ignorePDB != newIgnorePDB) {
+					settings.ignorePDB = newIgnorePDB;
+					PlayerPrefs.SetInt("ignorepdb", newIgnorePDB ? 1 : 0);
+				}
+
 				if (File.Exists(sevenZipPath)) {
 
 					// pack (everything) - windows only for now
@@ -456,17 +469,18 @@ namespace RatKing.Base {
 
 			var path = settings.buildPath + "/" + settings.gameShortName + "-" + settings.version + "/" + buildTargetName + "/";
 			var packedFile = settings.gameShortName + "-" + settings.version + "-" + buildTargetName + suffix;
+			var ignorePDB = settings.ignorePDB ? " -r -x!*.pdb" : "";
 
 			// var info = new FileInfo("/Applications/TextEdit.app/Contents/MacOS/TextEdit");
 			ProcessStartInfo info = new ProcessStartInfo("\"" + sevenZipPath + "\"");
-			info.Arguments = "a " + format + " " + path + packedFile + " " + path + settings.subfolderName + "/";
+			info.Arguments = "a " + format + " " + path + packedFile + " " + path + settings.subfolderName + "/" + ignorePDB;
 			var proc = Process.Start(info);
 			proc.WaitForExit();
 
 			if (isLinux) {
 				var newPackedFile = packedFile + ".gzip";
 				info = new ProcessStartInfo("\"" + sevenZipPath + "\"");
-				info.Arguments = "a -tgzip " + path + newPackedFile + " " + path + packedFile;
+				info.Arguments = "a -tgzip " + path + newPackedFile + " " + path + packedFile + ignorePDB;
 				proc = Process.Start(info);
 				proc.WaitForExit();
 				if (File.Exists(path + packedFile)) {
@@ -494,11 +508,19 @@ namespace RatKing.Base {
 		/// <param name="options"></param>
 		/// <returns></returns>
 		public static string BuildGame(BuildTarget buildTarget, string buildTargetName, string suffix, BuildOptions options) {
+#if HAS_SCENEMANAGER
+			if (!UnityEditor.SceneManagement.EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) {
+#else
 			if (!EditorApplication.SaveCurrentSceneIfUserWantsTo()) {
+#endif
 				return "";
 			}
 
+#if HAS_SCENEMANAGER
+			var openLevels = UnityEditor.SceneManagement.EditorSceneManager.GetSceneManagerSetup();
+#else
 			var openLevel = EditorApplication.currentScene;
+#endif
 
 			// path
 			string path = settings.buildPath + "/" + settings.gameShortName + "-" + settings.version + "/" + buildTargetName + "/" + settings.subfolderName + "/";
@@ -519,9 +541,13 @@ namespace RatKing.Base {
 				return "";
 			}
 
+#if HAS_SCENEMANAGER
+			UnityEditor.SceneManagement.EditorSceneManager.RestoreSceneManagerSetup(openLevels);
+#else
 			if (EditorApplication.currentScene != openLevel) {
 				EditorApplication.OpenScene(openLevel);
 			}
+#endif
 
 			return path; // + gameShortName + suffix;
 		}
