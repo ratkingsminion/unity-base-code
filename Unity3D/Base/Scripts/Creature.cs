@@ -1,4 +1,14 @@
-﻿using UnityEngine;
+﻿#if UNITY_2_6 || UNITY_2_6_1 || UNITY_3_0 || UNITY_3_0_0 || UNITY_3_1 || UNITY_3_2 || UNITY_3_3 || UNITY_3_4 || UNITY_3_5 || UNITY_4_0 || UNITY_4_0_1 || UNITY_4_1 || UNITY_4_2 || UNITY_4_3 || UNITY_4_5 || UNITY_4_6 || UNITY_4_7
+#define UNITY_OLD
+#else
+#define UNITY_5
+#endif
+
+#if UNITY_5 && !UNITY_5_0 && !UNITY_5_1 && !UNITY_5_2
+#define PARTICLE_SYSTEM_UPDATE_5_3
+#endif
+
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -116,7 +126,12 @@ namespace RatKing.Base {
 			}
 
 			if (floorDust != null) {
+#if PARTICLE_SYSTEM_UPDATE_5_3
+				var pe = floorDust.emission;
+				pe.enabled = onFloor && (new Vector2(rb.velocity.x, rb.velocity.z).sqrMagnitude > 10f);
+#else
 				floorDust.enableEmission = onFloor && (new Vector2(rb.velocity.x, rb.velocity.z).sqrMagnitude > 10f);
+#endif
 			}
 			if (onFloor) {
 				pos.y -= diff * (diff > 0f ? 1f : 0.25f);
