@@ -1,4 +1,14 @@
-﻿using UnityEngine;
+﻿#if UNITY_2_6 || UNITY_2_6_1 || UNITY_3_0 || UNITY_3_0_0 || UNITY_3_1 || UNITY_3_2 || UNITY_3_3 || UNITY_3_4 || UNITY_3_5 || UNITY_4_0 || UNITY_4_0_1 || UNITY_4_1 || UNITY_4_2 || UNITY_4_3 || UNITY_4_5 || UNITY_4_6 || UNITY_4_7
+	#define UNITY_OLD
+#else
+	#define UNITY_5
+#endif
+
+#if UNITY_5 && !UNITY_5_0 && !UNITY_5_1 && !UNITY_5_2
+	#define CHANGED_PARTICLE_SYSTEM
+#endif
+
+using UnityEngine;
 using System.Collections;
 
 namespace RatKing.Base {
@@ -52,9 +62,15 @@ namespace RatKing.Base {
 		}
 
 		public void StopParticles() {
-			if (particles != null)
-				particles.enableEmission = false;
-		}
+            if (particles != null) {
+#if CHANGED_PARTICLE_SYSTEM
+				var pe = particles.emission;
+                pe.enabled = false;
+#else
+                particles.enableEmission = false;
+#endif
+            }
+        }
 
 		//
 
