@@ -15,7 +15,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.IO;
 
-// STONE BUILDER v0.4
+// STONE BUILDER v0.5
 // Standalone build editor for Unity
 // 2015 (c) ratking (www.ratking.de)
 
@@ -28,6 +28,10 @@ using System.IO;
 // TODO: target format of packing should be choosable
 // TODO: enable packing on mac, and even linux
 // TODO: option for autoincreasing version number?
+
+// changes 0.5
+// added tooltips
+// directory gets cleaned before build (because additional files might have been removed)
 
 namespace RatKing.Base {
 
@@ -254,10 +258,16 @@ namespace RatKing.Base {
 			SerializedProperty levelsProp = settingsObj.FindProperty("levels");
 			EditorGUI.BeginChangeCheck();
 			var levelAssets = AssetDatabase.FindAssets("t:scene");
-			EditorGUILayout.PropertyField(levelsProp, new GUIContent("Included levels (" + (settings.levels != null ? settings.levels.Count : 0) + "/" + levelAssets.Length + "):"), true, null);
+			EditorGUILayout.PropertyField(levelsProp, new GUIContent("Included levels (" + (settings.levels != null ? settings.levels.Count : 0) + "/" + levelAssets.Length + "):", "Levels that will be included in the builds. To add a file, drag it onto this label!"), true, null);
 			if (EditorGUI.EndChangeCheck()) {
 				settingsObj.ApplyModifiedProperties();
-				settings.levels.RemoveAll(o => o == null || !AssetDatabase.GetAssetPath(o).EndsWith(".unity"));
+				// settings.levels.RemoveAll(o => o == null || !AssetDatabase.GetAssetPath(o).EndsWith(".unity"));
+				if (settings.levels.RemoveAll(o => o == null) > 0) {
+					// UnityEngine.Debug.Log("Add scenes by dragging them onto the label!");
+				}
+				if (settings.levels.RemoveAll(o => !AssetDatabase.GetAssetPath(o).EndsWith(".unity")) > 0) {
+					UnityEngine.Debug.LogWarning("Only add Unity scenes to Included levels!");
+				}
 				settings.levels = new List<Object>(new HashSet<Object>(settings.levels));
 			}
 			//EditorGUIUtility.LookLikeControls();
@@ -296,11 +306,13 @@ namespace RatKing.Base {
 			//EditorGUIUtility.LookLikeInspector();
 			SerializedProperty filesProp = settingsObj.FindProperty("includedFiles");
 			EditorGUI.BeginChangeCheck();
-			EditorGUILayout.PropertyField(filesProp, new GUIContent("Additional files (" + (settings.includedFiles != null ? settings.includedFiles.Length : 0) + "):", "Files that will be added to the root folder after build, e.g. a readme.txt"), true, null);
+			EditorGUILayout.PropertyField(filesProp, new GUIContent("Additional files (" + (settings.includedFiles != null ? settings.includedFiles.Length : 0) + "):", "Files that will be added to the root folder after build, e.g. a readme.txt. To add a file, drag it onto this label!"), true, null);
 			if (EditorGUI.EndChangeCheck()) {
 				settingsObj.ApplyModifiedProperties();
 				var newFiles = new List<Object>(settings.includedFiles);
-				newFiles.RemoveAll(o => o == null);
+				if (newFiles.RemoveAll(o => o == null) > 0) {
+					//UnityEngine.Debug.Log("Add files by dragging them onto the label!");
+				}
 				settings.includedFiles = new List<Object>(new HashSet<Object>(newFiles)).ToArray();
 			}
 			//EditorGUIUtility.LookLikeControls();
@@ -359,7 +371,7 @@ namespace RatKing.Base {
 
 				TextArea("Path of 7Zip", ref sevenZipPath, "sevenzippath");
 
-				var newIgnorePDB = GUILayout.Toggle(settings.ignorePDB, "Don't include PDB files (for debugging)");
+				var newIgnorePDB = GUILayout.Toggle(settings.ignorePDB, new GUIContent("Don't include PDB files", "PDB files have symbol tables, ie. are useful for debugging purposes. Normally not needed when distributing builds to clients."));
 				if (settings.ignorePDB != newIgnorePDB) {
 					settings.ignorePDB = newIgnorePDB;
 					PlayerPrefs.SetInt("ignorepdb", newIgnorePDB ? 1 : 0);
@@ -524,12 +536,23 @@ namespace RatKing.Base {
 
 			// path
 			string path = settings.buildPath + "/" + settings.gameShortName + "-" + settings.version + "/" + buildTargetName + "/" + settings.subfolderName + "/";
-			System.IO.Directory.CreateDirectory(settings.buildPath + "/" + settings.gameShortName + "-" + settings.version);
-			System.IO.Directory.CreateDirectory(settings.buildPath + "/" + settings.gameShortName + "-" + settings.version + "/" + buildTargetName);
+			Directory.CreateDirectory(settings.buildPath + "/" + settings.gameShortName + "-" + settings.version);
+
+			if (Directory.Exists(settings.buildPath + "/" + settings.gameShortName + "-" + settings.version + "/" + buildTargetName)) {
+				// clean directory before building
+				foreach (var d in Directory.GetDirectories(settings.buildPath + "/" + settings.gameShortName + "-" + settings.version + "/" + buildTargetName)) {
+					Directory.Delete(d, true);
+				}
+				foreach (var f in Directory.GetFiles(settings.buildPath + "/" + settings.gameShortName + "-" + settings.version + "/" + buildTargetName)) {
+					File.Delete(f);
+				}
+			}
+
+			Directory.CreateDirectory(settings.buildPath + "/" + settings.gameShortName + "-" + settings.version + "/" + buildTargetName);
 
 			// BUILD
 			var res = "";
-			System.IO.Directory.CreateDirectory(path);
+			Directory.CreateDirectory(path);
 			var levelPaths = new string[settings.levels.Count];
 			for (int i = 0; i < levelPaths.Length; ++i) {
 				levelPaths[i] = AssetDatabase.GetAssetPath(settings.levels[i]);
