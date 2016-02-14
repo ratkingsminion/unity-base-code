@@ -39,10 +39,12 @@ namespace RatKing.Base {
 #else
 
 #if UNITY_EDITOR
-				if (!System.IO.Directory.Exists(Application.dataPath + "/../../" + folder))
+				if (!System.IO.Directory.Exists(Application.dataPath + "/../../" + folder)) {
 					System.IO.Directory.CreateDirectory(Application.dataPath + "/../../" + folder);
-				inst.StartCoroutine(debug.CreateScreenshotCR("Assets/../../" + folder + "/" + prefix + "_" + time + ".jpg"));
-				UnityEngine.Debug.Log("Screenshot: " + "Assets/../../" + folder + "/" + prefix + "_" + time + ".jpg");
+				}
+				var path = "Assets/../../" + folder + "/" + prefix + "_" + time;
+				Application.CaptureScreenshot(path + ".png");
+				inst.StartCoroutine(debug.CreateScreenshotCR(path));
 #else
 				string p = Application.platform == RuntimePlatform.OSXPlayer ? "/../../" : "/../";
 				if (!System.IO.Directory.Exists(Application.dataPath + p + folder))
@@ -51,53 +53,20 @@ namespace RatKing.Base {
 				inst.StartCoroutine(debug.CreateScreenshotCR(folder + "/" + prefix + "_" + time + ".jpg"));
 #endif
 			}
-			IEnumerator CreateScreenshotCR(string path) {
-				yield return new WaitForEndOfFrame();
-				Texture2D texture = new Texture2D(Screen.width, Screen.height, TextureFormat.RGB24, false);
-#if UNITY_EDITOR
-				var offset = GetWindowOffset() - GetMainGameView().position.position;
-				offset.x += 2;
-				offset.y -= 16;
-				texture.ReadPixels(new Rect(offset.x, offset.y, Screen.width, Screen.height), 0, 0);
-#else
-				texture.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0);
-#endif
-				texture.Apply();
-				yield return null;
-				JPGEncoder encoder = new JPGEncoder(texture, 95.0f);
-				while (!encoder.isDone)
-					yield return null;
-				System.IO.File.WriteAllBytes(path, encoder.GetBytes());
-#endif
-			}
-
-#if UNITY_EDITOR
-			// help from http://answers.unity3d.com/questions/915069/want-to-get-the-location-of-the-gameview-window.html
-			// and http://answers.unity3d.com/questions/179775/game-window-size-from-editor-window-in-editor-mode.html
-			public static UnityEditor.EditorWindow GetMainGameView() {
-				System.Type T = System.Type.GetType("UnityEditor.GameView,UnityEditor");
-				System.Reflection.MethodInfo GetMainGameView = T.GetMethod("GetMainGameView",System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-				System.Object Res = GetMainGameView.Invoke(null,null);
-				return (UnityEditor.EditorWindow)Res;
-			}
-			[System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
-			struct POINT {
-				public int X;
-				public int Y;
-				public static implicit operator Vector2(POINT p) {
-					return new Vector2(p.X, p.Y);
+			IEnumerator CreateScreenshotCR(string path, int quality = 95) {
+				yield return null; // wait for png actually existing
+				if (System.IO.File.Exists(path + ".png")) {
+					var texture = new Texture2D(2, 2, TextureFormat.RGB24, false);
+					var data = System.IO.File.ReadAllBytes(path + ".png");
+					texture.LoadImage(data);
+					System.IO.File.WriteAllBytes(path + ".jpg", texture.EncodeToJPG(quality));
+					System.IO.File.Delete(path + ".png");
+					UnityEngine.Debug.Log("Screenshot: " + path + ".jpg");
 				}
-			}
-			[System.Runtime.InteropServices.DllImport("user32.dll")]
-			[return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
-			static extern bool GetCursorPos(out POINT lpPoint);
-			static Vector2 GetWindowOffset() {
-				Vector2 inputCursor = Input.mousePosition;
-				// flip input Cursor y (as the Reference "0" is the last scanline)
-				inputCursor.y = Screen.height - 1 - inputCursor.y;
-				POINT p;
-				GetCursorPos(out p);
-				return (p - inputCursor);
+				else {
+					UnityEngine.Debug.Log("Screenshot: " + path + ".png");
+					yield break;
+				}
 			}
 #endif
 		}
@@ -513,12 +482,12 @@ namespace RatKing.Base {
 			public static class SimplexNoise {
 				// from: http://stephencarmody.wikispaces.com/Simplex+Noise
 
-				private static int i, j, k;
-				private static int[] A = new int[] { 0, 0, 0 };
-				private static float u, v, w, s;
-				private static float onethird = 0.333333333f;
-				private static float onesixth = 0.166666667f;
-				private static int[] T = new int[] { 0x15, 0x38, 0x32, 0x2c, 0x0d, 0x13, 0x07, 0x2a };
+				static int i, j, k;
+				static int[] A = new int[] { 0, 0, 0 };
+				static float u, v, w, s;
+				static float onethird = 0.333333333f;
+				static float onesixth = 0.166666667f;
+				static int[] T = new int[] { 0x15, 0x38, 0x32, 0x2c, 0x0d, 0x13, 0x07, 0x2a };
 
 				//
 
@@ -562,11 +531,11 @@ namespace RatKing.Base {
 
 				//
 
-				private static int Fastfloor(float n) {
+				static int Fastfloor(float n) {
 					return n > 0 ? (int)(n) : (int)(n - 1);
 				}
 
-				private static float k_m(int a) {
+				static float k_m(int a) {
 					s = (A[0] + A[1] + A[2]) * onesixth;
 					float x = u - A[0] + s;
 					float y = v - A[1] + s;
@@ -590,16 +559,16 @@ namespace RatKing.Base {
 					return 8 * t * t * (p + (b == 0 ? q + r : b2 == 0 ? q : r));
 				}
 
-				private static int Shuffle(int i, int j, int k) {
+				static int Shuffle(int i, int j, int k) {
 					return b_m(i, j, k, 0) + b_m(j, k, i, 1) + b_m(k, i, j, 2) + b_m(i, j, k, 3) +
 						   b_m(j, k, i, 4) + b_m(k, i, j, 5) + b_m(i, j, k, 6) + b_m(j, k, i, 7);
 				}
 
-				private static int b_m(int i, int j, int k, int B) {
+				static int b_m(int i, int j, int k, int B) {
 					return T[b2_m(i, B) << 2 | b2_m(j, B) << 1 | b2_m(k, B)];
 				}
 
-				private static int b2_m(int N, int B) {
+				static int b2_m(int N, int B) {
 					return N >> B & 1;
 				}
 			}
@@ -859,7 +828,7 @@ namespace RatKing.Base {
 			int md = GetManhattanDistanceTo(other);
 			return md * md;
 		}
-		public Vector3 ToVector() { return new Vector3((float)x, (float)y, (float)z); }
+		public Vector3 ToVector() { return new Vector3(x, y, z); }
 		public Vector3 ToVector(float width) { return new Vector3(x * width, y * width, z * width); }
 		//
 		public static bool operator ==(Position3 a, Position3 b) { return a.x == b.x && a.y == b.y && a.z == b.z; }
@@ -869,6 +838,15 @@ namespace RatKing.Base {
 		public static Position3 operator *(Position3 p, int i) { return new Position3(p.x * i, p.y * i, p.z * i); }
 		public static Position3 operator /(Position3 p, int i) { return new Position3(p.x / i, p.y / i, p.z / i); }
 		public static Position3 operator %(Position3 p, int i) { return new Position3(p.x % i, p.y % i, p.z % i); }
+		//
+		public static Position3 zero { get { return new Position3(0, 0, 0); } }
+		public static Position3 one { get { return new Position3(1, 1, 1); } }
+		public static Position3 right { get { return new Position3(1, 0, 0); } }
+		public static Position3 left { get { return new Position3(-1, 0, 0); } }
+		public static Position3 up { get { return new Position3(0, 1, 0); } }
+		public static Position3 down { get { return new Position3(0, -1, 0); } }
+		public static Position3 forward { get { return new Position3(0, 0, 1); } }
+		public static Position3 back { get { return new Position3(0, 0, -1); } }
 		//
 		//public override bool Equals(object o) { try { return (bool)(this == (Position3)o); } catch { return false; } }
 		public override bool Equals(object o) { Position3 p = (Position3)o; return p == this; }
@@ -902,7 +880,7 @@ namespace RatKing.Base {
 			int md = GetManhattanDistanceTo(other);
 			return md * md;
 		}
-		public Vector3 ToVector() { return new Vector3((float)x, (float)y, 0f); }
+		public Vector3 ToVector() { return new Vector3(x, y, 0f); }
 		//
 		public static bool operator ==(Position2 a, Position2 b) { return a.x == b.x && a.y == b.y; }
 		public static bool operator !=(Position2 a, Position2 b) { return a.x != b.x || a.y != b.y; }
@@ -912,7 +890,12 @@ namespace RatKing.Base {
 		public static Position2 operator /(Position2 p, int i) { return new Position2(p.x / i, p.y / i); }
 		public static Position2 operator %(Position2 p, int i) { return new Position2(p.x % i, p.y % i); }
 		//
-		public static Position2 zero = new Position2(0, 0);
+		public static Position2 zero { get { return new Position2(0, 0); } }
+		public static Position2 one { get { return new Position2(1, 1); } }
+		public static Position2 right { get { return new Position2(1, 0); } }
+		public static Position2 left { get { return new Position2(-1, 0); } }
+		public static Position2 up { get { return new Position2(0, 1); } }
+		public static Position2 down { get { return new Position2(0, -1); } }
 		//
 		public override bool Equals(object o) { try { return (bool)(this == (Position2)o); } catch { return false; } }
 		public override int GetHashCode() { return base.GetHashCode(); }
