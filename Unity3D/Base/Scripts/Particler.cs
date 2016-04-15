@@ -20,7 +20,7 @@ namespace RatKing.Base {
 		public Transform follow;
 		public bool followWithoutRotation;
 		//
-		IEnumerator following;
+		Coroutine following;
 
 		//
 
@@ -57,7 +57,7 @@ namespace RatKing.Base {
 				else {
 					StopCoroutine(following);
 				}
-				StartCoroutine(following = FollowCR());
+				following = StartCoroutine(FollowCR());
 			}
 		}
 
@@ -75,8 +75,9 @@ namespace RatKing.Base {
 		//
 
 		IEnumerator Start() {
-			if (particles == null)
+			if (particles == null) {
 				particles = GetComponent<ParticleSystem>();
+			}
 			if (follow != null) {
 				StartCoroutine(FollowCR());
 			}
@@ -86,16 +87,18 @@ namespace RatKing.Base {
 
 			for (;;) {
 				yield return wait;
-				if (!particles.IsAlive() || particles.particleCount == 0)
+				if (!particles.IsAlive() || particles.particleCount == 0) {
 					Destroy(gameObject);
+				}
 			}
 		}
 
 		IEnumerator FollowCR() {
 			while (follow != null) {
 				transform.position = follow.position;
-				if (!followWithoutRotation)
+				if (!followWithoutRotation) {
 					transform.rotation = follow.rotation;
+				}
 
 				yield return null;
 			}

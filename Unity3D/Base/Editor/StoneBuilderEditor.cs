@@ -341,6 +341,7 @@ namespace RatKing.Base {
 								proc.Start();
 							}
 							OpenAfter(false, res);
+							EditorGUILayout.EndScrollView();
 							EditorGUIUtility.ExitGUI();
 							return;
 						}
@@ -361,6 +362,7 @@ namespace RatKing.Base {
 						}
 					}
 					OpenAfter(countTrue > 1, res);
+					EditorGUILayout.EndScrollView();
 					EditorGUIUtility.ExitGUI();
 					return;
 				}
@@ -390,6 +392,7 @@ namespace RatKing.Base {
 							}
 						}
 						OpenAfter(true, "..");
+						EditorGUILayout.EndScrollView();
 						EditorGUIUtility.ExitGUI();
 						return;
 					}
@@ -410,6 +413,7 @@ namespace RatKing.Base {
 							}
 						}
 						OpenAfter(true, res != "" ? ".." : "");
+						EditorGUILayout.EndScrollView();
 						EditorGUIUtility.ExitGUI();
 						return;
 					}
