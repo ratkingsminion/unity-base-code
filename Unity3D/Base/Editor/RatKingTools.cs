@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 public class RatKingTools : EditorWindow {
 	public static float snapSetting = 0.25f;
+	public static int noiseTexSize = 128;
 
 	//
 
@@ -19,6 +20,13 @@ public class RatKingTools : EditorWindow {
 		if (GUILayout.Button("Snap objects"))
 			Snap();
 		
+		GUILayout.Space(6);
+
+		noiseTexSize = EditorGUILayout.IntField("Tex Size", noiseTexSize);
+		if (GUILayout.Button("Generate Noise Texture")) {
+			NoiseTexture(noiseTexSize);
+		}
+
 		GUILayout.Space(6);
 
 		if (GUILayout.Button("Set vertex colors\nDANGER: Changes the mesh"))
@@ -37,6 +45,33 @@ public class RatKingTools : EditorWindow {
 		}
 		EditorGUIUtility.ExitGUI();
 		return;
+	}
+
+	void NoiseTexture(int size) {
+		var path = EditorUtility.SaveFilePanel("Save Noise Texture", "Assets", "noise" + size, "png");
+		if (path != "") {
+			var tex = new Texture2D(size, size, TextureFormat.ARGB32, false);
+			var s2 = size * size;
+			var cols = new Color32[s2];
+			for (int i = 0; i < s2; ++i) {
+				cols[i] = new Color32((byte)Random.Range(0, 256), (byte)Random.Range(0, 256), (byte)Random.Range(0, 256), 255); ;
+			}
+			tex.SetPixels32(cols);
+			tex.Apply();
+			System.IO.File.WriteAllBytes(path, tex.EncodeToPNG());
+			AssetDatabase.Refresh();
+			Object.DestroyImmediate(tex);
+			path = "Assets" + path.Remove(0, Application.dataPath.Length);
+			// tex = (Texture2D)AssetDatabase.LoadAssetAtPath(path, typeof(Texture2D));
+
+			TextureImporter textureImporter = AssetImporter.GetAtPath(path) as TextureImporter;
+			textureImporter.textureFormat = TextureImporterFormat.ARGB32;
+			textureImporter.anisoLevel = 0;
+			AssetDatabase.ImportAsset(path);
+
+			// EditorUtility.CompressTexture(tex, TextureFormat.ARGB32, 0);
+			//tex.format = TextureFormat.ARGB32;
+		}
 	}
 
 	void VertexColorizer() {
