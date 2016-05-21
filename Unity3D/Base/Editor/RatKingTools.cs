@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 public class RatKingTools : EditorWindow {
 	public static float snapSetting = 0.25f;
+	public static Vector3 rotateAxisSetting = Vector3.up;
 	public static int noiseTexSize = 128;
 
 	//
@@ -20,6 +21,12 @@ public class RatKingTools : EditorWindow {
 		if (GUILayout.Button("Snap objects"))
 			Snap();
 		
+		GUILayout.Space(6);
+
+		rotateAxisSetting = EditorGUILayout.Vector3Field("Rotate Axis", rotateAxisSetting);
+		if (GUILayout.Button("Random rotate objects"))
+			RandomRotate();
+
 		GUILayout.Space(6);
 
 		noiseTexSize = EditorGUILayout.IntField("Tex Size", noiseTexSize);
@@ -42,6 +49,14 @@ public class RatKingTools : EditorWindow {
 			p.y = (Mathf.Round(p.y / snapSetting)) * snapSetting;
 			p.z = (Mathf.Round(p.z / snapSetting)) * snapSetting;
 			go.transform.position = p;
+		}
+		EditorGUIUtility.ExitGUI();
+		return;
+	}
+
+	void RandomRotate() {
+		foreach (GameObject go in Selection.gameObjects) {
+			go.transform.Rotate(rotateAxisSetting, Random.Range(0f, 360f));
 		}
 		EditorGUIUtility.ExitGUI();
 		return;
