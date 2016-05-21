@@ -49,11 +49,13 @@ namespace RatKing.Base {
 				string p = Application.platform == RuntimePlatform.OSXPlayer ? "/../../" : "/../";
 				if (!System.IO.Directory.Exists(Application.dataPath + p + folder))
 					System.IO.Directory.CreateDirectory(Application.dataPath + "/../" + folder);
-
-				inst.StartCoroutine(debug.CreateScreenshotCR(folder + "/" + prefix + "_" + time + ".jpg"));
+				
+				var path = Application.dataPath + p + folder + "/" + prefix + "_" + time;
+				Application.CaptureScreenshot(path + ".png");
+				inst.StartCoroutine(debug.CreateScreenshotCR(path + ".jpg"));
 #endif
 			}
-			IEnumerator CreateScreenshotCR(string path, int quality = 95) {
+			IEnumerator CreateScreenshotCR(string path, int quality = 99) {
 				yield return null; // wait for png actually existing
 				if (System.IO.File.Exists(path + ".png")) {
 					var texture = new Texture2D(2, 2, TextureFormat.RGB24, false);
@@ -61,10 +63,14 @@ namespace RatKing.Base {
 					texture.LoadImage(data);
 					System.IO.File.WriteAllBytes(path + ".jpg", texture.EncodeToJPG(quality));
 					System.IO.File.Delete(path + ".png");
+#if UNITY_EDITOR
 					UnityEngine.Debug.Log("Screenshot: " + path + ".jpg");
+#endif
 				}
 				else {
+#if UNITY_EDITOR
 					UnityEngine.Debug.Log("Screenshot: " + path + ".png");
+#endif
 					yield break;
 				}
 			}
