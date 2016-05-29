@@ -6,6 +6,7 @@ public class RatKingTools : EditorWindow {
 	public static float snapSetting = 0.25f;
 	public static Vector3 rotateAxisSetting = Vector3.up;
 	public static int noiseTexSize = 128;
+	public static bool noiseMono;
 
 	//
 
@@ -18,20 +19,23 @@ public class RatKingTools : EditorWindow {
 
 	void OnGUI() {
 		snapSetting = EditorGUILayout.FloatField("Snap", snapSetting);
-		if (GUILayout.Button("Snap objects"))
+		if (GUILayout.Button("Snap objects")) {
 			Snap();
+		}
 		
 		GUILayout.Space(6);
 
 		rotateAxisSetting = EditorGUILayout.Vector3Field("Rotate Axis", rotateAxisSetting);
-		if (GUILayout.Button("Random rotate objects"))
+		if (GUILayout.Button("Random rotate objects")) {
 			RandomRotate();
+		}
 
 		GUILayout.Space(6);
-
+		
 		noiseTexSize = EditorGUILayout.IntField("Tex Size", noiseTexSize);
+		noiseMono = EditorGUILayout.Toggle("Monochrome", noiseMono);
 		if (GUILayout.Button("Generate Noise Texture")) {
-			NoiseTexture(noiseTexSize);
+			NoiseTexture(noiseTexSize, noiseMono);
 		}
 
 		GUILayout.Space(6);
@@ -62,14 +66,20 @@ public class RatKingTools : EditorWindow {
 		return;
 	}
 
-	void NoiseTexture(int size) {
+	void NoiseTexture(int size, bool mono) {
 		var path = EditorUtility.SaveFilePanel("Save Noise Texture", "Assets", "noise" + size, "png");
 		if (path != "") {
 			var tex = new Texture2D(size, size, TextureFormat.ARGB32, false);
 			var s2 = size * size;
 			var cols = new Color32[s2];
 			for (int i = 0; i < s2; ++i) {
-				cols[i] = new Color32((byte)Random.Range(0, 256), (byte)Random.Range(0, 256), (byte)Random.Range(0, 256), 255); ;
+				if (mono) {
+					var r = (byte)Random.Range(0, 256);
+					cols[i] = new Color32(r, r, r, 255);
+				}
+				else {
+					cols[i] = new Color32((byte)Random.Range(0, 256), (byte)Random.Range(0, 256), (byte)Random.Range(0, 256), 255);
+				}
 			}
 			tex.SetPixels32(cols);
 			tex.Apply();
