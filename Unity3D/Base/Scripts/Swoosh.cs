@@ -2,7 +2,7 @@
 using System.Collections;
 using RatKing.Base;
 
-namespace RatKing {
+namespace RatKing.Base {
 
 	public class Swoosh : MonoBehaviour {
 		public enum Normal {
