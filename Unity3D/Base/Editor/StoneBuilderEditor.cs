@@ -174,9 +174,9 @@ namespace RatKing.Base {
 			Target.Add("Mac OSX 32 bit", "build osx 32", "OSX32", BuildTarget.StandaloneOSXIntel, ".exe", false);
 			Target.Add("Mac OSX 64 bit", "build osx 64", "OSX64", BuildTarget.StandaloneOSXIntel64, ".app", true);
 			Target.Add("Mac OSX Universal", "build osx uni", "OSX32+64", BuildTarget.StandaloneOSXUniversal, ".app", false);
-			Target.Add("Linux 32 bit", "build lnx 32", "Linux32", BuildTarget.StandaloneLinux, "", false);
-			Target.Add("Linux 64 bit", "build lnx 64", "Linux64", BuildTarget.StandaloneLinux64, "", false);
-			Target.Add("Linux Universal", "build lnx uni", "Linux32+64", BuildTarget.StandaloneLinuxUniversal, "", true);
+			Target.Add("Ubuntu 32 bit", "build lnx 32", "Ubuntu32", BuildTarget.StandaloneLinux, "", false);
+			Target.Add("Ubuntu 64 bit", "build lnx 64", "Ubuntu64", BuildTarget.StandaloneLinux64, "", true);
+			Target.Add("Ubuntu Universal", "build lnx uni", "Ubuntu32+64", BuildTarget.StandaloneLinuxUniversal, "", false);
 			//
 			targetNames = new string[targets.Count];
 			int i = 0;
