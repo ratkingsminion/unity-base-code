@@ -52,25 +52,29 @@ namespace RatKing.Base {
 				
 				var path = Application.dataPath + p + folder + "/" + prefix + "_" + time;
 				Application.CaptureScreenshot(path + ".png");
-				inst.StartCoroutine(debug.CreateScreenshotCR(path + ".jpg"));
+				inst.StartCoroutine(debug.CreateScreenshotCR(path));
 #endif
 			}
 			IEnumerator CreateScreenshotCR(string path, int quality = 99) {
-				yield return null; // wait for png actually existing
-				if (System.IO.File.Exists(path + ".png")) {
+				bool error = true;
+				float wait = Time.time + 0.5f;
+				while (wait > Time.time) {
+					yield return null; // wait for png actually existing
+					if (System.IO.File.Exists(path + ".png")) {
+						error = false;
+						break;
+					}
+				}
+				if (!error) {
 					var texture = new Texture2D(2, 2, TextureFormat.RGB24, false);
 					var data = System.IO.File.ReadAllBytes(path + ".png");
 					texture.LoadImage(data);
 					System.IO.File.WriteAllBytes(path + ".jpg", texture.EncodeToJPG(quality));
 					System.IO.File.Delete(path + ".png");
-#if UNITY_EDITOR
 					UnityEngine.Debug.Log("Screenshot: " + path + ".jpg");
-#endif
 				}
 				else {
-#if UNITY_EDITOR
-					UnityEngine.Debug.Log("Screenshot: " + path + ".png");
-#endif
+					UnityEngine.Debug.Log("Error creating screenshot! " + path);
 					yield break;
 				}
 			}
@@ -827,7 +831,7 @@ namespace RatKing.Base {
 
 	// integer 3d position
 	[System.Serializable]
-	public struct Position3 : IPosition {
+	public struct Position3 : IPosition, System.IEquatable<Position3> {
 		public int x, y, z;
 		public static Position3 RoundedVector(Vector3 v) { return new Position3(Mathf.RoundToInt(v.x), Mathf.RoundToInt(v.y), Mathf.RoundToInt(v.z)); }
 		public static Position3 FlooredVector(Vector3 v) { return new Position3(Mathf.FloorToInt(v.x), Mathf.FloorToInt(v.y), Mathf.FloorToInt(v.z)); }
@@ -874,12 +878,14 @@ namespace RatKing.Base {
 		public override bool Equals(object o) { Position3 p = (Position3)o; return p == this; }
 		public override int GetHashCode() { return base.GetHashCode(); }
 		public override string ToString() { return this.x + ", " + this.y + ", " + this.z; }
+		//
+		public bool Equals(Position3 other) { return x == other.x && y == other.y && z == other.z; }
 	}
 
 
 	// integer 2d position
 	[System.Serializable]
-	public struct Position2 : IPosition {
+	public struct Position2 : IPosition, System.IEquatable<Position2> {
 		public int x, y;
 		public static Position2 RoundedVector(Vector2 v) { return new Position2(Mathf.RoundToInt(v.x), Mathf.RoundToInt(v.y)); }
 		public static Position2 FlooredVector(Vector2 v) { return new Position2(Mathf.FloorToInt(v.x), Mathf.FloorToInt(v.y)); }
@@ -922,6 +928,8 @@ namespace RatKing.Base {
 		public override bool Equals(object o) { try { return (bool)(this == (Position2)o); } catch { return false; } }
 		public override int GetHashCode() { return base.GetHashCode(); }
 		public override string ToString() { return this.x + ", " + this.y; }
+		//
+		public bool Equals(Position2 other) { return x == other.x && y == other.y; }
 	}
 
 }
