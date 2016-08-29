@@ -14,9 +14,9 @@ namespace RatKing.Base {
 		public bool needRightPressed;
 		// public float interactDistance = 1f;
 		[Header("Components")]
-		[SerializeField] public Transform camTransform;
-		[SerializeField] public Transform rotateTransform;
-		[SerializeField] public Creature creature;
+		[SerializeField] Transform camTransform;
+		[SerializeField] Transform rotateTransform;
+		[SerializeField] Creature creature;
 		//
 		float macMouseFactor = 1f;
 		float pitch = 0f;
