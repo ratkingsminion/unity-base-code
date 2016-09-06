@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace RatKing.Base.Helper {
+namespace RatKing.Base.Helpers {
 	
 	public static class OBJ {
 
@@ -105,7 +105,10 @@ namespace RatKing.Base.Helper {
 			for (int i = 0; i < filters.Length; ++i) {
 				var f = filters[i];
 				var r = f.GetComponent<Renderer>();
-				
+				var m = f.mesh;
+
+				if (r == null || m == null || m.vertexCount == 0) { continue; }
+
 				// NAME
 				objStr.Append("g ").Append(f.name).Append('\n');
 				objStr.Append("o ").Append(f.name).Append('\n'); // blender and max treat those differently somehow, just add both ...
@@ -118,8 +121,6 @@ namespace RatKing.Base.Helper {
 					objStr.Append("usemtl ").Append(r.sharedMaterial.name).Append('\n');
 					if (!mtls.Contains(r.sharedMaterial)) { mtls.Add(r.sharedMaterial); }
 				}
-
-				var m = f.mesh;
 
 				// VERTICES AND COLORS
 				var vertices = m.vertices;
@@ -213,6 +214,7 @@ namespace RatKing.Base.Helper {
 				System.IO.File.Delete(path + "/" + filename + ".mtl");
 			}
 
+			var invalidChars = System.IO.Path.GetInvalidFileNameChars();
 			var textures = new List<Texture2D>();
 
 			if (mtls.Count > 0) {
@@ -228,16 +230,19 @@ namespace RatKing.Base.Helper {
 						mtlStr.Append("Ka ").Append(c.r).Append(' ').Append(c.g).Append(' ').Append(c.b).Append('\n');
 						mtlStr.Append("Kd ").Append(c.r).Append(' ').Append(c.g).Append(' ').Append(c.b).Append('\n');
 					}
-					catch { Debug.Log("Material has no color."); }
+					catch { UnityEngine.Debug.Log("Material has no color."); }
 					try {
 						var t = m.mainTexture as Texture2D;
+						var tName = t.name;
+						for (int c = 0; c < invalidChars.Length; ++c) { tName = tName.Replace(invalidChars[c].ToString(), "_"); }
 						if (t != null) {
-							mtlStr.Append("map_Ka ").Append(t.name).Append(".png\n");
-							mtlStr.Append("map_Kd ").Append(t.name).Append(".png\n");
+							
+							mtlStr.Append("map_Ka ").Append(tName).Append(".png\n");
+							mtlStr.Append("map_Kd ").Append(tName).Append(".png\n");
 							if (!textures.Contains(t)) { textures.Add(t); }
 						}
 					}
-					catch { Debug.Log("Material has no texture."); }
+					catch { UnityEngine.Debug.Log("Material has no texture."); }
 				}
 
 				System.IO.File.WriteAllText(path + "/" + filename + ".mtl", mtlStr.ToString());
@@ -245,11 +250,13 @@ namespace RatKing.Base.Helper {
 			
 			for (int i = 0; i < textures.Count; ++i) {
 				var t = textures[i];
+				var tName = t.name;
+				for (int c = 0; c < invalidChars.Length; ++c) { tName = tName.Replace(invalidChars[c].ToString(), "_"); }
 				var bytes = t.EncodeToPNG();
-				System.IO.File.WriteAllBytes(path + "/" + t.name + ".png", bytes); // TODO: same names?
+				System.IO.File.WriteAllBytes(path + "/" + tName + ".png", bytes); // TODO: same names?
 			}
 
-			Debug.Log("Export of '" + filename + "' (OBJ) done.");
+			UnityEngine.Debug.Log("Export of '" + filename + "' (OBJ) done.");
 		}
 	}
 
