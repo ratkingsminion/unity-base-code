@@ -29,7 +29,11 @@ namespace RatKing.Base {
 		void Start() {
 			rotateTransform = rotateTransform == null ? transform : rotateTransform;
 			creature = creature == null ? GetComponentInChildren<Creature>() : creature;
-			if (Application.platform == RuntimePlatform.OSXWebPlayer || Application.platform == RuntimePlatform.OSXPlayer || Application.platform == RuntimePlatform.OSXDashboardPlayer)
+#if UNITY_WEBPLAYER
+			if (Application.platform == RuntimePlatform.OSXWebPlayer) {
+#else
+			if (Application.platform == RuntimePlatform.OSXPlayer || Application.platform == RuntimePlatform.OSXDashboardPlayer)
+#endif
 				macMouseFactor = 0.18f;
 			//
 			if (camTransform != null) {
