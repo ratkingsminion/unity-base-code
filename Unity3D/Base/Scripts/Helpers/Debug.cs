@@ -44,7 +44,7 @@ namespace RatKing.Base.Helpers {
 				
 			var path = Application.dataPath + p + folder + "/" + prefix + "_" + time;
 			Application.CaptureScreenshot(path + ".png");
-			inst.StartCoroutine(debug.CreateScreenshotCR(path));
+			inst.StartCoroutine(inst.CreateScreenshotCR(path));
 #endif
 		}
 		IEnumerator CreateScreenshotCR(string path, int quality = 99) {

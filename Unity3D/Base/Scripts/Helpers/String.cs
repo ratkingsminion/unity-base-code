@@ -40,6 +40,10 @@ namespace RatKing.Base.Helpers {
 			}
 			return code;
 		}
+
+		public static string Escape(this string text) {
+			return text.Replace("\\", "\\\\").Replace("\r\n", "\\n").Replace("\r", "\\r").Replace("\n", "\\n").Replace("\t", "\\t");
+		}
 	}
 
 }
