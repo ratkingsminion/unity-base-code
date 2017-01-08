@@ -11,7 +11,7 @@ namespace RatKing.Base.Helpers {
 			return 20f * Mathf.Log10(volume);
 		}
 		public static float DBToVolume(float dB) {
-			return Mathf.Pow(10f, db * 0.05f);
+			return Mathf.Pow(10f, dB * 0.05f);
 		}
 	}
 
