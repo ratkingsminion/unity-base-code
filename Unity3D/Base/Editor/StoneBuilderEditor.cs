@@ -192,8 +192,8 @@ namespace RatKing.Base {
 		/// </summary>
 		void TextArea(string label, ref string value, string saveInEditorPrevs = "", string saveInPlayerPrevs = "") {
 			GUILayout.BeginHorizontal();
-			GUILayout.Label(label, new[] { GUILayout.Width(90), GUILayout.ExpandWidth(false) });
-			var newValue = GUILayout.TextField(value, new[] { GUILayout.Width(10), GUILayout.ExpandWidth(true) });
+			GUILayout.Label(label, GUILayout.Width(90), GUILayout.ExpandWidth(false));
+			var newValue = GUILayout.TextField(value, GUILayout.Width(10), GUILayout.ExpandWidth(true));
 			GUILayout.EndHorizontal();
 			if (newValue.Trim() != value) {
 				value = newValue.Trim();
@@ -239,9 +239,9 @@ namespace RatKing.Base {
 				for (var iter = targets.GetEnumerator(); iter.MoveNext();) {
 					var t = iter.Current.Value;
 					GUILayout.BeginHorizontal();
-					GUILayout.Label("", new[] { GUILayout.Width(20), GUILayout.ExpandWidth(false) });
+					GUILayout.Label("", GUILayout.Width(20), GUILayout.ExpandWidth(false));
 					var active = t.GetActive();
-					if (GUILayout.Toggle(active, t.name, new[] { GUILayout.Width(90), GUILayout.ExpandWidth(true) }) != active) {
+					if (GUILayout.Toggle(active, t.name, GUILayout.Width(90), GUILayout.ExpandWidth(true)) != active) {
 						t.SetActive(active = !active);
 						countTrue += active ? -1 : 1;
 					}
@@ -324,12 +324,12 @@ namespace RatKing.Base {
 				GUI.color = Color.red;
 				EditorGUILayout.LabelField("WARNING", EditorStyles.whiteLabel);
 				GUI.color = color;
-				EditorGUILayout.LabelField("All text areas above need to be filled out!", EditorStyles.wordWrappedLabel, new[] { GUILayout.Height(100) });
+				EditorGUILayout.LabelField("All text areas above need to be filled out!", EditorStyles.wordWrappedLabel, GUILayout.Height(100));
 			}
 			else {
 
 				// build and run if only one
-				if (countTrue == 1 && GUILayout.Button("Build and Run", new[] { GUILayout.Height(22f) })) {
+				if (countTrue == 1 && GUILayout.Button("Build and Run", GUILayout.Height(22f))) {
 					for (var iter = targets.GetEnumerator(); iter.MoveNext();) {
 						var t = iter.Current.Value;
 						if (t.GetActive()) {
@@ -349,7 +349,7 @@ namespace RatKing.Base {
 				}
 
 				// build everything
-				if (countTrue > 0 && GUILayout.Button(countTrue == 1 ? "Build" : "Build All", new[] { GUILayout.Height(22f) })) {
+				if (countTrue > 0 && GUILayout.Button(countTrue == 1 ? "Build" : "Build All", GUILayout.Height(22f))) {
 					string res = "";
 					for (var iter = targets.GetEnumerator(); iter.MoveNext();) {
 						var t = iter.Current.Value;
@@ -382,7 +382,7 @@ namespace RatKing.Base {
 				if (File.Exists(sevenZipPath)) {
 
 					// pack (everything) - windows only for now
-					if (countTrue > 0 && GUILayout.Button(countTrue == 1 ? "Pack" : "Pack All", new[] { GUILayout.Height(22f) })) {
+					if (countTrue > 0 && GUILayout.Button(countTrue == 1 ? "Pack" : "Pack All", GUILayout.Height(22f))) {
 						// packing
 						for (var iter = targets.GetEnumerator(); iter.MoveNext();) {
 							var t = iter.Current.Value;
@@ -398,7 +398,7 @@ namespace RatKing.Base {
 					}
 
 					// build (everything) and pack - windows only for now
-					if (countTrue > 0 && GUILayout.Button(countTrue == 1 ? "Build and Pack" : "Build and Pack All", new[] { GUILayout.Height(22f) })) {
+					if (countTrue > 0 && GUILayout.Button(countTrue == 1 ? "Build and Pack" : "Build and Pack All", GUILayout.Height(22f))) {
 						// building
 						string res = "";
 						for (var iter = targets.GetEnumerator(); iter.MoveNext();) {

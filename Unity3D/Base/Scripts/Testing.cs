@@ -12,19 +12,17 @@ namespace RatKing.Base {
 
 		void Update() {
 			if (screenshotTakeRate > 0f && Input.GetKeyDown(KeyCode.F11)) {
-				if (!takingScreenshots) {
+				if (!takingScreenshots)
 					StartCoroutine("ScreenshotTakerCR");
-				}
-				else {
+				else
 					StopCoroutine("ScreenshotTakerCR");
-				}
 				takingScreenshots = !takingScreenshots;
 			}
 			if (Input.GetKeyDown(KeyCode.F12)) {
 				Base.Helpers.Debug.CreateScreenshot(screenshotPrefix);
 			}
 			if (Input.GetKeyDown(KeyCode.R)) {
-				 UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
+				UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
 			}
 		}
 

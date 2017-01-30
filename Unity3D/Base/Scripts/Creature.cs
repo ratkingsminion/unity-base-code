@@ -25,7 +25,7 @@ namespace RatKing.Base {
 		public float moveInAirForceFactor = 1.0f;
 		public float slopeMax = 60f;
 		[Header("RayCasts")]
-		public int numRays = 12;
+		public int numRays = 64;
 		public float legHeight = 0.08f;
 		public float floorDepth = 0.08f;
 		public float innerCircleFactor = 1f;
@@ -47,6 +47,7 @@ namespace RatKing.Base {
 		public CapsuleCollider capsule { get; private set; }
 		//
 		float jumping = 0f;
+		bool mayJump;
 		float walkTimer = 0f;
 		//
 		static int floorLayerMask = 1;
@@ -76,7 +77,7 @@ namespace RatKing.Base {
 		}
 
 		public void Jump(float factor = 1f) {
-			if (!onFloor || jumping > 0f || factor <= 0.1f) {
+			if (!onFloor || mayJump || factor <= 0.1f) {
 				return;
 			}
 			if (Physics.SphereCast(new Ray(transform.position + Vector3.up * (capsule.center.y + capsule.height * 0.5f - capsule.radius * 2f), Vector3.up), capsule.radius, capsule.radius + 0.35f)) {
@@ -96,31 +97,42 @@ namespace RatKing.Base {
 			var d = capsule.radius + legHeight;
 			var r = (capsule.radius - 0.01f);
 			var c = pos + Vector3.up * (capsule.center.y - h + r);
-			var dist = 1000f;
+			float dist = 1000f;
 			RaycastHit hit;
-			onFloor = false;
+			r *= innerCircleFactor;
+			var normal = Vector3.zero;
+			//var smallestDist = 1000f;
+			// check if the creature hits the floor by casting rays
 			for (int i = 0; i <= numRays; ++i) {
-				float f = 2f * Mathf.PI * (float)i / (float)numRays;
-				r *= innerCircleFactor;
-				Vector3 p = c + ((i == numRays) ? Vector3.zero : new Vector3(Mathf.Sin(f) * r, 0f, Mathf.Cos(f) * r));
-				float d2 = d + floorDepth;
-				if (!Physics.Raycast(p, Vector3.down, out hit, d2, floorLayerMask)) {
-					continue;
+				Vector3 p = c;
+				if (i != numRays) {
+					float f = 2f * Mathf.PI * i / numRays;
+					p += new Vector3(Mathf.Sin(f) * r, 0f, Mathf.Cos(f) * r);
 				}
-				if (Vector3.Angle(hit.normal, Vector3.up) < slopeMax) {
-					onFloor = true;
-					if (hit.distance < dist) dist = hit.distance;
+				if (Physics.Raycast(p, Vector3.down, out hit, d + floorDepth, floorLayerMask, QueryTriggerInteraction.Ignore)) {
+					/*if (hit.distance < d)*/ { normal += hit.normal; }
+					var a = Vector3.Angle(hit.normal, Vector3.up);
+					//if (hit.distance < smallestDist) { smallestDist = hit.distance; }
+					if (a < slopeMax && hit.distance < dist) { dist = hit.distance; }
 				}
 			}
-
+#if UNITY_EDITOR
+			Debug.DrawRay(c, normal.normalized * 2f, Color.white);
+#endif
 			float diff = dist - d;
-			if (onFloor && diff > legHeight) { // 0f)
-				onFloor = false;
+			onFloor = diff <= legHeight;
+			mayJump = jumping > 0f;
+			if (!onFloor && normal.sqrMagnitude > 0f) {
+				if (Vector3.Angle(normal, Vector3.up) < slopeMax) {
+				// failsave when stuck between two very steep slopes
+					//dist = smallestDist;
+					diff = legHeight * 0.5f; // legHeight; // dist - d;
+					onFloor = true;
+					//mayJump = false;
+				}
 			}
-
-			//if (jumping && onFloor) onFloor = false;
-			//else if (jumping && !onFloor) jumping = false;
-			if (jumping > 0f) {
+			if (mayJump) {
+				// in order to prevent sliding on slopes (upwards), give jumping a bit of time
 				jumping -= Time.deltaTime;
 				onFloor = false;
 			}
