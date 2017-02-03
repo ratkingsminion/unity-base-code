@@ -40,7 +40,7 @@ namespace RatKing.Base {
 			//
 			public static bool operator ==(Vertex a, Vertex b) { return a.index == b.index && a.info == b.info; }
 			public static bool operator !=(Vertex a, Vertex b) { return a.index != b.index || a.info != b.info; }
-			public override bool Equals(object o) { try { return (this == (Vertex)o); } catch { return false; } }
+			public override bool Equals(object o) { return (o is Vertex) && (Vertex)o == this; }
 			public override int GetHashCode() { return base.GetHashCode(); }
 			public override string ToString() { return index + ", " + info.trans.name; }
 		}

@@ -167,7 +167,7 @@ namespace RatKing.Base {
 		public static ImmutablePosition2 up    = new ImmutablePosition2(0, 1);
 		public static ImmutablePosition2 down  = new ImmutablePosition2(0, -1);
 		//
-		public override bool Equals(object o) { try { return (bool)(this == (ImmutablePosition2)o); } catch { return false; } }
+		public override bool Equals(object o) { var p = (ImmutablePosition2)o; return p == this; }
 		public override int GetHashCode() { return base.GetHashCode(); } // TODO change
 		public override string ToString() { return x + ", " + y; }
 		//
@@ -217,7 +217,7 @@ namespace RatKing.Base {
 		public static Position2 up { get { return new Position2(0, 1); } }
 		public static Position2 down { get { return new Position2(0, -1); } }
 		//
-		public override bool Equals(object o) { try { return (bool)(this == (Position2)o); } catch { return false; } }
+		public override bool Equals(object o) { var p = (Position2)o; return p == this; }
 		public override int GetHashCode() { return base.GetHashCode(); }
 		public override string ToString() { return x + ", " + y; }
 		//
