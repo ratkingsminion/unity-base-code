@@ -12,6 +12,23 @@ namespace RatKing.Base.Helpers {
 			int b = int.Parse(hexCode.Substring(5, 2), System.Globalization.NumberStyles.HexNumber);
 			return new Color((float)r / 255f, (float)g / 255f, (float)b / 255f, 1f);
 		}
+		// from http://wiki.unity3d.com/index.php?title=HexConverter
+		static char GetHex(int d) {
+			return "0123456789ABCDEF"[d];
+		}
+		public static string RGBToHex(Color color) {
+			var red = color.r * 255;
+			var green = color.g * 255;
+			var blue = color.b * 255;
+			var a = GetHex(Mathf.FloorToInt(red / 16));
+			var b = GetHex(Mathf.RoundToInt(red % 16));
+			var c = GetHex(Mathf.FloorToInt(green / 16));
+			var d = GetHex(Mathf.RoundToInt(green % 16));
+			var e = GetHex(Mathf.FloorToInt(blue / 16));
+			var f = GetHex(Mathf.RoundToInt(blue % 16));
+
+			return "#" + a + b + c + d + e + f;
+		}
 		//
 		public static bool Approx(this Color c1, Color c2, float epsilon = 0.01f) {
 			return c1.r < c2.r + epsilon && c1.r > c2.r - epsilon &&
