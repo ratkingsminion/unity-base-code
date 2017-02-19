@@ -82,7 +82,15 @@ namespace RatKing.Base {
 				StartCoroutine(FollowCR());
 			}
 
+#if UNITY_5_5 || UNITY_5_6
+			var minMax = particles.main.startDelay;
+			yield return new WaitForSeconds(
+				minMax.mode == ParticleSystemCurveMode.Constant ? minMax.constant :
+				minMax.mode == ParticleSystemCurveMode.TwoConstants ? minMax.constantMax :
+				3f); // meh
+#else
 			yield return new WaitForSeconds(particles.startDelay);
+#endif
 			var wait = new WaitForSeconds(0.25f);
 
 			for (;;) {

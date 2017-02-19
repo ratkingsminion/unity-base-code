@@ -1,4 +1,5 @@
 ﻿// #define DEBUG_AO
+// #define USE_BETTER_COROUTINES
 
 using UnityEngine;
 using System.Collections;
@@ -8,7 +9,11 @@ using System.Collections.Generic;
 
 namespace RatKing.Base {
 
+#if USE_BETTER_COROUTINES
 	public class AmbientOcclusion {
+#else 
+	public class AmbientOcclusion : MonoBehaviour {
+#endif
 		public enum NormalAveragation {
 			None,
 			Standard,
@@ -383,7 +388,12 @@ namespace RatKing.Base {
 
 		//
 
+#if USE_BETTER_COROUTINES
 		static MovementEffects.CoroutineHandle handle;
+#else
+		static AmbientOcclusion instance;
+		static Coroutine handle;
+#endif
 		static int subNumOverall, subNumDone;
 
 		static void DrawBar() {
@@ -396,12 +406,21 @@ namespace RatKing.Base {
 		}
 
 		public static void Generate(GameObject[] subjects) {
-			if (MovementEffects.Timing.KillCoroutines(handle) == 0) {
-				Base.QuickIMGUI.Add(DrawBar);
-			}
+#if USE_BETTER_COROUTINES
+			if (MovementEffects.Timing.KillCoroutines(handle) == 0) { Base.QuickIMGUI.Add(DrawBar); }
 			handle = MovementEffects.Timing.RunCoroutine(GenerateCR(subjects), MovementEffects.Segment.Update);
 		}
 		static IEnumerator<float> GenerateCR(GameObject[] subjects) {
+#else
+			if (instance == null) {
+				instance = new GameObject("<AO Instance>").AddComponent<AmbientOcclusion>();
+			}
+			Base.QuickIMGUI.Remove("Base.AODrawBar");
+			Base.QuickIMGUI.Add("Base.AODrawBar", DrawBar);
+			instance.StartCoroutine(instance.GenerateCR(subjects));
+		}
+		IEnumerator GenerateCR(GameObject[] subjects) {
+#endif
 			subNumDone = 0;
 			subNumOverall = subjects.Length;
 			var infos = new List<TempInfo>(subNumOverall);
@@ -432,11 +451,19 @@ namespace RatKing.Base {
 						AverageNormals(info_iter.Current);
 					}
 					ShootRays(info_iter.Current, rays);
+#if USE_BETTER_COROUTINES
 					yield return 0f;
+#else
+					yield return null;
+#endif
 				}
 			}
 
+#if USE_BETTER_COROUTINES
 			Base.QuickIMGUI.Remove(DrawBar);
+#else
+			Base.QuickIMGUI.Remove("Base.AODrawBar");
+#endif
 		}
 	}
 
