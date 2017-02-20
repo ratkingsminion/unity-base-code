@@ -18,6 +18,7 @@ namespace RatKing.Base {
 		static void CreateInstance() {
 			if (inst != null) { return; }
 			var go = new GameObject("<Quick IM GUI>");
+			DontDestroyOnLoad(go);
 			inst = go.AddComponent<QuickIMGUI>();
 			//
 			byIDs = new Dictionary<string, System.Action>();
@@ -30,7 +31,7 @@ namespace RatKing.Base {
 
 		public static void Add(System.Action onDraw) {
 			if (onDraw == null) { return; }
-			if (inst == null) { CreateInstance(); }
+			CreateInstance();
 			if (OnDraw == null) { inst.gameObject.SetActive(true); }
 			OnDraw += onDraw;
 		}
@@ -43,7 +44,7 @@ namespace RatKing.Base {
 
 		public static void Add(string ID, System.Action onDraw) {
 			if (string.IsNullOrEmpty(ID) || onDraw == null) { return; }
-			if (inst == null) { CreateInstance(); }
+			CreateInstance();
 			if (byIDs.ContainsKey(ID)) { Debug.LogError("Trying to add ID twice"); return; }
 			if (OnDraw == null) { inst.gameObject.SetActive(true); }
 			OnDraw += onDraw;
@@ -55,15 +56,16 @@ namespace RatKing.Base {
 			System.Action onDraw;
 			if (byIDs.TryGetValue(ID, out onDraw)) {
 				OnDraw -= onDraw;
+				//if (OnDraw == null) { gameObject.SetActive(false); }
 				byIDs.Remove(ID);
-				if (OnDraw == null) { inst.gameObject.SetActive(false); }
 			}
 		}
 
 		//
 
 		void OnGUI() {
-			OnDraw();
+			if (OnDraw == null) { gameObject.SetActive(false); }
+			else { OnDraw(); }
 		}
 	}
 
