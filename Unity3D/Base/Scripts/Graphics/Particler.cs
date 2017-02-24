@@ -15,20 +15,21 @@ namespace RatKing.Base {
 
 	public class Particler : MonoBehaviour {
 		[Tooltip("Can be null, will get the first ParticleSystem component.")]
-		public ParticleSystem particles;
-		[Tooltip("Changing this after creation will not result in anything.")]
-		public Transform follow;
-		public bool followWithoutRotation;
+		[SerializeField] ParticleSystem particles;
+		[Tooltip("Use Follow() to change during gameplay.")]
+		[SerializeField] Transform follow;
+		[SerializeField] bool followWithoutRotation;
 		//
 		Coroutine following;
+		Vector3 followOffset;
+		Quaternion startRotDelta;
 
 		//
 
 		public Particler Instantiate(Transform start, bool follow) {
 			var go = (GameObject)Instantiate(gameObject, start.position, start.rotation);
 			var bp = go.GetComponent<Particler>();
-			if (follow)
-				bp.follow = start;
+			if (follow) { bp.Follow(start, followWithoutRotation); }
 			return bp;
 		}
 
@@ -49,14 +50,18 @@ namespace RatKing.Base {
 
 		//
 
-		public void Follow(Transform follow) {
+		public void Follow(Transform follow, bool followWithoutRotation) {
+			this.followWithoutRotation = followWithoutRotation;
+			if (this.follow == null) {
+				StopAllCoroutines();
+			}
+			else {
+				StopCoroutine(following);
+			}
+			this.follow = follow;
 			if (follow != null) {
-				if (this.follow == null) {
-					StopAllCoroutines();
-				}
-				else {
-					StopCoroutine(following);
-				}
+				followOffset = follow.InverseTransformPoint(transform.position);
+				startRotDelta = Quaternion.Inverse(follow.rotation) * transform.rotation;
 				following = StartCoroutine(FollowCR());
 			}
 		}
@@ -82,13 +87,7 @@ namespace RatKing.Base {
 				StartCoroutine(FollowCR());
 			}
 
-#if UNITY_5_5 || UNITY_5_6
-			var minMax = particles.main.startDelay;
-			yield return new WaitForSeconds(
-				minMax.mode == ParticleSystemCurveMode.Constant ? minMax.constant :
-				minMax.mode == ParticleSystemCurveMode.TwoConstants ? minMax.constantMax :
-				3f); // meh
-#else
+#if !UNITY_5_5
 			yield return new WaitForSeconds(particles.startDelay);
 #endif
 			var wait = new WaitForSeconds(0.25f);
@@ -103,10 +102,8 @@ namespace RatKing.Base {
 
 		IEnumerator FollowCR() {
 			while (follow != null) {
-				transform.position = follow.position;
-				if (!followWithoutRotation) {
-					transform.rotation = follow.rotation;
-				}
+				transform.position = follow.TransformPoint(followOffset);
+				if (!followWithoutRotation) { transform.rotation = follow.rotation * startRotDelta; }
 
 				yield return null;
 			}
