@@ -32,8 +32,12 @@ namespace RatKing.Base {
 			if (inst != null) { return; }
 			var go = Camera.main.gameObject;
 			inst = go.AddComponent<QuickGizmos>();
-			boxMesh = GameObject.CreatePrimitive(PrimitiveType.Cube).GetComponent<MeshFilter>().mesh;
-			sphereMesh = GameObject.CreatePrimitive(PrimitiveType.Sphere).GetComponent<MeshFilter>().mesh;
+			var boxGO = GameObject.CreatePrimitive(PrimitiveType.Cube);
+			boxMesh = boxGO.GetComponent<MeshFilter>().mesh;
+			Destroy(boxGO);
+			var sphereGO = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+			sphereMesh = sphereGO.GetComponent<MeshFilter>().mesh;
+			Destroy(sphereGO);
 			material = new Material(Shader.Find("Legacy Shaders/Transparent/Diffuse"));
 		}
 
