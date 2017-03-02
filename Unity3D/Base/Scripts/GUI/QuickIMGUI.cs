@@ -56,16 +56,15 @@ namespace RatKing.Base {
 			System.Action onDraw;
 			if (byIDs.TryGetValue(ID, out onDraw)) {
 				OnDraw -= onDraw;
-				//if (OnDraw == null) { gameObject.SetActive(false); }
 				byIDs.Remove(ID);
+				if (OnDraw == null) { inst.gameObject.SetActive(false); }
 			}
 		}
 
 		//
 
 		void OnGUI() {
-			if (OnDraw == null) { gameObject.SetActive(false); }
-			else { OnDraw(); }
+			if (OnDraw != null) { OnDraw(); }
 		}
 	}
 
