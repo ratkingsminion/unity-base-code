@@ -123,7 +123,6 @@ namespace RatKing.Base {
 			if (inst == null) { return; }
 			for (int i = gizmos.Count - 1; i >= 0; --i) {
 				var g = gizmos[i];
-				if (g.renderInGame) { continue; }
 				Gizmos.matrix = g.matrix;
 				Gizmos.color = g.color;
 				switch (g.type) {
