@@ -31,7 +31,7 @@ namespace RatKing.Base.Helpers {
 			v.x = Mathf.Round(v.x * ie) * e;
 			v.y = Mathf.Round(v.y * ie) * e;
 			v.z = Mathf.Round(v.z * ie) * e;
-			return v.normalized;
+			return v;
 		}
 		public static Vector3 QuantizeFloor(Vector3 v, float e = 1f) {
 			float ie = 1f / e;
