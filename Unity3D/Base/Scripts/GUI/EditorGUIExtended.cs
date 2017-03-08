@@ -91,6 +91,16 @@ namespace RatKing.Base {
 
 		//
 
+		public static void GetPointOnBezier(Vector2[] points, float t, out Vector2 v) {
+			var mt = 1f - t;
+			var mt2 = mt*mt;
+			var mt3 = mt2*mt;
+			var t2 = t*t;
+			v = new Vector2();
+			v.x = points[0].x*mt3 + points[1].x*3*mt2*t + points[2].x*3*mt*t2 + points[3].x*t*t2;
+			v.y = points[0].y*mt3 + points[1].y*3*mt2*t + points[2].y*3*mt*t2 + points[3].y*t*t2;
+		}
+
 		public static bool IsRectInsideScreen(Rect rect) {
 			var min = GUIUtility.GUIToScreenPoint(new Vector2(rect.xMin, rect.yMin));
 			var max = GUIUtility.GUIToScreenPoint(new Vector2(rect.xMax, rect.yMax));
