@@ -57,6 +57,8 @@ namespace RatKing.Base {
 		public bool openAfterBuild;
 		[System.NonSerialized]
 		public bool ignorePDB = true;
+		[System.NonSerialized]
+		public bool packWinBinsAs7Zip = true;
 	}
 
 	//
@@ -165,6 +167,7 @@ namespace RatKing.Base {
 				settings.optionsMask = (BuildOptions)PlayerPrefs.GetInt("optionsmask", (int)settings.optionsMask);
 				settings.openAfterBuild = PlayerPrefs.GetInt("openafterbuild", settings.openAfterBuild ? 1 : 0) == 1;
 				settings.ignorePDB = PlayerPrefs.GetInt("ignorepdb", settings.ignorePDB ? 1 : 0) == 1;
+				settings.packWinBinsAs7Zip = PlayerPrefs.GetInt("packwinbinsas7z", settings.packWinBinsAs7Zip ? 1 : 0) == 1;
 			}
 			//
 			targets.Clear();
@@ -350,6 +353,7 @@ namespace RatKing.Base {
 
 				// build everything
 				if (countTrue > 0 && GUILayout.Button(countTrue == 1 ? "Build" : "Build All", GUILayout.Height(22f))) {
+					var startBuildTarget = EditorUserBuildSettings.activeBuildTarget;
 					string res = "";
 					for (var iter = targets.GetEnumerator(); iter.MoveNext();) {
 						var t = iter.Current.Value;
@@ -362,6 +366,7 @@ namespace RatKing.Base {
 						}
 					}
 					OpenAfter(countTrue > 1, res);
+					EditorUserBuildSettings.SwitchActiveBuildTarget(startBuildTarget);
 					EditorGUILayout.EndScrollView();
 					EditorGUIUtility.ExitGUI();
 					return;
@@ -379,9 +384,15 @@ namespace RatKing.Base {
 					PlayerPrefs.SetInt("ignorepdb", newIgnorePDB ? 1 : 0);
 				}
 
+				var newPackAs7Zip = GUILayout.Toggle(settings.packWinBinsAs7Zip, new GUIContent("Pack Windows binaries as .7z", ".7z packs a lot better than .zip, but not everybody owns a program being able to unpack it."));
+				if (settings.packWinBinsAs7Zip != newPackAs7Zip) {
+					settings.packWinBinsAs7Zip = newPackAs7Zip;
+					PlayerPrefs.SetInt("packwinbinsas7z", newPackAs7Zip ? 1 : 0);
+				}
+
 				if (File.Exists(sevenZipPath)) {
 
-					// pack (everything) - windows only for now
+					// pack (everything)
 					if (countTrue > 0 && GUILayout.Button(countTrue == 1 ? "Pack" : "Pack All", GUILayout.Height(22f))) {
 						// packing
 						for (var iter = targets.GetEnumerator(); iter.MoveNext();) {
@@ -397,8 +408,9 @@ namespace RatKing.Base {
 						return;
 					}
 
-					// build (everything) and pack - windows only for now
+					// build (everything) and pack
 					if (countTrue > 0 && GUILayout.Button(countTrue == 1 ? "Build and Pack" : "Build and Pack All", GUILayout.Height(22f))) {
+						var startBuildTarget = EditorUserBuildSettings.activeBuildTarget;
 						// building
 						string res = "";
 						for (var iter = targets.GetEnumerator(); iter.MoveNext();) {
@@ -413,6 +425,7 @@ namespace RatKing.Base {
 							}
 						}
 						OpenAfter(true, res != "" ? ".." : "");
+						EditorUserBuildSettings.SwitchActiveBuildTarget(startBuildTarget);
 						EditorGUILayout.EndScrollView();
 						EditorGUIUtility.ExitGUI();
 						return;
@@ -431,7 +444,23 @@ namespace RatKing.Base {
 				var assetPath = AssetDatabase.GetAssetPath(settings.includedFiles[i]);
 				var fileName = Path.GetFileName(assetPath);
 				var sourceName = Application.dataPath + "/../" + assetPath;
-				File.Copy(sourceName, path + fileName, true);
+				FileUtil.CopyFileOrDirectory(sourceName, path + fileName);
+				//File.Copy(sourceName, path + fileName, true);
+				RemoveMetaFiles(path + fileName);
+			}
+		}
+
+		static void RemoveMetaFiles(string dirName) {
+			// remove meta files if necessary
+			DirectoryInfo dir = new DirectoryInfo(dirName);
+			if (dir.Exists) {
+				FileInfo[] files = dir.GetFiles();
+				foreach (FileInfo file in files) {
+					if (Path.GetExtension(file.Name) == ".meta" || Path.GetExtension(file.Name) == ".gitignore") { FileUtil.DeleteFileOrDirectory(file.FullName); }
+				}
+				foreach (DirectoryInfo subdir in dir.GetDirectories()) {
+					RemoveMetaFiles(subdir.FullName);
+				}
 			}
 		}
 
@@ -464,12 +493,19 @@ namespace RatKing.Base {
 			switch (target) {
 				case BuildTarget.StandaloneWindows:
 				case BuildTarget.StandaloneWindows64:
-					format = "-t7z";
-					suffix = ".7z";
+					if (settings.packWinBinsAs7Zip) {
+						format = "-t7z";
+						suffix = ".7z";
+					}
+					else {
+						format = "";
+						suffix = ".zip";
+					}
 					break;
 				case BuildTarget.StandaloneOSXIntel:
 				case BuildTarget.StandaloneOSXIntel64:
 				case BuildTarget.StandaloneOSXUniversal:
+					format = "";
 					suffix = ".zip";
 					break;
 				case BuildTarget.StandaloneLinux:
@@ -494,7 +530,7 @@ namespace RatKing.Base {
 			proc.WaitForExit();
 
 			if (isLinux) {
-				var newPackedFile = packedFile + ".gzip";
+				var newPackedFile = packedFile + ".gz";
 				info = new ProcessStartInfo("\"" + sevenZipPath + "\"");
 				info.Arguments = "a -tgzip " + path + newPackedFile + " " + path + packedFile + ignorePDB;
 				proc = Process.Start(info);
