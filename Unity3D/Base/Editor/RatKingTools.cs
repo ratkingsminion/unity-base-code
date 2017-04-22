@@ -90,7 +90,11 @@ public class RatKingTools : EditorWindow {
 			// tex = (Texture2D)AssetDatabase.LoadAssetAtPath(path, typeof(Texture2D));
 
 			TextureImporter textureImporter = AssetImporter.GetAtPath(path) as TextureImporter;
+#if !UNITY_5_5
 			textureImporter.textureFormat = TextureImporterFormat.ARGB32;
+#else
+			textureImporter.textureCompression = TextureImporterCompression.Uncompressed;
+#endif
 			textureImporter.anisoLevel = 0;
 			AssetDatabase.ImportAsset(path);
 
