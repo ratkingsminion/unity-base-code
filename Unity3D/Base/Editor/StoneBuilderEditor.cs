@@ -366,7 +366,11 @@ namespace RatKing.Base {
 						}
 					}
 					OpenAfter(countTrue > 1, res);
+#if UNITY_5_6_OR_NEWER
+					EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Standalone, startBuildTarget);
+#else
 					EditorUserBuildSettings.SwitchActiveBuildTarget(startBuildTarget);
+#endif
 					EditorGUILayout.EndScrollView();
 					EditorGUIUtility.ExitGUI();
 					return;
@@ -425,14 +429,18 @@ namespace RatKing.Base {
 							}
 						}
 						OpenAfter(true, res != "" ? ".." : "");
+#if UNITY_5_6_OR_NEWER
+						EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Standalone, startBuildTarget);
+#else
 						EditorUserBuildSettings.SwitchActiveBuildTarget(startBuildTarget);
+#endif
 						EditorGUILayout.EndScrollView();
 						EditorGUIUtility.ExitGUI();
 						return;
 					}
 				}
 #endif
-			}
+					}
 
 			EditorGUILayout.EndScrollView();
 		}

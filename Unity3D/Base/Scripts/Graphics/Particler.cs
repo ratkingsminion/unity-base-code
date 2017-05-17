@@ -87,7 +87,7 @@ namespace RatKing.Base {
 				StartCoroutine(FollowCR());
 			}
 
-#if !UNITY_5_5
+#if !UNITY_5_5_OR_NEWER
 			yield return new WaitForSeconds(particles.startDelay);
 #endif
 			var wait = new WaitForSeconds(0.25f);

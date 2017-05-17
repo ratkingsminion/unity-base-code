@@ -6,6 +6,9 @@ namespace RatKing.Base.Helpers {
 	
 	public static class Math {
 		// vector3 stuff:
+		public static Vector3 Vec3Mul(Vector3 a, Vector3 b) {
+			return new Vector3(a.x * b.x, a.y * b.y, a.z * b.z);
+		}
 		public static Vector3 Rotate(Vector3 vector, Vector3 axis, float angle) {
 			return Quaternion.AngleAxis(angle, axis) * vector;
 		}
@@ -31,7 +34,7 @@ namespace RatKing.Base.Helpers {
 			v.x = Mathf.Round(v.x * ie) * e;
 			v.y = Mathf.Round(v.y * ie) * e;
 			v.z = Mathf.Round(v.z * ie) * e;
-			return v;
+			return v; //.normalized;
 		}
 		public static Vector3 QuantizeFloor(Vector3 v, float e = 1f) {
 			float ie = 1f / e;
@@ -164,6 +167,26 @@ namespace RatKing.Base.Helpers {
 		// from http://pastebin.com/NZrstYL4
 		public static Vector3 SuperLerp(Vector3 p0, Vector3 p1, Vector3 v0, Vector3 v1, float l) {
 			return Qarp(p0, (p0 + v0 * 0.5f + p1 - v1 * 0.5f) / 2f, p1, l);
+		}
+		//
+		// frame independent lerping
+		public static float FrinLerp(float a, float b, float t, float hertz = 60f) {
+			t = Mathf.Pow(1f - t, Time.unscaledDeltaTime * hertz);
+			return t * a + (1f - t) * b;
+		}
+		public static Vector3 FrinLerp(Vector3 a, Vector3 b, float t, float hertz = 60f) {
+			t = Mathf.Pow(1f - t, Time.unscaledDeltaTime * hertz);
+			return new Vector3(
+				t * a.x + (1f - t) * b.x,
+				t * a.y + (1f - t) * b.y,
+				t * a.z + (1f - t) * b.z
+				);
+		}
+		public static Quaternion FrinSlerp(Quaternion a, Quaternion b, float t, float hertz = 60f) {
+			return Quaternion.Slerp(a, b, 1f - Mathf.Pow(1f - t, Time.unscaledDeltaTime * hertz));
+		}
+		public static Quaternion FrinSlerpAdd(Quaternion a, Quaternion b, float t, float hertz = 60f) {
+			return Quaternion.Slerp(a, b * a, 1f - Mathf.Pow(1f - t, Time.unscaledDeltaTime * hertz));
 		}
 		//
 		public static bool Approx(this float f1, float f2, float epsilon = 0.01f) {
