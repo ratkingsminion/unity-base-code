@@ -27,7 +27,7 @@ namespace RatKing.Base.Helpers {
 				+ (t.Millisecond < 100 ? "0" : "") + (t.Millisecond < 10 ? "0" : "") + t.Millisecond;
 
 #if UNITY_WEBPLAYER
-#if UNITY_1_2017_AND_NEWER
+#if UNITY_2017_1_OR_NEWER
 			ScreenCapture.CaptureScreenshot(folder + "/" + prefix + "_" + time + ".png");
 #else
 			Application.CaptureScreenshot(folder + "/" + prefix + "_" + time + ".png");
@@ -39,7 +39,7 @@ namespace RatKing.Base.Helpers {
 				System.IO.Directory.CreateDirectory(Application.dataPath + "/../../" + folder);
 			}
 			var path = "Assets/../../" + folder + "/" + prefix + "_" + time;
-#if UNITY_1_2017_AND_NEWER
+#if UNITY_2017_1_OR_NEWER
 			ScreenCapture.CaptureScreenshot(path + ".png");
 #else
 			Application.CaptureScreenshot(path + ".png");
@@ -51,7 +51,7 @@ namespace RatKing.Base.Helpers {
 				System.IO.Directory.CreateDirectory(Application.dataPath + "/../" + folder);
 				
 			var path = Application.dataPath + p + folder + "/" + prefix + "_" + time;
-#if UNITY_1_2017_AND_NEWER
+#if UNITY_2017_1_OR_NEWER
 			ScreenCapture.CaptureScreenshot(path + ".png");
 #else
 			Application.CaptureScreenshot(path + ".png");
