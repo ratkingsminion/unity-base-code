@@ -1,15 +1,4 @@
-﻿#if UNITY_2_6 || UNITY_2_6_1 || UNITY_3_0 || UNITY_3_0_0 || UNITY_3_1 || UNITY_3_2 || UNITY_3_3 || UNITY_3_4 || UNITY_3_5 || UNITY_4_0 || UNITY_4_0_1 || UNITY_4_1 || UNITY_4_2 || UNITY_4_3 || UNITY_4_5 || UNITY_4_6 || UNITY_4_7
-	#define UNITY_OLD
-#else
-	#define UNITY_5
-#endif
-
-#if UNITY_5 && !UNITY_5_0 && !UNITY_5_1 && !UNITY_5_2
-	#define HAS_SCENEMANAGER
-#endif
-
-
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
 using System.Diagnostics;
 using System.Collections.Generic;
@@ -114,7 +103,7 @@ namespace RatKing.Base {
 		static void Init() {
 			targets.Clear();
 			var w = GetWindow(typeof(StoneBuilder));
-#if UNITY_5
+#if UNITY_5_0 || UNITY_5_1 || UNITY_5_2 || UNITY_5_3 || UNITY_5_3_OR_NEWER
 			w.titleContent = new GUIContent("Stone Builder");
 #else
 			w.title = "Stone Builder";
@@ -143,7 +132,7 @@ namespace RatKing.Base {
 			}
 			if (findSettings != null && findSettings.Length > 0) {
 				var path = AssetDatabase.GUIDToAssetPath(findSettings[0]);
-#if UNITY_5
+#if UNITY_5_0 || UNITY_5_1 || UNITY_5_2 || UNITY_5_3  || UNITY_5_3_OR_NEWER
 				settings = AssetDatabase.LoadAssetAtPath<StoneBuilderEditor>(path);
 #else
 				settings = (StoneBuilderEditor)AssetDatabase.LoadAssetAtPath(path, typeof(StoneBuilderEditor));
@@ -284,7 +273,7 @@ namespace RatKing.Base {
 				}
 			}
 			GUILayout.Label("Build options (" + optionsCount + "/" + optionsCountMax + "):");
-#if UNITY_5
+#if UNITY_5_0 || UNITY_5_1 || UNITY_5_2 || UNITY_5_3  || UNITY_5_3_OR_NEWER
 			var newOptionsMask = (BuildOptions)EditorGUILayout.EnumMaskPopup(GUIContent.none, settings.optionsMask);
 #else
 			var newOptionsMask = (BuildOptions)EditorGUILayout.EnumMaskField(settings.optionsMask);
@@ -568,7 +557,7 @@ namespace RatKing.Base {
 		/// <param name="options"></param>
 		/// <returns></returns>
 		public static string BuildGame(BuildTarget buildTarget, string buildTargetName, string suffix, BuildOptions options) {
-#if HAS_SCENEMANAGER
+#if UNITY_5_3 || UNITY_5_3_OR_NEWER
 			if (!UnityEditor.SceneManagement.EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) {
 #else
 			if (!EditorApplication.SaveCurrentSceneIfUserWantsTo()) {
@@ -576,7 +565,7 @@ namespace RatKing.Base {
 				return "";
 			}
 
-#if HAS_SCENEMANAGER
+#if UNITY_5_3 || UNITY_5_3_OR_NEWER
 			var openLevels = UnityEditor.SceneManagement.EditorSceneManager.GetSceneManagerSetup();
 #else
 			var openLevel = EditorApplication.currentScene;
@@ -612,7 +601,7 @@ namespace RatKing.Base {
 				return "";
 			}
 
-#if HAS_SCENEMANAGER
+#if UNITY_5_3 || UNITY_5_3_OR_NEWER
 			UnityEditor.SceneManagement.EditorSceneManager.RestoreSceneManagerSetup(openLevels);
 #else
 			if (EditorApplication.currentScene != openLevel) {

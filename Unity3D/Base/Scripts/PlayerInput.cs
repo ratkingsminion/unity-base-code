@@ -48,8 +48,8 @@ namespace RatKing.Base {
 		void Update() {
 			// move
 
-			creature.xFactor = Input.GetAxis("Horizontal");
-			creature.zFactor = Input.GetAxis("Vertical");
+			creature.FactorX = Input.GetAxis("Horizontal");
+			creature.FactorZ = Input.GetAxis("Vertical");
 
 			// jump
 
@@ -59,7 +59,7 @@ namespace RatKing.Base {
 			// look
 
 			if ((Application.isEditor || needRightPressed) && Input.GetMouseButton(1)) {
-#if UNITY_5
+#if UNITY_5_0 || UNITY_5_1 || UNITY_5_2 || UNITY_5_3 || UNITY_5_3_OR_NEWER
 				if (Cursor.visible) {
 					Cursor.visible = false;
 					Cursor.lockState = CursorLockMode.Locked;
@@ -75,7 +75,7 @@ namespace RatKing.Base {
 					smoothCam.localEulerAngles = new Vector3(pitch, 0f, 0f);
 			}
 			else {
-#if UNITY_5
+#if UNITY_5_0 || UNITY_5_1 || UNITY_5_2 || UNITY_5_3 || UNITY_5_3_OR_NEWER
 				if (!Cursor.visible) {
 					Cursor.visible = true;
 					Cursor.lockState = CursorLockMode.None;
@@ -92,7 +92,7 @@ namespace RatKing.Base {
 		}
 
 		void OnDestroy() {
-#if UNITY_5
+#if UNITY_5_0 || UNITY_5_1 || UNITY_5_2 || UNITY_5_3 || UNITY_5_3_OR_NEWER
 			Cursor.visible = true;
 			Cursor.lockState = CursorLockMode.None;
 #else

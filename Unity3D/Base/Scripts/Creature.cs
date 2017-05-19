@@ -1,14 +1,4 @@
-﻿#if UNITY_2_6 || UNITY_2_6_1 || UNITY_3_0 || UNITY_3_0_0 || UNITY_3_1 || UNITY_3_2 || UNITY_3_3 || UNITY_3_4 || UNITY_3_5 || UNITY_4_0 || UNITY_4_0_1 || UNITY_4_1 || UNITY_4_2 || UNITY_4_3 || UNITY_4_5 || UNITY_4_6 || UNITY_4_7
-#define UNITY_OLD
-#else
-#define UNITY_5
-#endif
-
-#if UNITY_5 && !UNITY_5_0 && !UNITY_5_1 && !UNITY_5_2
-#define PARTICLE_SYSTEM_UPDATE_5_3
-#endif
-
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -37,14 +27,14 @@ namespace RatKing.Base {
 		public GameObject soundWalk;
 		public float walkTime = 0.6f;
 		//
-		public float xFactor { get; set; }
-		public float zFactor { get; set; }
+		public float FactorX { get; set; }
+		public float FactorZ { get; set; }
 		[System.NonSerialized]
 		public float globalFactor = 1f;
 		//
-		public bool onFloor { get; private set; }
-		public Rigidbody rb { get; private set; }
-		public CapsuleCollider capsule { get; private set; }
+		public bool OnFloor { get; private set; }
+		public Rigidbody Rbody { get; private set; }
+		public CapsuleCollider Capsule { get; private set; }
 		//
 		float jumping = 0f;
 		bool mayJump;
@@ -72,19 +62,19 @@ namespace RatKing.Base {
 
 		void Awake() {
 			floorLayerMask = 1 << LayerMask.NameToLayer(floorLayerName);
-			capsule = GetComponentInChildren<CapsuleCollider>();
-			rb = GetComponent<Rigidbody>();
+			Capsule = GetComponentInChildren<CapsuleCollider>();
+			Rbody = GetComponent<Rigidbody>();
 		}
 
 		public void Jump(float factor = 1f) {
-			if (!onFloor || mayJump || factor <= 0.1f) {
+			if (!OnFloor || mayJump || factor <= 0.1f) {
 				return;
 			}
-			if (Physics.SphereCast(new Ray(transform.position + Vector3.up * (capsule.center.y + capsule.height * 0.5f - capsule.radius * 2f), Vector3.up), capsule.radius, capsule.radius + 0.35f)) {
+			if (Physics.SphereCast(new Ray(transform.position + Vector3.up * (Capsule.center.y + Capsule.height * 0.5f - Capsule.radius * 2f), Vector3.up), Capsule.radius, Capsule.radius + 0.35f)) {
 				return;
 			}
 			jumping = 0.08f; // time to jump, TODO should be calculated
-			rb.AddForce(transform.up * jumpForce * factor, ForceMode.Acceleration);
+			Rbody.AddForce(transform.up * jumpForce * factor, ForceMode.Acceleration);
 			if (soundJump != null) {
 				Instantiate(soundJump, transform.position, transform.rotation);
 			}
@@ -93,10 +83,10 @@ namespace RatKing.Base {
 		void FixedUpdate() {
 			// standing on floor?
 			var pos = transform.position;
-			var h = capsule.height * 0.5f; // - capsule.radius;
-			var d = capsule.radius + legHeight;
-			var r = (capsule.radius - 0.01f);
-			var c = pos + Vector3.up * (capsule.center.y - h + r);
+			var h = Capsule.height * 0.5f; // - capsule.radius;
+			var d = Capsule.radius + legHeight;
+			var r = (Capsule.radius - 0.01f);
+			var c = pos + Vector3.up * (Capsule.center.y - h + r);
 			float dist = 1000f;
 			RaycastHit hit;
 			r *= innerCircleFactor;
@@ -120,43 +110,43 @@ namespace RatKing.Base {
 			Debug.DrawRay(c, normal.normalized * 2f, Color.white);
 #endif
 			float diff = dist - d;
-			onFloor = diff <= legHeight;
+			OnFloor = diff <= legHeight;
 			mayJump = jumping > 0f;
-			if (!onFloor && normal.sqrMagnitude > 0f) {
+			if (!OnFloor && normal.sqrMagnitude > 0f) {
 				if (Vector3.Angle(normal, Vector3.up) < slopeMax) {
 				// failsave when stuck between two very steep slopes
 					//dist = smallestDist;
 					diff = legHeight * 0.5f; // legHeight; // dist - d;
-					onFloor = true;
+					OnFloor = true;
 					//mayJump = false;
 				}
 			}
 			if (mayJump) {
 				// in order to prevent sliding on slopes (upwards), give jumping a bit of time
 				jumping -= Time.deltaTime;
-				onFloor = false;
+				OnFloor = false;
 			}
 
 			if (floorDust != null) {
-#if PARTICLE_SYSTEM_UPDATE_5_3
+#if UNITY_5_3 || UNITY_5_3_OR_NEWER
 				var pe = floorDust.emission;
-				pe.enabled = onFloor && (new Vector2(rb.velocity.x, rb.velocity.z).sqrMagnitude > 10f);
+				pe.enabled = OnFloor && (new Vector2(Rbody.velocity.x, Rbody.velocity.z).sqrMagnitude > 10f);
 #else
 				floorDust.enableEmission = onFloor && (new Vector2(rb.velocity.x, rb.velocity.z).sqrMagnitude > 10f);
 #endif
 			}
-			if (onFloor) {
+			if (OnFloor) {
 				pos.y -= diff * (diff > 0f ? 1f : 0.25f);
 				transform.position = pos;
 
-				rb.velocity = Vector3.zero;
-				Vector2 input = new Vector2(xFactor, zFactor);
+				Rbody.velocity = Vector3.zero;
+				Vector2 input = new Vector2(FactorX, FactorZ);
 				Vector2 inputDir = input.normalized;
 				float inputLength = Mathf.Min(input.magnitude, 1f);
 				float inputAngle = Vector2.Angle(Vector2.up, inputDir);
 				float speed = inputAngle > 90f ? Mathf.Lerp(speedWalkSideways, speedWalkBackwards, (inputAngle - 90f) / 90f) : Mathf.Lerp(speedWalk, speedWalkSideways, inputAngle / 90f);
 				inputAngle *= Mathf.Deg2Rad;
-				float xSpeed = inputLength * Mathf.Sin(inputAngle) * speed * Mathf.Sign(xFactor);
+				float xSpeed = inputLength * Mathf.Sin(inputAngle) * speed * Mathf.Sign(FactorX);
 				float zSpeed = inputLength * Mathf.Cos(inputAngle) * speed;
 
 				Vector3 velocityChange = new Vector3(
@@ -165,7 +155,7 @@ namespace RatKing.Base {
 					zSpeed * globalFactor);
 
 				//rb.AddForce(transform.TransformDirection(velocityChange), ForceMode.VelocityChange);
-				rb.velocity = transform.TransformDirection(velocityChange);
+				Rbody.velocity = transform.TransformDirection(velocityChange);
 
 				if (xSpeed != 0f || zSpeed != 0f) {
 					if (walkTimer < Time.time) {
@@ -178,14 +168,14 @@ namespace RatKing.Base {
 			else {
 				if (moveInAirForceFactor > 0f) {
 					//rb.velocity = Vector3.zero;
-					Vector2 speedDir = new Vector2(xFactor, zFactor).normalized;
+					Vector2 speedDir = new Vector2(FactorX, FactorZ).normalized;
 					Vector3 velocityChange = new Vector3(
-						xFactor * Mathf.Abs(speedDir.x) * speedWalkSideways * globalFactor * moveInAirForceFactor,
+						FactorX * Mathf.Abs(speedDir.x) * speedWalkSideways * globalFactor * moveInAirForceFactor,
 						0f,
-						zFactor * Mathf.Abs(speedDir.y) * (zFactor > 0f ? speedWalk : speedWalkBackwards) * globalFactor * moveInAirForceFactor);
-					rb.AddForce(transform.TransformDirection(velocityChange), ForceMode.Force);
+						FactorZ * Mathf.Abs(speedDir.y) * (FactorZ > 0f ? speedWalk : speedWalkBackwards) * globalFactor * moveInAirForceFactor);
+					Rbody.AddForce(transform.TransformDirection(velocityChange), ForceMode.Force);
 				}
-				rb.velocity *= 0.98f;
+				Rbody.velocity *= 0.98f;
 			}
 
 		}

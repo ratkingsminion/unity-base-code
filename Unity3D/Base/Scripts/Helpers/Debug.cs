@@ -27,7 +27,10 @@ namespace RatKing.Base.Helpers {
 				+ (t.Millisecond < 100 ? "0" : "") + (t.Millisecond < 10 ? "0" : "") + t.Millisecond;
 
 #if UNITY_WEBPLAYER
+			ScreenCapture.CaptureScreenshot(folder + "/" + prefix + "_" + time + ".png");
+#else
 			Application.CaptureScreenshot(folder + "/" + prefix + "_" + time + ".png");
+#endif
 #else
 
 #if UNITY_EDITOR
@@ -35,7 +38,10 @@ namespace RatKing.Base.Helpers {
 				System.IO.Directory.CreateDirectory(Application.dataPath + "/../../" + folder);
 			}
 			var path = "Assets/../../" + folder + "/" + prefix + "_" + time;
+			ScreenCapture.CaptureScreenshot(path + ".png");
+#else
 			Application.CaptureScreenshot(path + ".png");
+#endif
 			inst.StartCoroutine(inst.CreateScreenshotCR(path));
 #else
 			string p = Application.platform == RuntimePlatform.OSXPlayer ? "/../../" : "/../";
@@ -43,7 +49,10 @@ namespace RatKing.Base.Helpers {
 				System.IO.Directory.CreateDirectory(Application.dataPath + "/../" + folder);
 				
 			var path = Application.dataPath + p + folder + "/" + prefix + "_" + time;
+			ScreenCapture.CaptureScreenshot(path + ".png");
+#else
 			Application.CaptureScreenshot(path + ".png");
+#endif
 			inst.StartCoroutine(inst.CreateScreenshotCR(path));
 #endif
 		}

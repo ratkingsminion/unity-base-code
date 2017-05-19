@@ -26,8 +26,8 @@ namespace RatKing.Base {
 			myself = go.AddComponent<Music>();
 			for (int i = 0; i < 2; ++i) {
 				sources[i] = go.AddComponent<AudioSource>();
-#if !UNITY_5
-				source[i].panLevel = 0f;
+#if !UNITY_5_0 && !UNITY_5_1 && !UNITY_5_2 && !UNITY_5_3 && !UNITY_5_3_OR_NEWER
+				sources[i].panLevel = 0f;
 #else
 				sources[i].spatialBlend = 0f;
 #endif
