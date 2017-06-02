@@ -42,6 +42,7 @@ namespace RatKing.Base.Helpers {
 		}
 
 		public static string Escape(this string text) {
+			if (string.IsNullOrEmpty(text)) { return text; }
 			return text.Replace("\\", "\\\\").Replace("\r\n", "\\n").Replace("\r", "\\r").Replace("\n", "\\n").Replace("\t", "\\t");
 		}
 	}
