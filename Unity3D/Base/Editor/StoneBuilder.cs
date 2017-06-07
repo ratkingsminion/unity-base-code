@@ -1,57 +1,40 @@
-﻿using UnityEngine;
+﻿#if UNITY_2_6 || UNITY_2_6_1 || UNITY_3_0 || UNITY_3_0_0 || UNITY_3_1 || UNITY_3_2 || UNITY_3_3 || UNITY_3_4 || UNITY_3_5 || UNITY_4_0 || UNITY_4_0_1 || UNITY_4_1 || UNITY_4_2 || UNITY_4_3 || UNITY_4_5 || UNITY_4_6 || UNITY_4_7
+	#define UNITY_OLD
+#else
+	#define UNITY_5
+#endif
+
+#if UNITY_5 && !UNITY_5_0 && !UNITY_5_1 && !UNITY_5_2
+	#define HAS_SCENEMANAGER
+#endif
+
+using UnityEngine;
 using UnityEditor;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.IO;
 
-// STONE BUILDER v0.5
+// STONE BUILDER v0.6
 // Standalone build editor for Unity
-// 2015 (c) ratking (www.ratking.de)
+// 2015-2017 (c) ratking (www.ratking.de)
 
 // open Stone Builder via Tools -> Stone Builder
 
 // TODO: don't pack if build was cancelled
 // TODO: don't pack if target directory was not found (relevant for "Pack" button)
-// TODO: clean target folder before build (because of removed additional files)
 // TODO: also remove "additional files" and "levels" that are missing
-// TODO: target format of packing should be choosable
 // TODO: enable packing on mac, and even linux
 // TODO: option for autoincreasing version number?
 
+// changes 0.6
+//	 can create .bat file now
+//	 can create itch.io build script now
+//	 can add files/folders into their correct sub-dir now
 // changes 0.5
-// added tooltips
-// directory gets cleaned before build (because additional files might have been removed)
+//	 added tooltips
+//	 directory gets cleaned before build (because additional files might have been removed)
 
 namespace RatKing.Base {
-
-	[System.Serializable]
-	public class StoneBuilderEditor : ScriptableObject {
-		// saved in file (ie. gets versioned):
-		public string gameShortName = "AppName";
-		public string subfolderName = "GameFolder";
-		[SerializeField,]
-		public List<Object> levels = new List<Object>();
-		[SerializeField]
-		public Object[] includedFiles = new Object[0];
-		// saved in playerprefs (ie. individual for each workstation):
-		[System.NonSerialized]
-		public string version = "0.0.1";
-		[System.NonSerialized]
-		public string buildPath = "C:/BUILDS";
-		[System.NonSerialized]
-		public List<bool> targetsActive = new List<bool>();
-		[System.NonSerialized]
-		public BuildOptions optionsMask;
-		[System.NonSerialized]
-		public bool openAfterBuild;
-		[System.NonSerialized]
-		public bool ignorePDB = true;
-		[System.NonSerialized]
-		public bool packWinBinsAs7Zip = true;
-	}
-
-	//
-	//
 
 	public class StoneBuilder : EditorWindow {
 		class Target {
@@ -60,14 +43,18 @@ namespace RatKing.Base {
 			public string name;
 			public string save;
 			public string shortPath;
+			public string itchName;
+			public int itchVal;
 			public BuildTarget target;
 			public string suffix;
-			public static void Add(string name, string save, string shortPath, BuildTarget target, string suffix, bool active) {
+			public static void Add(string name, string save, string shortPath, string itchName, int itchVal, BuildTarget target, string suffix, bool active) {
 				targets[save] = new Target() {
 					index = indexer,
 					name = name,
 					save = save,
 					shortPath = shortPath,
+					itchName = itchName,
+					itchVal = itchVal,
 					target = target,
 					suffix = suffix
 				};
@@ -94,7 +81,7 @@ namespace RatKing.Base {
 		static string sevenZipPath = "C:\\Program Files\\7-Zip\\7z.exe";
 		//
 		static bool showTargets;
-		[SerializeField] static StoneBuilderEditor settings;
+		[SerializeField] static StoneBuilderSettings settings;
 		static SerializedObject settingsObj;
 
 		//
@@ -103,7 +90,7 @@ namespace RatKing.Base {
 		static void Init() {
 			targets.Clear();
 			var w = GetWindow(typeof(StoneBuilder));
-#if UNITY_5_0 || UNITY_5_1 || UNITY_5_2 || UNITY_5_3 || UNITY_5_3_OR_NEWER
+#if UNITY_5
 			w.titleContent = new GUIContent("Stone Builder");
 #else
 			w.title = "Stone Builder";
@@ -117,23 +104,23 @@ namespace RatKing.Base {
 			if (settingsObj != null) {
 				return;
 			}
-			var findSettings = AssetDatabase.FindAssets("StoneBuilderSettings");
+			var findSettings = AssetDatabase.FindAssets("StoneBuilderSavedSettings");
 			if (findSettings == null || findSettings.Length == 0) {
-				StoneBuilderEditor asset = ScriptableObject.CreateInstance<StoneBuilderEditor>();
+				StoneBuilderSettings asset = CreateInstance<StoneBuilderSettings>();
 				if (asset != null) {
-					asset.name = "StoneBuilderSettings";
+					asset.name = "StoneBuilderSavedSettings";
 					if (!Directory.Exists(Application.dataPath + "/Resources")) {
 						Directory.CreateDirectory(Application.dataPath + "/Resources");
 					}
-					AssetDatabase.CreateAsset(asset, "Assets/Resources/StoneBuilderSettings.asset");
+					AssetDatabase.CreateAsset(asset, "Assets/Resources/StoneBuilderSavedSettings.asset");
 					AssetDatabase.SaveAssets();
 				}
-				findSettings = AssetDatabase.FindAssets("StoneBuilderSettings");
+				findSettings = AssetDatabase.FindAssets("StoneBuilderSavedSettings");
 			}
 			if (findSettings != null && findSettings.Length > 0) {
 				var path = AssetDatabase.GUIDToAssetPath(findSettings[0]);
-#if UNITY_5_0 || UNITY_5_1 || UNITY_5_2 || UNITY_5_3  || UNITY_5_3_OR_NEWER
-				settings = AssetDatabase.LoadAssetAtPath<StoneBuilderEditor>(path);
+#if UNITY_5
+				settings = AssetDatabase.LoadAssetAtPath<StoneBuilderSettings>(path);
 #else
 				settings = (StoneBuilderEditor)AssetDatabase.LoadAssetAtPath(path, typeof(StoneBuilderEditor));
 #endif
@@ -151,7 +138,6 @@ namespace RatKing.Base {
 			GetSettings();
 			sevenZipPath = EditorPrefs.GetString("sevenzippath", sevenZipPath);
 			if (settings != null) {
-				settings.version = PlayerPrefs.GetString("version", settings.version);
 				settings.buildPath = PlayerPrefs.GetString("buildpath", settings.buildPath);
 				settings.optionsMask = (BuildOptions)PlayerPrefs.GetInt("optionsmask", (int)settings.optionsMask);
 				settings.openAfterBuild = PlayerPrefs.GetInt("openafterbuild", settings.openAfterBuild ? 1 : 0) == 1;
@@ -161,14 +147,14 @@ namespace RatKing.Base {
 			//
 			targets.Clear();
 			Target.indexer = 0;
-			Target.Add("Windows 32 bit", "build win 32", "Win32", BuildTarget.StandaloneWindows, ".exe", true);
-			Target.Add("Windows 64 bit", "build win 64", "Win64", BuildTarget.StandaloneWindows64, ".exe", false);
-			Target.Add("Mac OSX 32 bit", "build osx 32", "OSX32", BuildTarget.StandaloneOSXIntel, ".exe", false);
-			Target.Add("Mac OSX 64 bit", "build osx 64", "OSX64", BuildTarget.StandaloneOSXIntel64, ".app", true);
-			Target.Add("Mac OSX Universal", "build osx uni", "OSX32+64", BuildTarget.StandaloneOSXUniversal, ".app", false);
-			Target.Add("Ubuntu 32 bit", "build lnx 32", "Ubuntu32", BuildTarget.StandaloneLinux, "", false);
-			Target.Add("Ubuntu 64 bit", "build lnx 64", "Ubuntu64", BuildTarget.StandaloneLinux64, "", true);
-			Target.Add("Ubuntu Universal", "build lnx uni", "Ubuntu32+64", BuildTarget.StandaloneLinuxUniversal, "", false);
+			Target.Add("Windows 32 bit", "build win 32", "Win32", "windows", 0, BuildTarget.StandaloneWindows, ".exe", true);
+			Target.Add("Windows 64 bit", "build win 64", "Win64", "windows", 1, BuildTarget.StandaloneWindows64, ".exe", false);
+			Target.Add("Mac OSX 32 bit", "build osx 32", "OSX32", "osx", 0, BuildTarget.StandaloneOSXIntel, ".exe", false);
+			Target.Add("Mac OSX 64 bit", "build osx 64", "OSX64", "osx", 1, BuildTarget.StandaloneOSXIntel64, ".app", true);
+			Target.Add("Mac OSX Universal", "build osx uni", "OSX32+64", "osx-universal", 0, BuildTarget.StandaloneOSXUniversal, ".app", false);
+			Target.Add("Ubuntu 32 bit", "build lnx 32", "Ubuntu32", "linux", 0, BuildTarget.StandaloneLinux, "", false);
+			Target.Add("Ubuntu 64 bit", "build lnx 64", "Ubuntu64", "linux", 1, BuildTarget.StandaloneLinux64, "", true);
+			Target.Add("Ubuntu Universal", "build lnx uni", "Ubuntu32+64", "linux-universal", 0, BuildTarget.StandaloneLinuxUniversal, "", false);
 			//
 			targetNames = new string[targets.Count];
 			int i = 0;
@@ -185,7 +171,7 @@ namespace RatKing.Base {
 		void TextArea(string label, ref string value, string saveInEditorPrevs = "", string saveInPlayerPrevs = "") {
 			GUILayout.BeginHorizontal();
 			GUILayout.Label(label, GUILayout.Width(90), GUILayout.ExpandWidth(false));
-			var newValue = GUILayout.TextField(value, GUILayout.Width(10), GUILayout.ExpandWidth(true));
+			var newValue = GUILayout.TextField(string.IsNullOrEmpty(value) ? "" : value, GUILayout.Width(10), GUILayout.ExpandWidth(true));
 			GUILayout.EndHorizontal();
 			if (newValue.Trim() != value) {
 				value = newValue.Trim();
@@ -213,7 +199,7 @@ namespace RatKing.Base {
 
 			TextArea("App Name", ref settings.gameShortName);
 			TextArea("Folder Name", ref settings.subfolderName);
-			TextArea("Version", ref settings.version, "", "version");
+			TextArea("Version", ref settings.version);
 			TextArea("Build path", ref settings.buildPath, "", "buildpath");
 
 			EditorGUILayout.Space();
@@ -273,7 +259,7 @@ namespace RatKing.Base {
 				}
 			}
 			GUILayout.Label("Build options (" + optionsCount + "/" + optionsCountMax + "):");
-#if UNITY_5_0 || UNITY_5_1 || UNITY_5_2 || UNITY_5_3  || UNITY_5_3_OR_NEWER
+#if UNITY_5
 			var newOptionsMask = (BuildOptions)EditorGUILayout.EnumMaskPopup(GUIContent.none, settings.optionsMask);
 #else
 			var newOptionsMask = (BuildOptions)EditorGUILayout.EnumMaskField(settings.optionsMask);
@@ -295,10 +281,9 @@ namespace RatKing.Base {
 
 			// choose files to add
 
-			//EditorGUIUtility.LookLikeInspector();
 			SerializedProperty filesProp = settingsObj.FindProperty("includedFiles");
 			EditorGUI.BeginChangeCheck();
-			EditorGUILayout.PropertyField(filesProp, new GUIContent("Additional files (" + (settings.includedFiles != null ? settings.includedFiles.Length : 0) + "):", "Files that will be added to the root folder after build, e.g. a readme.txt. To add a file, drag it onto this label!"), true, null);
+			EditorGUILayout.PropertyField(filesProp, new GUIContent("Additional files to root (" + (settings.includedFiles != null ? settings.includedFiles.Length : 0) + "):", "Files or dirs that will be added to the root folder after build, e.g. a readme.txt. To add a file or dir, drag it onto this label!"), true, null);
 			if (EditorGUI.EndChangeCheck()) {
 				settingsObj.ApplyModifiedProperties();
 				var newFiles = new List<Object>(settings.includedFiles);
@@ -306,9 +291,38 @@ namespace RatKing.Base {
 					//UnityEngine.Debug.Log("Add files by dragging them onto the label!");
 				}
 				settings.includedFiles = new List<Object>(new HashSet<Object>(newFiles)).ToArray();
+				
+				//var assetPath = AssetDatabase.GetAssetPath(settings.includedFiles[1]);
+				//UnityEngine.Debug.Log(assetPath);
+				//UnityEngine.Debug.Log(Application.dataPath);
 			}
-			//EditorGUIUtility.LookLikeControls();
 
+			SerializedProperty filesWDSProp = settingsObj.FindProperty("includedFilesWithDirStruct");
+			EditorGUI.BeginChangeCheck();
+			EditorGUILayout.PropertyField(filesWDSProp, new GUIContent("Additional files to original folder (" + (settings.includedFilesWithDirStruct != null ? settings.includedFilesWithDirStruct.Length : 0) + "):", "Files or dirs that will be added to their original folder after build. To add a file or dir, drag it onto this label!"), true, null);
+			if (EditorGUI.EndChangeCheck()) {
+				settingsObj.ApplyModifiedProperties();
+				var newFiles = new List<Object>(settings.includedFilesWithDirStruct);
+				newFiles.RemoveAll(o => o == null);
+				settings.includedFilesWithDirStruct = new List<Object>(new HashSet<Object>(newFiles)).ToArray();
+			}
+			
+			EditorGUILayout.Space();
+			
+			EditorGUILayout.LabelField("Batch Script");
+			settings.script = EditorGUILayout.TextArea(settings.script);
+
+			// itch io
+
+			EditorGUILayout.Space();
+
+			settings.createItchBat = GUILayout.Toggle(settings.createItchBat, "itch.io build script");
+			if (settings.createItchBat) {
+				TextArea("   User Name", ref settings.itchUsername);
+				TextArea("   Game Name", ref settings.itchGamename);
+				TextArea("   Add Tags", ref settings.itchAdditionalTags);
+			}
+			
 			EditorGUILayout.Space();
 
 			if (settings.buildPath == "" || settings.gameShortName == "" || settings.subfolderName == "" || settings.version == "") {
@@ -328,14 +342,16 @@ namespace RatKing.Base {
 							string res = BuildGame(t.target, t.shortPath, t.suffix, settings.optionsMask);
 							if (res != "") {
 								CopyAdditionalFiles(res);
+								CreateBatchScript(res, settings.script);
 								Process proc = new Process();
 								proc.StartInfo.FileName = res + settings.gameShortName + t.suffix;
 								proc.Start();
 							}
+							CreateItchScript(settings);
 							OpenAfter(false, res);
 							EditorGUILayout.EndScrollView();
 							EditorGUIUtility.ExitGUI();
-							return;
+							return; // <- only one!
 						}
 					}
 				}
@@ -352,8 +368,10 @@ namespace RatKing.Base {
 								break;
 							}
 							CopyAdditionalFiles(res);
+							CreateBatchScript(res, settings.script);
 						}
 					}
+					CreateItchScript(settings);
 					OpenAfter(countTrue > 1, res);
 #if UNITY_5_6_OR_NEWER
 					EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Standalone, startBuildTarget);
@@ -391,10 +409,13 @@ namespace RatKing.Base {
 						for (var iter = targets.GetEnumerator(); iter.MoveNext();) {
 							var t = iter.Current.Value;
 							if (t.GetActive()) {
-								CopyAdditionalFiles(settings.buildPath + "/" + settings.gameShortName + "-" + settings.version + "/" + t.shortPath + "/" + settings.subfolderName + "/");
+								var path = settings.buildPath + "/" + settings.gameShortName + "-" + settings.version + "/" + t.shortPath + "/" + settings.subfolderName + "/";
+								CopyAdditionalFiles(path);
+								CreateBatchScript(path, settings.script);
 								PackGame(t.shortPath, t.target);
 							}
 						}
+						CreateItchScript(settings);
 						OpenAfter(true, "..");
 						EditorGUILayout.EndScrollView();
 						EditorGUIUtility.ExitGUI();
@@ -414,9 +435,11 @@ namespace RatKing.Base {
 									break;
 								}
 								CopyAdditionalFiles(res);
+								CreateBatchScript(res, settings.script);
 								PackGame(t.shortPath, t.target);
 							}
 						}
+						CreateItchScript(settings);
 						OpenAfter(true, res != "" ? ".." : "");
 #if UNITY_5_6_OR_NEWER
 						EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Standalone, startBuildTarget);
@@ -437,16 +460,73 @@ namespace RatKing.Base {
 		//
 
 		static void CopyAdditionalFiles(string path) {
+			// those without dir struct
 			for (int i = 0; i < settings.includedFiles.Length; ++i) {
 				var assetPath = AssetDatabase.GetAssetPath(settings.includedFiles[i]);
 				var fileName = Path.GetFileName(assetPath);
-				var sourceName = Application.dataPath + "/../" + assetPath;
-				FileUtil.CopyFileOrDirectory(sourceName, path + fileName);
+				FileUtil.CopyFileOrDirectory(Application.dataPath + "/../" + assetPath, path + fileName);
 				//File.Copy(sourceName, path + fileName, true);
 				RemoveMetaFiles(path + fileName);
 			}
+			// those with dir struct
+			for (int i = 0; i < settings.includedFilesWithDirStruct.Length; ++i) {
+				var assetPath = AssetDatabase.GetAssetPath(settings.includedFilesWithDirStruct[i]);
+				var unassetPath = assetPath.Substring("Assets".Length);
+				var parentPath = Directory.GetParent(path + unassetPath).FullName;
+				if (!Directory.Exists(parentPath)) { Directory.CreateDirectory(parentPath); }
+				FileUtil.CopyFileOrDirectory(Application.dataPath + unassetPath, path + unassetPath);
+				RemoveMetaFiles(path + unassetPath);
+			}
+		}
+		
+		/// <summary>
+		/// user generated script file
+		/// </summary>
+		/// <param name="path"></param>
+		/// <param name="script"></param>
+		static void CreateBatchScript(string path, string script) {
+			if (string.IsNullOrEmpty(script)) { return; }
+			script = script.Trim();
+			if (script == "") { return; }
+			//script += "\r\ndel ____script.bat";
+			path += "/____script.bat";
+			File.WriteAllText(path, script);
+			var proc = Process.Start(path);
+			proc.WaitForExit();
+			File.Delete(path);
 		}
 
+		/// <summary>
+		/// ITCH IO
+		/// </summary>
+		/// <param name="settings"></param>
+		static void CreateItchScript(StoneBuilderSettings settings) {
+			var s = settings;
+			if (!s.createItchBat) { return; }
+			string path = settings.buildPath + "/" + settings.gameShortName + "-" + settings.version + "/publish_to_itch.bat";
+			string script = "";
+			List<Target> activeTargets = new List<Target>();
+			for (var iter = targets.GetEnumerator(); iter.MoveNext();) {
+				var t = iter.Current.Value;
+				if (t.GetActive()) {
+					activeTargets.RemoveAll(o => o.itchName == t.itchName && o.itchVal <= t.itchVal);
+					if (!activeTargets.Exists(o => o.itchName == t.itchName)) { activeTargets.Add(t); }
+				}
+			}
+			for (var iter = activeTargets.GetEnumerator(); iter.MoveNext(); ) {
+				var t = iter.Current;
+				if (script != "") { script += "\r\n"; }
+				var pat = settings.buildPath + "/" + settings.gameShortName + "-" + settings.version + "/" + t.shortPath + "/" + settings.subfolderName;
+				var tag = !string.IsNullOrEmpty(settings.itchAdditionalTags) ? ("-" + settings.itchAdditionalTags) : "";
+				script += "butler push " + pat + " " + settings.itchUsername + "/" + settings.itchGamename + ":" + t.itchName + tag + " --userversion " + settings.version;
+			}
+			File.WriteAllText(path, script);
+		}
+
+		/// <summary>
+		/// remove ".meta" stuff from unity
+		/// </summary>
+		/// <param name="dirName"></param>
 		static void RemoveMetaFiles(string dirName) {
 			// remove meta files if necessary
 			DirectoryInfo dir = new DirectoryInfo(dirName);
@@ -521,15 +601,17 @@ namespace RatKing.Base {
 			var ignorePDB = settings.ignorePDB ? " -r -x!*.pdb" : "";
 
 			// var info = new FileInfo("/Applications/TextEdit.app/Contents/MacOS/TextEdit");
-			ProcessStartInfo info = new ProcessStartInfo("\"" + sevenZipPath + "\"");
-			info.Arguments = "a " + format + " " + path + packedFile + " " + path + settings.subfolderName + "/" + ignorePDB;
+			ProcessStartInfo info = new ProcessStartInfo("\"" + sevenZipPath + "\"") {
+				Arguments = "a " + format + " " + path + packedFile + " " + path + settings.subfolderName + "/" + ignorePDB
+			};
 			var proc = Process.Start(info);
 			proc.WaitForExit();
 
 			if (isLinux) {
 				var newPackedFile = packedFile + ".gz";
-				info = new ProcessStartInfo("\"" + sevenZipPath + "\"");
-				info.Arguments = "a -tgzip " + path + newPackedFile + " " + path + packedFile + ignorePDB;
+				info = new ProcessStartInfo("\"" + sevenZipPath + "\"") {
+					Arguments = "a -tgzip " + path + newPackedFile + " " + path + packedFile + ignorePDB
+				};
 				proc = Process.Start(info);
 				proc.WaitForExit();
 				if (File.Exists(path + packedFile)) {
@@ -557,7 +639,7 @@ namespace RatKing.Base {
 		/// <param name="options"></param>
 		/// <returns></returns>
 		public static string BuildGame(BuildTarget buildTarget, string buildTargetName, string suffix, BuildOptions options) {
-#if UNITY_5_3 || UNITY_5_3_OR_NEWER
+#if HAS_SCENEMANAGER
 			if (!UnityEditor.SceneManagement.EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) {
 #else
 			if (!EditorApplication.SaveCurrentSceneIfUserWantsTo()) {
@@ -565,7 +647,7 @@ namespace RatKing.Base {
 				return "";
 			}
 
-#if UNITY_5_3 || UNITY_5_3_OR_NEWER
+#if HAS_SCENEMANAGER
 			var openLevels = UnityEditor.SceneManagement.EditorSceneManager.GetSceneManagerSetup();
 #else
 			var openLevel = EditorApplication.currentScene;
@@ -601,7 +683,7 @@ namespace RatKing.Base {
 				return "";
 			}
 
-#if UNITY_5_3 || UNITY_5_3_OR_NEWER
+#if HAS_SCENEMANAGER
 			UnityEditor.SceneManagement.EditorSceneManager.RestoreSceneManagerSetup(openLevels);
 #else
 			if (EditorApplication.currentScene != openLevel) {
