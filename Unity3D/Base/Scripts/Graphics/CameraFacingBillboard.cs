@@ -26,28 +26,23 @@ namespace RatKing.Base {
 				var camT = Camera.main.transform;
 				for (var iter = bbs.GetEnumerator(); iter.MoveNext(); ) {
 					var cur = iter.Current;
-					var targetPos = cur.transform.position - camT.forward * cur.rotator;
-					if (cur.upOnly) { targetPos.y = cur.transform.position.y; }
+					var targetPos = cur.transform.position - camT.forward;
+					if (cur.upOnly) { targetPos.y = cur.transform.position.y; } // TODO
 					cur.transform.LookAt(targetPos, camT.up);
+					cur.transform.Rotate(cur.additionalRotation); // TODO
 				}
 			}
 		}
 
 		//
 		[SerializeField] bool upOnly = true;
-		[SerializeField] bool rotate180 = true;
-		//
-		float rotator = 1f;
+		[SerializeField] Vector3 additionalRotation = Vector3.zero;
 
 		//
 
 		void Awake() {
 			if (mgr == null) { CamFaceBillboards.Create(); }
 			mgr.Add(this);
-		}
-
-		void Start() {
-			if (rotate180) { rotator = -1f; }
 		}
 
 		void OnDestroy() {
