@@ -171,7 +171,7 @@ namespace RatKing.Base {
 		void TextArea(string label, ref string value, string saveInEditorPrevs = "", string saveInPlayerPrevs = "") {
 			GUILayout.BeginHorizontal();
 			GUILayout.Label(label, GUILayout.Width(90), GUILayout.ExpandWidth(false));
-			var newValue = GUILayout.TextField(string.IsNullOrEmpty(value) ? "" : value, GUILayout.Width(10), GUILayout.ExpandWidth(true));
+			var newValue = EditorGUILayout.TextField(string.IsNullOrEmpty(value) ? "" : value, GUILayout.Width(10), GUILayout.ExpandWidth(true));
 			GUILayout.EndHorizontal();
 			if (newValue.Trim() != value) {
 				value = newValue.Trim();
