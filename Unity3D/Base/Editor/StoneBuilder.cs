@@ -171,7 +171,7 @@ namespace RatKing.Base {
 		void TextArea(string label, ref string value, string saveInEditorPrevs = "", string saveInPlayerPrevs = "") {
 			GUILayout.BeginHorizontal();
 			GUILayout.Label(label, GUILayout.Width(90), GUILayout.ExpandWidth(false));
-			var newValue = EditorGUILayout.TextField(string.IsNullOrEmpty(value) ? "" : value, GUILayout.Width(10), GUILayout.ExpandWidth(true));
+			var newValue = GUILayout.TextField(string.IsNullOrEmpty(value) ? "" : value, GUILayout.Width(10), GUILayout.ExpandWidth(true));
 			GUILayout.EndHorizontal();
 			if (newValue.Trim() != value) {
 				value = newValue.Trim();
@@ -180,6 +180,9 @@ namespace RatKing.Base {
 				}
 				if (saveInPlayerPrevs != "") {
 					PlayerPrefs.SetString(saveInPlayerPrevs, value);
+				}
+				else {
+					EditorUtility.SetDirty(settings);
 				}
 			}
 		}
@@ -325,7 +328,7 @@ namespace RatKing.Base {
 			
 			EditorGUILayout.Space();
 
-			if (settings.buildPath == "" || settings.gameShortName == "" || settings.subfolderName == "" || settings.version == "") {
+			if (string.IsNullOrEmpty(settings.buildPath) || string.IsNullOrEmpty(settings.gameShortName) || string.IsNullOrEmpty(settings.subfolderName) || string.IsNullOrEmpty(settings.version)) {
 				var color = GUI.color;
 				GUI.color = Color.red;
 				EditorGUILayout.LabelField("WARNING", EditorStyles.whiteLabel);
@@ -464,8 +467,8 @@ namespace RatKing.Base {
 			for (int i = 0; i < settings.includedFiles.Length; ++i) {
 				var assetPath = AssetDatabase.GetAssetPath(settings.includedFiles[i]);
 				var fileName = Path.GetFileName(assetPath);
+				if (File.Exists(path + fileName)) { FileUtil.DeleteFileOrDirectory(path + fileName); }
 				FileUtil.CopyFileOrDirectory(Application.dataPath + "/../" + assetPath, path + fileName);
-				//File.Copy(sourceName, path + fileName, true);
 				RemoveMetaFiles(path + fileName);
 			}
 			// those with dir struct
@@ -474,6 +477,7 @@ namespace RatKing.Base {
 				var unassetPath = assetPath.Substring("Assets".Length);
 				var parentPath = Directory.GetParent(path + unassetPath).FullName;
 				if (!Directory.Exists(parentPath)) { Directory.CreateDirectory(parentPath); }
+				if (File.Exists(path + unassetPath) || Directory.Exists(path + unassetPath)) { FileUtil.DeleteFileOrDirectory(path + unassetPath); }
 				FileUtil.CopyFileOrDirectory(Application.dataPath + unassetPath, path + unassetPath);
 				RemoveMetaFiles(path + unassetPath);
 			}
