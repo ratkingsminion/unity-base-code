@@ -170,8 +170,9 @@ namespace RatKing.Base {
 		/// </summary>
 		void TextArea(string label, ref string value, string saveInEditorPrevs = "", string saveInPlayerPrevs = "") {
 			GUILayout.BeginHorizontal();
-			GUILayout.Label(label, GUILayout.Width(90), GUILayout.ExpandWidth(false));
-			var newValue = GUILayout.TextField(string.IsNullOrEmpty(value) ? "" : value, GUILayout.Width(10), GUILayout.ExpandWidth(true));
+			//GUILayout.Label(label, GUILayout.Width(90), GUILayout.ExpandWidth(false));
+			//var newValue = GUILayout.TextField(string.IsNullOrEmpty(value) ? "" : value, GUILayout.Width(10), GUILayout.ExpandWidth(true));
+			var newValue = EditorGUILayout.TextField(label, string.IsNullOrEmpty(value) ? "" : value);
 			GUILayout.EndHorizontal();
 			if (newValue.Trim() != value) {
 				value = newValue.Trim();
@@ -199,10 +200,17 @@ namespace RatKing.Base {
 			}
 
 			scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
-
-			TextArea("App Name", ref settings.gameShortName);
-			TextArea("Folder Name", ref settings.subfolderName);
-			TextArea("Version", ref settings.version);
+			
+			EditorGUI.BeginChangeCheck();
+			//TextArea("App Name", ref settings.gameShortName);
+			//TextArea("Folder Name", ref settings.subfolderName);
+			//TextArea("Version", ref settings.version);
+			EditorGUILayout.PropertyField(settingsObj.FindProperty("gameShortName"), new GUIContent("App Name"));
+			EditorGUILayout.PropertyField(settingsObj.FindProperty("subfolderName"), new GUIContent("Folder Name"));
+			EditorGUILayout.PropertyField(settingsObj.FindProperty("version"), new GUIContent("Version"));
+			if (EditorGUI.EndChangeCheck()) {
+				settingsObj.ApplyModifiedProperties();
+			}
 			TextArea("Build path", ref settings.buildPath, "", "buildpath");
 
 			EditorGUILayout.Space();
@@ -220,9 +228,10 @@ namespace RatKing.Base {
 				for (var iter = targets.GetEnumerator(); iter.MoveNext();) {
 					var t = iter.Current.Value;
 					GUILayout.BeginHorizontal();
-					GUILayout.Label("", GUILayout.Width(20), GUILayout.ExpandWidth(false));
+					//GUILayout.Label("", GUILayout.Width(20), GUILayout.ExpandWidth(false));
 					var active = t.GetActive();
-					if (GUILayout.Toggle(active, t.name, GUILayout.Width(90), GUILayout.ExpandWidth(true)) != active) {
+					//if (GUILayout.Toggle(active, " " + t.name, GUILayout.Width(90), GUILayout.ExpandWidth(true)) != active) {
+					if (EditorGUILayout.Toggle("     " + t.name, active) != active) {
 						t.SetActive(active = !active);
 						countTrue += active ? -1 : 1;
 					}
@@ -274,7 +283,8 @@ namespace RatKing.Base {
 
 			EditorGUILayout.Space();
 
-			var newOpenAfterBuild = GUILayout.Toggle(settings.openAfterBuild, "Open folder afterwards");
+			//var newOpenAfterBuild = GUILayout.Toggle(settings.openAfterBuild, " Open folder afterwards");
+			var newOpenAfterBuild = EditorGUILayout.Toggle("Open folder afterwards", settings.openAfterBuild);
 			if (settings.openAfterBuild != newOpenAfterBuild) {
 				settings.openAfterBuild = newOpenAfterBuild;
 				PlayerPrefs.SetInt("openafterbuild", newOpenAfterBuild ? 1 : 0);
@@ -312,18 +322,31 @@ namespace RatKing.Base {
 			
 			EditorGUILayout.Space();
 			
+			EditorGUI.BeginChangeCheck();
 			EditorGUILayout.LabelField("Batch Script");
-			settings.script = EditorGUILayout.TextArea(settings.script);
+			//settings.script = EditorGUILayout.TextArea(settings.script);
+			EditorGUILayout.PropertyField(settingsObj.FindProperty("script"), GUIContent.none);
+			if (EditorGUI.EndChangeCheck()) {
+				settingsObj.ApplyModifiedProperties();
+			}
 
 			// itch io
 
 			EditorGUILayout.Space();
 
-			settings.createItchBat = GUILayout.Toggle(settings.createItchBat, "itch.io build script");
+			EditorGUI.BeginChangeCheck();
+			//settings.createItchBat = GUILayout.Toggle(settings.createItchBat, "itch.io build script");
+			EditorGUILayout.PropertyField(settingsObj.FindProperty("createItchBat"), new GUIContent("itch.io build script"));
 			if (settings.createItchBat) {
-				TextArea("   User Name", ref settings.itchUsername);
-				TextArea("   Game Name", ref settings.itchGamename);
-				TextArea("   Add Tags", ref settings.itchAdditionalTags);
+				//TextArea("   User Name", ref settings.itchUsername);
+				//TextArea("   Game Name", ref settings.itchGamename);
+				//TextArea("   Add Tags", ref settings.itchAdditionalTags);
+				EditorGUILayout.PropertyField(settingsObj.FindProperty("itchUsername"), new GUIContent("   User Name"));
+				EditorGUILayout.PropertyField(settingsObj.FindProperty("itchGamename"), new GUIContent("   Game Name"));
+				EditorGUILayout.PropertyField(settingsObj.FindProperty("itchAdditionalTags"), new GUIContent("   Add Tags"));
+			}
+			if (EditorGUI.EndChangeCheck()) {
+				settingsObj.ApplyModifiedProperties();
 			}
 			
 			EditorGUILayout.Space();
@@ -392,13 +415,15 @@ namespace RatKing.Base {
 
 				TextArea("Path of 7Zip", ref sevenZipPath, "sevenzippath");
 
-				var newIgnorePDB = GUILayout.Toggle(settings.ignorePDB, new GUIContent("Don't include PDB files", "PDB files have symbol tables, ie. are useful for debugging purposes. Normally not needed when distributing builds to clients."));
+				//var newIgnorePDB = GUILayout.Toggle(settings.ignorePDB, new GUIContent(" Don't include PDB files", "PDB files have symbol tables, ie. are useful for debugging purposes. Normally not needed when distributing builds to clients."));
+				var newIgnorePDB = EditorGUILayout.Toggle(new GUIContent("Don't include PDB files", "PDB files have symbol tables, ie. are useful for debugging purposes. Normally not needed when distributing builds to clients."), settings.ignorePDB);
 				if (settings.ignorePDB != newIgnorePDB) {
 					settings.ignorePDB = newIgnorePDB;
 					PlayerPrefs.SetInt("ignorepdb", newIgnorePDB ? 1 : 0);
 				}
 
-				var newPackAs7Zip = GUILayout.Toggle(settings.packWinBinsAs7Zip, new GUIContent("Pack Windows binaries as .7z", ".7z packs a lot better than .zip, but not everybody owns a program being able to unpack it."));
+				//var newPackAs7Zip = GUILayout.Toggle(settings.packWinBinsAs7Zip, new GUIContent(" Pack Windows binaries as .7z", ".7z packs a lot better than .zip, but not everybody owns a program being able to unpack it."));
+				var newPackAs7Zip = EditorGUILayout.Toggle(new GUIContent("Pack Win binaries as .7z", ".7z packs a lot better than .zip, but not everybody owns a program being able to unpack it."), settings.packWinBinsAs7Zip);
 				if (settings.packWinBinsAs7Zip != newPackAs7Zip) {
 					settings.packWinBinsAs7Zip = newPackAs7Zip;
 					PlayerPrefs.SetInt("packwinbinsas7z", newPackAs7Zip ? 1 : 0);
@@ -455,9 +480,14 @@ namespace RatKing.Base {
 					}
 				}
 #endif
-					}
+			}
 
 			EditorGUILayout.EndScrollView();
+
+			/*if (EditorGUI.EndChangeCheck()) {
+				settingsObj.ApplyModifiedProperties();
+				EditorUtility.SetDirty(settings);
+			}*/
 		}
 
 		//
