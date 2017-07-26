@@ -512,22 +512,24 @@ namespace RatKing.Base {
 				RemoveMetaFiles(path + unassetPath);
 			}
 		}
-		
+
 		/// <summary>
 		/// user generated script file
 		/// </summary>
 		/// <param name="path"></param>
 		/// <param name="script"></param>
 		static void CreateBatchScript(string path, string script) {
-			if (string.IsNullOrEmpty(script)) { return; }
 			script = script.Trim();
+			if (string.IsNullOrEmpty(script)) { return; }
 			if (script == "") { return; }
-			//script += "\r\ndel ____script.bat";
-			path += "/____script.bat";
-			File.WriteAllText(path, script);
-			var proc = Process.Start(path);
+			var filename = "____script.bat";
+			File.WriteAllText(path + "/" + filename, script);
+			var startInfo = new ProcessStartInfo(filename) {
+				WorkingDirectory = (path.Replace("/", "\\").TrimEnd(new[] { '\\' }) + "\\")
+			};
+			var proc = Process.Start(startInfo);
 			proc.WaitForExit();
-			File.Delete(path);
+			File.Delete(path + "/" + filename);
 		}
 
 		/// <summary>
