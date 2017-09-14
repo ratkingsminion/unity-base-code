@@ -6,6 +6,9 @@ namespace RatKing.Base.Helpers {
 	
 	public static class Math {
 		// vector3 stuff:
+		public static float GetManhattanDistance(this Vector3 a, Vector3 b) {
+			return (Mathf.Abs(b.x - a.x) + Mathf.Abs(b.y - a.y) + Mathf.Abs(b.z - a.z));
+		}
 		public static Vector3 Vec3Mul(Vector3 a, Vector3 b) {
 			return new Vector3(a.x * b.x, a.y * b.y, a.z * b.z);
 		}
