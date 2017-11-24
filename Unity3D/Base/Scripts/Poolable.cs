@@ -5,8 +5,12 @@ using System.Collections.Generic;
 namespace RatKing.Base {
 
 	public class Poolable : MonoBehaviour {
-		static Transform poolParent;
-		static Dictionary<Poolable, Stack<Poolable>> stackByPrefab = new Dictionary<Poolable, Stack<Poolable>>();
+		static Transform _poolParent;
+		static Dictionary<Poolable, Stack<Poolable>> _stackByPrefab = new Dictionary<Poolable, Stack<Poolable>>();
+		//
+		protected virtual string PoolParentName { get { return "Standard"; } }
+		protected virtual Transform PoolParent { get { return _poolParent; } set { _poolParent = value; } }
+		protected virtual Dictionary<Poolable, Stack<Poolable>> StackByPrefab { get { return _stackByPrefab; } set { } }
 		//
 		public int startCount = 10;
 		public int addCount = 1;
@@ -28,7 +32,7 @@ namespace RatKing.Base {
 			var go = (GameObject)Instantiate(original.gameObject);
 			switch (parenting) {
 				case Parenting.UsePoolParent:
-					go.transform.SetParent(poolParent);
+					go.transform.SetParent(PoolParent);
 					break;
 				case Parenting.UseOriginalParent:
 					go.transform.SetParent(original.transform.parent);
@@ -54,22 +58,22 @@ namespace RatKing.Base {
 			if (!isOriginal)
 				return;
 
-			if (stackByPrefab.ContainsKey(this)) {
+			if (StackByPrefab.ContainsKey(this)) {
 				return;
 				// Debug.LogWarning("Trying to manually prepare the Poolable " + name + " more than once! You should fix that!");
 			}
 
-			if (poolParent == null) {
-				poolParent = new GameObject("<Pool Parent>").transform;
-				GameObject.DontDestroyOnLoad(poolParent.gameObject);
-				poolParent.gameObject.SetActive(false);
+			if (PoolParent == null) {
+				PoolParent = new GameObject("<" + PoolParentName + " Pool>").transform;
+				GameObject.DontDestroyOnLoad(PoolParent.gameObject);
+				PoolParent.gameObject.SetActive(false);
 			}
 			original = this;
 
 			if (startCount < 0)
 				startCount = this.startCount;
 
-			var stack = stackByPrefab[original] = new Stack<Poolable>(startCount + 1);
+			var stack = StackByPrefab[original] = new Stack<Poolable>(startCount + 1);
 			for (int i = 0; i < startCount; ++i) {
 				CreateInstanceInPool(stack);
 			}
@@ -90,11 +94,11 @@ namespace RatKing.Base {
 		}
 
 		public Poolable PoolPop(Vector3 pos, Quaternion rot) {
-			if (original == null || !stackByPrefab.ContainsKey(original)) {
+			if (original == null || !StackByPrefab.ContainsKey(original)) {
 				PoolPrepare();
 			}
 
-			var stack = stackByPrefab[original];
+			var stack = StackByPrefab[original];
 
 			if (stack.Count == 0)
 				for (int i = 0; i < addCount; ++i)
@@ -104,6 +108,9 @@ namespace RatKing.Base {
 			switch (parenting) {
 				case Parenting.UsePoolParent:
 					t.SetParent(null);
+#if UNITY_EDITOR
+					PoolParent.name = "<" + PoolParentName + " Pool + " + PoolParent.childCount + ">";
+#endif
 					break;
 				case Parenting.UseOriginalParent:
 					t.SetParent(original.transform.parent);
@@ -132,14 +139,17 @@ namespace RatKing.Base {
 			}
 			switch (parenting) {
 				case Parenting.UsePoolParent:
-					transform.SetParent(poolParent);
+					transform.SetParent(PoolParent);
+#if UNITY_EDITOR
+					PoolParent.name = "<" + PoolParentName + " Pool " + PoolParent.childCount + ">";
+#endif
 					break;
 				case Parenting.UseOriginalParent:
 				case Parenting.DontChangeParent:
 					gameObject.SetActive(false);
 					break;
 			}
-			var stack = stackByPrefab[original];
+			var stack = StackByPrefab[original];
 			stack.Push(this);
 		}
 

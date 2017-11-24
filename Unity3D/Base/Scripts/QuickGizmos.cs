@@ -132,8 +132,8 @@ namespace RatKing.Base {
 				switch (g.type) {
 					case GizmoType.Box: Gizmos.DrawCube(Vector3.zero, Vector3.one); break;
 					case GizmoType.WiredBox: Gizmos.DrawWireCube(Vector3.zero, Vector3.one); break;
-					case GizmoType.Sphere: Gizmos.DrawSphere(Vector3.zero, 1f); break;
-					case GizmoType.WiredSphere: Gizmos.DrawWireSphere(Vector3.zero, 1f); break;
+					case GizmoType.Sphere: Gizmos.DrawSphere(Vector3.zero, 0.5f); break;
+					case GizmoType.WiredSphere: Gizmos.DrawWireSphere(Vector3.zero, 0.5f); break;
 				}
 			}
 		}
