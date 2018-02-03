@@ -19,22 +19,27 @@ namespace RatKing.Base.Helpers {
 			}
 		}
 		public static T GetRandomElement<T>(this HashSet<T> hs) {
-			int r = Random.Range(0, hs.Count);
-			foreach (T elem in hs)
-				if (r-- <= 0)
-					return elem;
+			if (hs.Count != 0) {
+				int r = Random.Range(0, hs.Count);
+				foreach (T elem in hs)
+					if (r-- <= 0)
+						return elem;
+			}
 			return default(T);
 		}
 
 		public static T GetRandomElement<T>(this List<T> ls) {
+			if (ls.Count == 0) { return default(T); }
 			return ls[Random.Range(0, ls.Count)];
 		}
 
 		public static KeyValuePair<U, T> GetRandomElement<U, T>(this Dictionary<U, T> ds) {
-			int r = Random.Range(0, ds.Count);
-			foreach (var elem in ds)
-				if (r-- <= 0)
-					return elem;
+			if (ds.Count != 0) {
+				int r = Random.Range(0, ds.Count);
+				foreach (var elem in ds)
+					if (r-- <= 0)
+						return elem;
+			}
 			return default(KeyValuePair<U, T>);
 		}
 		public static T GetFirstElement<T>(this HashSet<T> hs) {

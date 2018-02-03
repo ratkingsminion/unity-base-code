@@ -15,7 +15,7 @@ namespace RatKing.Base {
 
 		//
 
-		static void CreateInstance() {
+		public static void CreateInstance() {
 			if (inst != null) { return; }
 			var go = new GameObject("<Quick IM GUI>");
 			DontDestroyOnLoad(go);

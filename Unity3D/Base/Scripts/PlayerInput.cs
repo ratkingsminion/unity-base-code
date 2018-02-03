@@ -31,6 +31,8 @@ namespace RatKing.Base {
 			creature = creature == null ? GetComponentInChildren<Creature>() : creature;
 #if UNITY_WEBPLAYER
 			if (Application.platform == RuntimePlatform.OSXWebPlayer) {
+#elif UNITY_2017_1_OR_NEWER
+			if (Application.platform == RuntimePlatform.OSXPlayer)
 #else
 			if (Application.platform == RuntimePlatform.OSXPlayer || Application.platform == RuntimePlatform.OSXDashboardPlayer)
 #endif

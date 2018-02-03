@@ -90,7 +90,7 @@ namespace RatKing.Base {
 		static void Init() {
 			targets.Clear();
 			var w = GetWindow(typeof(StoneBuilder));
-#if UNITY_5
+#if UNITY_5 || UNITY_2017_1_OR_NEWER
 			w.titleContent = new GUIContent("Stone Builder");
 #else
 			w.title = "Stone Builder";
@@ -119,7 +119,7 @@ namespace RatKing.Base {
 			}
 			if (findSettings != null && findSettings.Length > 0) {
 				var path = AssetDatabase.GUIDToAssetPath(findSettings[0]);
-#if UNITY_5
+#if UNITY_5 || UNITY_2017_1_OR_NEWER
 				settings = AssetDatabase.LoadAssetAtPath<StoneBuilderSettings>(path);
 #else
 				settings = (StoneBuilderEditor)AssetDatabase.LoadAssetAtPath(path, typeof(StoneBuilderEditor));
@@ -149,9 +149,11 @@ namespace RatKing.Base {
 			Target.indexer = 0;
 			Target.Add("Windows 32 bit", "build win 32", "Win32", "windows", 0, BuildTarget.StandaloneWindows, ".exe", true);
 			Target.Add("Windows 64 bit", "build win 64", "Win64", "windows", 1, BuildTarget.StandaloneWindows64, ".exe", false);
+#if !UNITY_2017_3_OR_NEWER
 			Target.Add("Mac OSX 32 bit", "build osx 32", "OSX32", "osx", 0, BuildTarget.StandaloneOSXIntel, ".exe", false);
 			Target.Add("Mac OSX 64 bit", "build osx 64", "OSX64", "osx", 1, BuildTarget.StandaloneOSXIntel64, ".app", true);
-			Target.Add("Mac OSX Universal", "build osx uni", "OSX32+64", "osx-universal", 0, BuildTarget.StandaloneOSXUniversal, ".app", false);
+#endif
+			Target.Add("Mac OSX Universal", "build osx uni", "OSX32+64", "osx-universal", 0, BuildTarget.StandaloneOSX, ".app", false);
 			Target.Add("Ubuntu 32 bit", "build lnx 32", "Ubuntu32", "linux", 0, BuildTarget.StandaloneLinux, "", false);
 			Target.Add("Ubuntu 64 bit", "build lnx 64", "Ubuntu64", "linux", 1, BuildTarget.StandaloneLinux64, "", true);
 			Target.Add("Ubuntu Universal", "build lnx uni", "Ubuntu32+64", "linux-universal", 0, BuildTarget.StandaloneLinuxUniversal, "", false);
@@ -271,7 +273,9 @@ namespace RatKing.Base {
 				}
 			}
 			GUILayout.Label("Build options (" + optionsCount + "/" + optionsCountMax + "):");
-#if UNITY_5
+#if UNITY_2017_1_OR_NEWER
+			var newOptionsMask = (BuildOptions)EditorGUILayout.EnumFlagsField(GUIContent.none, settings.optionsMask);
+#elif UNITY_5
 			var newOptionsMask = (BuildOptions)EditorGUILayout.EnumMaskPopup(GUIContent.none, settings.optionsMask);
 #else
 			var newOptionsMask = (BuildOptions)EditorGUILayout.EnumMaskField(settings.optionsMask);
@@ -615,9 +619,11 @@ namespace RatKing.Base {
 						suffix = ".zip";
 					}
 					break;
+#if !UNITY_2017_3_OR_NEWER
 				case BuildTarget.StandaloneOSXIntel:
 				case BuildTarget.StandaloneOSXIntel64:
-				case BuildTarget.StandaloneOSXUniversal:
+#endif
+				case BuildTarget.StandaloneOSX:
 					format = "";
 					suffix = ".zip";
 					break;

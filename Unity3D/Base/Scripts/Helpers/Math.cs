@@ -6,30 +6,42 @@ namespace RatKing.Base.Helpers {
 	
 	public static class Math {
 		// vector3 stuff:
+		public static Vector3 Abs(this Vector3 v) {
+			return new Vector3(v.x > 0f ? v.x : -v.x, v.y > 0f ? v.y : -v.y, v.z > 0f ? v.z : -v.z);
+		}
 		public static float GetManhattanDistance(this Vector3 a, Vector3 b) {
 			return (Mathf.Abs(b.x - a.x) + Mathf.Abs(b.y - a.y) + Mathf.Abs(b.z - a.z));
 		}
-		public static Vector3 Vec3Mul(Vector3 a, Vector3 b) {
+		public static Vector3 Vec3Mul(this Vector3 a, Vector3 b) {
 			return new Vector3(a.x * b.x, a.y * b.y, a.z * b.z);
 		}
-		public static Vector3 Rotate(Vector3 vector, Vector3 axis, float angle) {
+		public static Vector3 Vec3Div(this Vector3 a, Vector3 b) {
+			return new Vector3(a.x / b.x, a.y / b.y, a.z / b.z);
+		}
+		public static Vector3 Vec3Div(float a, Vector3 b) {
+			return new Vector3(a / b.x, a / b.y, a / b.z);
+		}
+		public static Vector3 Vec3Div(this Vector3 a, float b) {
+			return new Vector3(a.x / b, a.y / b, a.z / b);
+		}
+		public static Vector3 Rotate(this Vector3 vector, Vector3 axis, float angle) {
 			return Quaternion.AngleAxis(angle, axis) * vector;
 		}
-		public static Vector3 Rotate(Vector3 vector, float x, float y, float z) {
+		public static Vector3 Rotate(this Vector3 vector, float x, float y, float z) {
 			return Quaternion.Euler(x, y, z) * vector;
 		}
-		public static Vector3 RotateAround(Vector3 vector, Vector3 origin, Vector3 axis, float angle) {
+		public static Vector3 RotateAround(this Vector3 vector, Vector3 origin, Vector3 axis, float angle) {
 			return origin + Quaternion.AngleAxis(angle, axis) * (vector - origin);
 		}
-		public static Vector3 Rotate(Vector3 vector, Vector3 origin, float x, float y, float z) {
+		public static Vector3 Rotate(this Vector3 vector, Vector3 origin, float x, float y, float z) {
 			return origin + Quaternion.Euler(x, y, z) * (vector - origin);
 		}
 		// from http://forum.unity3d.com/threads/33215-Vector-rotation
-		public static float GetPitch(Vector3 v) {
+		public static float GetPitch(this Vector3 v) {
 			float len = Mathf.Sqrt((v.x * v.x) + (v.z * v.z));
 			return -Mathf.Atan2(v.y, len);
 		}
-		public static float GetYaw(Vector3 v) {
+		public static float GetYaw(this Vector3 v) {
 			return Mathf.Atan2(v.x, v.z);
 		}
 		public static Vector3 QuantizeRound(Vector3 v, float e = 1f) {
@@ -45,6 +57,21 @@ namespace RatKing.Base.Helpers {
 			v.y = Mathf.Floor(v.y * ie) * e;
 			v.z = Mathf.Floor(v.z * ie) * e;
 			return v;
+		}
+		// vector2 stuff:
+		public static Vector2 Rotate(this Vector2 vector, float angle) {
+			return Quaternion.Euler(0f, 0f, angle) * vector;
+		}
+		// https://answers.unity.com/questions/1229302/rotate-a-vector2-around-the-z-axis-on-a-mathematic.html
+		public static Vector2 RotateAroundPivot(this Vector2 vector, Vector2 pivot, float angle) {
+			return Quaternion.Euler(0f, 0f, angle) * (vector - pivot) + new Vector3(pivot.x, pivot.y);
+			/*
+			vector -= pivot;
+			float rad = degrees * Mathf.Deg2Rad;
+			float s = Mathf.Sin(rad);
+			float c = Mathf.Cos(rad);
+			return pivot + new Vector2(vector.x * c - vector.y * s, vector.y * c + vector.x * s);
+			*/
 		}
 		// quaternion stuff:
 		public static float Length(this Quaternion q) {
@@ -199,6 +226,13 @@ namespace RatKing.Base.Helpers {
 			return v1.x < v2.x + epsilon && v1.x > v2.x - epsilon &&
 					v1.y < v2.y + epsilon && v1.y > v2.y - epsilon &&
 					v1.z < v2.z + epsilon && v1.z > v2.z - epsilon;
+		}
+		// remapping, from https://stackoverflow.com/questions/5294955/how-to-scale-down-a-range-of-numbers-with-a-known-min-and-max-value
+		public static float Remap(this float value, float oldMin, float oldMax, float newMin, float newMax) {
+			return ((newMax - newMin) * (value - oldMin) / (oldMax - oldMin)) + newMin;
+		}
+		public static float RemapClamped(this float value, float oldMin, float oldMax, float newMin, float newMax) {
+			return ((newMax - newMin) * Mathf.Clamp01((value - oldMin) / (oldMax - oldMin))) + newMin;
 		}
 	}
 

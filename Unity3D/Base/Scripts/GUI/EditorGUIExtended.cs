@@ -63,7 +63,7 @@ namespace RatKing.Base {
 			GUI.matrix = saveMatrix;
 		}
 		
-		private static Vector2 getPt(Vector2 p1, Vector2 p2, float perc) {
+		private static Vector2 GetPt(Vector2 p1, Vector2 p2, float perc) {
 			return p1 + ((p2 - p1) * perc);
 		}
 
@@ -96,9 +96,10 @@ namespace RatKing.Base {
 			var mt2 = mt*mt;
 			var mt3 = mt2*mt;
 			var t2 = t*t;
-			v = new Vector2();
-			v.x = points[0].x*mt3 + points[1].x*3*mt2*t + points[2].x*3*mt*t2 + points[3].x*t*t2;
-			v.y = points[0].y*mt3 + points[1].y*3*mt2*t + points[2].y*3*mt*t2 + points[3].y*t*t2;
+			v = new Vector2() {
+				x = points[0].x * mt3 + points[1].x * 3 * mt2 * t + points[2].x * 3 * mt * t2 + points[3].x * t * t2,
+				y = points[0].y * mt3 + points[1].y * 3 * mt2 * t + points[2].y * 3 * mt * t2 + points[3].y * t * t2
+			};
 		}
 
 		public static bool IsRectInsideScreen(Rect rect) {

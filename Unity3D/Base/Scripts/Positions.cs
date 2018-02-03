@@ -3,18 +3,6 @@ using System.Collections.Generic;
 
 namespace RatKing.Base {
 
-	// a 3d waypoint for pathfinding
-	public class Waypoint<T> where T : IPosition {
-		public T pos;
-		public Vector3 worldPos;
-		public bool solid;
-		public List<Waypoint<T>> neighbours = new List<Waypoint<T>>();
-		public Creature creature;
-		public Creature nextCreature;
-		//public int type;
-		public Waypoint(T pos, bool solid) { this.pos = pos; worldPos = pos.ToVector(); this.solid = solid; }
-	}
-
 	public interface IPosition {
 		Vector3 ToVector();
 		int GetDistanceTo(IPosition other);
@@ -99,6 +87,11 @@ namespace RatKing.Base {
 			int md = GetManhattanDistanceTo(other);
 			return md * md;
 		}
+		public int GetLongestComponent() {
+			int a = x >= 0 ? x : -x, b = y >= 0 ? y : -y, c = z >= 0 ? z : -z;
+			if (a > b) { return a >= c ? a : c; }
+			return b >= c ? b : c;
+		}
 		public Vector3 ToVector() { return new Vector3(x, y, z); }
 		public Vector3 ToVector(float width) { return new Vector3(x * width, y * width, z * width); }
 		//
@@ -167,7 +160,7 @@ namespace RatKing.Base {
 		public static ImmutablePosition2 up    = new ImmutablePosition2(0, 1);
 		public static ImmutablePosition2 down  = new ImmutablePosition2(0, -1);
 		//
-		public override bool Equals(object o) { var p = (ImmutablePosition2)o; return p == this; }
+		public override bool Equals(object o) { return (o is ImmutablePosition2) && (ImmutablePosition2)o == this; }
 		public override int GetHashCode() { return base.GetHashCode(); } // TODO change
 		public override string ToString() { return x + ", " + y; }
 		//
@@ -217,7 +210,7 @@ namespace RatKing.Base {
 		public static Position2 up { get { return new Position2(0, 1); } }
 		public static Position2 down { get { return new Position2(0, -1); } }
 		//
-		public override bool Equals(object o) { var p = (Position2)o; return p == this; }
+		public override bool Equals(object o) { return (o is Position2) && (Position2)o == this; }
 		public override int GetHashCode() { return base.GetHashCode(); }
 		public override string ToString() { return x + ", " + y; }
 		//

@@ -48,7 +48,7 @@ namespace RatKing.Base {
 			if (seconds < 0f || color.a <= 0f) { return; }
 			CreateInstance();
 			gizmos.Add(new QuickGizmo(GizmoType.Box, pos, rot, extents * 2f, color, renderInGame));
-			gizmoTime.Add(Time.time + seconds);
+			gizmoTime.Add(Time.realtimeSinceStartup + seconds);
 			if (gizmos.Count == 1) { inst.enabled = true; }
 #endif
 		}
@@ -58,7 +58,7 @@ namespace RatKing.Base {
 			if (seconds < 0f || color.a <= 0f) { return; }
 			CreateInstance();
 			gizmos.Add(new QuickGizmo(GizmoType.WiredBox, pos, rot, extents * 2f, color, false));
-			gizmoTime.Add(Time.time + seconds);
+			gizmoTime.Add(Time.realtimeSinceStartup + seconds);
 			if (gizmos.Count == 1) { inst.enabled = true; }
 #endif
 		}
@@ -68,7 +68,7 @@ namespace RatKing.Base {
 			if (seconds < 0f || color.a <= 0f) { return; }
 			CreateInstance();
 			gizmos.Add(new QuickGizmo(GizmoType.Sphere, pos, Quaternion.identity, Vector3.one * radius, color, renderInGame));
-			gizmoTime.Add(Time.time + seconds);
+			gizmoTime.Add(Time.realtimeSinceStartup + seconds);
 			if (gizmos.Count == 1) { inst.enabled = true; }
 #endif
 		}
@@ -78,7 +78,7 @@ namespace RatKing.Base {
 			if (seconds < 0f || color.a <= 0f) { return; }
 			CreateInstance();
 			gizmos.Add(new QuickGizmo(GizmoType.WiredSphere, pos, Quaternion.identity, Vector3.one * radius, color, false));
-			gizmoTime.Add(Time.time + seconds);
+			gizmoTime.Add(Time.realtimeSinceStartup + seconds);
 			if (gizmos.Count == 1) { inst.enabled = true; }
 #endif
 		}
@@ -90,10 +90,13 @@ namespace RatKing.Base {
 		/// </summary>
 		void LateUpdate() {
 			for (int i = gizmos.Count - 1; i >= 0; --i) {
-				if (gizmoTime[i] < Time.time) {
+				if (gizmoTime[i] < -100000f) {
 					gizmos.RemoveAt(i);
 					gizmoTime.RemoveAt(i);
 					if (gizmos.Count == 0) { inst.enabled = false; }
+				}
+				else if (gizmoTime[i] < Time.realtimeSinceStartup) {
+					gizmoTime[i] = -100001f; // so it shows the gizmo at least 1 frame
 				}
 			}
 		}

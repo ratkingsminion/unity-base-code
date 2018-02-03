@@ -26,8 +26,8 @@ namespace RatKing.Base {
 			myself = go.AddComponent<Music>();
 			for (int i = 0; i < 2; ++i) {
 				sources[i] = go.AddComponent<AudioSource>();
-#if !UNITY_5_0 && !UNITY_5_1 && !UNITY_5_2 && !UNITY_5_3 && !UNITY_5_3_OR_NEWER
-				sources[i].panLevel = 0f;
+#if !UNITY_5 && !UNITY_2017_1_OR_NEWER
+				source[i].panLevel = 0f;
 #else
 				sources[i].spatialBlend = 0f;
 #endif
@@ -40,12 +40,11 @@ namespace RatKing.Base {
 		void Update() {
 
 			for (int i = 0; i < 2; ++i) {
+				if (sources[i] == null) { break; }
                 if (sources[i].isPlaying && !Mathf.Approximately(curVolumes[i], fadeTargetVolumes[i])) {
-
-					curVolumes[i] = Mathf.MoveTowards(curVolumes[i], fadeTargetVolumes[i], fadeSpeeds[i] * Time.deltaTime);
+					curVolumes[i] = Mathf.MoveTowards(curVolumes[i], fadeTargetVolumes[i], fadeSpeeds[i] * Time.unscaledDeltaTime);
 					sources[i].volume = curVolumes[i] * globalVolume;
                     if (curVolumes[i] <= 0f) {
-
 						sources[i].Stop();
 					}
 
@@ -54,7 +53,6 @@ namespace RatKing.Base {
 					sources[i].volume = fadeTargetVolumes[i] * globalVolume;
                 }
 			}
-
 
 		}
 
@@ -73,7 +71,6 @@ namespace RatKing.Base {
 
 			if (clip == null) {
 				Stop(fadeTime);
-
 				return;
 			}
 

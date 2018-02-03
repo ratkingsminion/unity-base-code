@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEditor;
 using System.Collections.Generic;
 
 namespace RatKing.Base {
@@ -21,7 +20,9 @@ namespace RatKing.Base {
 		// saved in playerprefs (ie. individual for each workstation):
 		[System.NonSerialized] public string buildPath = "C:/BUILDS";
 		[System.NonSerialized] public List<bool> targetsActive = new List<bool>();
-		[System.NonSerialized] public BuildOptions optionsMask;
+#if UNITY_EDITOR
+		[System.NonSerialized] public UnityEditor.BuildOptions optionsMask;
+#endif
 		[System.NonSerialized] public bool openAfterBuild;
 		[System.NonSerialized] public bool ignorePDB = true;
 		[System.NonSerialized] public bool packWinBinsAs7Zip = true;

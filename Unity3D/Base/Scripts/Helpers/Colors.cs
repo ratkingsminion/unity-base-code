@@ -5,29 +5,39 @@ using System.Collections.Generic;
 namespace RatKing.Base.Helpers {
 	
 	public static class Colors {
-		public static Color GetFromHexa(string hexCode) {
-			// 0 should be "#"
-			int r = int.Parse(hexCode.Substring(1, 2), System.Globalization.NumberStyles.HexNumber);
-			int g = int.Parse(hexCode.Substring(3, 2), System.Globalization.NumberStyles.HexNumber);
-			int b = int.Parse(hexCode.Substring(5, 2), System.Globalization.NumberStyles.HexNumber);
-			return new Color((float)r / 255f, (float)g / 255f, (float)b / 255f, 1f);
+		public static Color GetFromHexa(string hexCode, Color stdCol) {
+			if (string.IsNullOrEmpty(hexCode)) { return stdCol; }
+			int r = Mathf.RoundToInt(stdCol.r * 255f);
+			int g = Mathf.RoundToInt(stdCol.g * 255f);
+			int b = Mathf.RoundToInt(stdCol.b * 255f);
+			int a = Mathf.RoundToInt(stdCol.a * 255f);
+			hexCode = hexCode.Trim(new[] { ' ', '\t', '\n', '\r', '#' });
+			if (hexCode.Length > 1 && hexCode[1] == 'x') { hexCode = hexCode.Substring(2); }
+			if (hexCode.Length >= 6) {
+				int n;
+				if (int.TryParse(hexCode.Substring(0, 2), System.Globalization.NumberStyles.HexNumber, System.Globalization.NumberFormatInfo.InvariantInfo, out n)) { r = n; }
+				if (int.TryParse(hexCode.Substring(2, 2), System.Globalization.NumberStyles.HexNumber, System.Globalization.NumberFormatInfo.InvariantInfo, out n)) { g = n; }
+				if (int.TryParse(hexCode.Substring(4, 2), System.Globalization.NumberStyles.HexNumber, System.Globalization.NumberFormatInfo.InvariantInfo, out n)) { b = n; }
+				if (hexCode.Length >= 8) { // alpha
+					if (int.TryParse(hexCode.Substring(6, 2), System.Globalization.NumberStyles.HexNumber, System.Globalization.NumberFormatInfo.InvariantInfo, out n)) { a = n; }
+				}
+			}
+			return new Color(r / 255f, g / 255f, b / 255f, a / 255f);
 		}
 		// from http://wiki.unity3d.com/index.php?title=HexConverter
-		static char GetHex(int d) {
-			return "0123456789ABCDEF"[d];
-		}
 		public static string RGBToHex(Color color) {
+			var hex = "0123456789ABCDEF";
 			var red = color.r * 255;
 			var green = color.g * 255;
 			var blue = color.b * 255;
-			var a = GetHex(Mathf.FloorToInt(red / 16));
-			var b = GetHex(Mathf.RoundToInt(red % 16));
-			var c = GetHex(Mathf.FloorToInt(green / 16));
-			var d = GetHex(Mathf.RoundToInt(green % 16));
-			var e = GetHex(Mathf.FloorToInt(blue / 16));
-			var f = GetHex(Mathf.RoundToInt(blue % 16));
+			var a = (color.r < 0f || color.r > 1f) ? '~' : hex[Mathf.FloorToInt(red / 16)];
+			var b = (color.r < 0f || color.r > 1f) ? '~' : hex[Mathf.FloorToInt(red % 16)];
+			var c = (color.g < 0f || color.g > 1f) ? '~' : hex[Mathf.FloorToInt(green / 16)];
+			var d = (color.g < 0f || color.g > 1f) ? '~' : hex[Mathf.FloorToInt(green % 16)];
+			var e = (color.b < 0f || color.b > 1f) ? '~' : hex[Mathf.FloorToInt(blue / 16)];
+			var f = (color.b < 0f || color.b > 1f) ? '~' : hex[Mathf.FloorToInt(blue % 16)];
 
-			return "#" + a + b + c + d + e + f;
+			return "" + a + b + c + d + e + f;
 		}
 		//
 		public static bool Approx(this Color c1, Color c2, float epsilon = 0.01f) {

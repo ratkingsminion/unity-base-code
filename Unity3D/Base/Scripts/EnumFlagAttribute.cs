@@ -29,7 +29,11 @@ public class EnumFlagDrawer : PropertyDrawer {
 			propName = label;
 
 		EditorGUI.BeginProperty(position, label, property);
+#if UNITY_2017_1_OR_NEWER
+		Enum enumNew = EditorGUI.EnumFlagsField(position, propName, targetEnum);
+#else
 		Enum enumNew = EditorGUI.EnumMaskField(position, propName, targetEnum);
+#endif
 		property.intValue = (int)Convert.ChangeType(enumNew, fieldInfo.FieldType);
 		EditorGUI.EndProperty();
 	}

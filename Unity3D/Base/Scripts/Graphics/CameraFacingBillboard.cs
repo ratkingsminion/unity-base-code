@@ -10,6 +10,7 @@ namespace RatKing.Base {
 
 		public class CamFaceBillboards : MonoBehaviour {
 			List<CameraFacingBillboard> bbs;
+			Transform camT;
 			public static void Create() {
 				var go = new GameObject("<Camera Facing Billboards>");
 				mgr = go.AddComponent<CamFaceBillboards>();
@@ -22,8 +23,7 @@ namespace RatKing.Base {
 				bbs.Remove(bb);
 			}
 			void Update() {
-				if (Camera.main == null) { return; }
-				var camT = Camera.main.transform;
+				if (camT == null || !camT.gameObject.activeInHierarchy) { var cam = Camera.main; if (cam == null) { return; } camT = cam.transform; }
 				for (var iter = bbs.GetEnumerator(); iter.MoveNext(); ) {
 					var cur = iter.Current;
 					var targetPos = cur.transform.position - camT.forward;
@@ -35,17 +35,21 @@ namespace RatKing.Base {
 		}
 
 		//
+
 		[SerializeField] bool upOnly = true;
 		[SerializeField] Vector3 additionalRotation = Vector3.zero;
 
 		//
 
-		void Awake() {
+		public bool UpOnly { get { return upOnly; } set { upOnly = value; } }
+		public Vector3 AdditionalRotation { get { return additionalRotation; } set { additionalRotation = value; } }
+
+		void OnEnable() {
 			if (mgr == null) { CamFaceBillboards.Create(); }
 			mgr.Add(this);
 		}
 
-		void OnDestroy() {
+		void OnDisable() {
 			mgr.Remove(this);
 		}
 	}
