@@ -5,7 +5,18 @@ using System.Collections.Generic;
 namespace RatKing.Base.Helpers {
 
 	public static class Pathfinding {
-		public class Node<T> where T : IPosition {
+		public class Waypoint<T> where T : IPosition { // TODO make poolable
+			public T pos;
+			public Vector3 worldPos;
+			public bool solid;
+			public List<Waypoint<T>> neighbours = new List<Waypoint<T>>();
+			public Creature creature;
+			public Creature nextCreature;
+			//public int type;
+			public Waypoint(T pos, bool solid) { this.pos = pos; worldPos = pos.ToVector(); this.solid = solid; }
+		}
+
+		public class Node<T> where T : IPosition { // TODO make poolable
 			public Node<T> parent = null;
 			public Waypoint<T> block;
 			public int F = 0;
