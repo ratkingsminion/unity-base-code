@@ -2,9 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace RatKing.Base.Helpers {
+namespace RatKing.Base {
 
-	public static class Sound {
+	public static class AudioExtras {
 		// source: https://twitter.com/i/web/status/785798323038937088
 		public static float VolumeToDB(float volume) {
 			if (volume <= 0f) { return -80f; }

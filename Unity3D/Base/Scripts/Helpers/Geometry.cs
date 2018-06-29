@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace RatKing.Base.Helpers {
+namespace RatKing.Base {
 
 	public static class Geometry {
 		public static void SetLayerRecursively(this Transform t, int layer) {

@@ -2,9 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace RatKing.Base.Helpers {
+namespace RatKing.Base {
 
-	public static class String {
+	public static class StringExtras {
 		public static char[] linesSplitter = new char[1] { '\n' };
 		public static char[] spaceSplitter = new char[5] { ' ', '\n', '\t', '\r', '\0' };
 		//

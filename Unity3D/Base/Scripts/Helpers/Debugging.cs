@@ -2,16 +2,14 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace RatKing.Base.Helpers {
+namespace RatKing.Base {
 
-	public class Debug : MonoBehaviour {
-		static Debug inst;
+	public class Debugging : MonoBehaviour {
 
 		static void CreateInstance() {
 			if (inst != null)
 				return;
 			var go = new GameObject("<BaseHelpersDebug>");
-			inst = go.AddComponent<Debug>();
 		}
 
 		public static void CreateScreenshot(string prefix, string folder = "screenshots") {

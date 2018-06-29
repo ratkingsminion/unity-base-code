@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace RatKing.Base.Helpers {
+namespace RatKing.Base {
 	
 	public static class Security {
 		public static string MD5Sum(string strToEncrypt) {

@@ -2,9 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace RatKing.Base.Helpers {
+namespace RatKing.Base {
 	
-	public static class Colors {
+	public static class ColorExtras {
 		public static Color GetFromHexa(string hexCode, Color stdCol) {
 			if (string.IsNullOrEmpty(hexCode)) { return stdCol; }
 			int r = Mathf.RoundToInt(stdCol.r * 255f);

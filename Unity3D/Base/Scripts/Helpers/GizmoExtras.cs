@@ -2,9 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace RatKing.Base.Helpers {
+namespace RatKing.Base {
 	
-	public static class Gizmos {
+	public static class GizmoExtras {
 		public static void DrawWireCircle(this Transform trans, float radius, int prec = 100) {
 			float fac = 360f / (float)prec;
 			Vector3 v = trans.forward * radius;

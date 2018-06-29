@@ -2,9 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace RatKing.Base.Helpers {
+namespace RatKing.Base {
 
-	public static class Materials {
+	public static class MaterialExtras {
 
 		public class Pool {
 			private static Dictionary<Material, Dictionary<Color, Material>> usedMaterials = new Dictionary<Material, Dictionary<Color, Material>>();

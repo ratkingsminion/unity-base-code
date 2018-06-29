@@ -2,9 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace RatKing.Base.Helpers {
+namespace RatKing.Base {
 	
-	public static class DataStructure {
+	public static class DataStructures {
 		static System.Random randomGenerator;
 		public static void Shuffle<T>(this IList<T> ls) {
 			if (randomGenerator == null)

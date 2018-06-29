@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace RatKing.Base.Helpers {
+namespace RatKing.Base {
 
 	public static class Pathfinding {
 		public class Waypoint<T> where T : IPosition { // TODO make poolable
