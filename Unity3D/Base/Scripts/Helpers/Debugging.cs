@@ -5,11 +5,13 @@ using System.Collections.Generic;
 namespace RatKing.Base {
 
 	public class Debugging : MonoBehaviour {
+		static Debugging inst;
 
 		static void CreateInstance() {
 			if (inst != null)
 				return;
 			var go = new GameObject("<BaseHelpersDebug>");
+			inst = go.AddComponent<Debugging>();
 		}
 
 		public static void CreateScreenshot(string prefix, string folder = "screenshots") {
