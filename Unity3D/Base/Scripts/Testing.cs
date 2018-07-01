@@ -19,7 +19,7 @@ namespace RatKing.Base {
 				takingScreenshots = !takingScreenshots;
 			}
 			if (Input.GetKeyDown(KeyCode.F12)) {
-				Base.Helpers.Debug.CreateScreenshot(screenshotPrefix);
+				Debugging.CreateScreenshot(screenshotPrefix);
 			}
 			if (Input.GetKeyDown(KeyCode.R)) {
 				UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
@@ -29,7 +29,7 @@ namespace RatKing.Base {
 		IEnumerator ScreenshotTakerCR() {
 			var wait = new WaitForSeconds(screenshotTakeRate);
 			while (true) {
-				Helpers.Debug.CreateScreenshot(screenshotPrefix, "screenshots/series");
+				Debugging.CreateScreenshot(screenshotPrefix, "screenshots/series");
 				yield return wait;
 			}
 		}
