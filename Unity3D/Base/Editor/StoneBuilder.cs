@@ -712,18 +712,20 @@ namespace RatKing.Base {
 			Directory.CreateDirectory(settings.buildPath + "/" + settings.gameShortName + "-" + settings.version + "/" + buildTargetName);
 
 			// BUILD
-			var res = "";
 			Directory.CreateDirectory(path);
 			var levelPaths = new string[settings.levels.Count];
 			for (int i = 0; i < levelPaths.Length; ++i) {
 				levelPaths[i] = AssetDatabase.GetAssetPath(settings.levels[i]);
 			}
-			res = BuildPipeline.BuildPlayer(levelPaths, path + settings.gameShortName + suffix, buildTarget, options);
-
+#if UNITY_2018_1_OR_NEWER
+			BuildPipeline.BuildPlayer(levelPaths, path + settings.gameShortName + suffix, buildTarget, options);
+#else
+			var res = BuildPipeline.BuildPlayer(levelPaths, path + settings.gameShortName + suffix, buildTarget, options);
 			if (res != "") {
 				UnityEngine.Debug.Log(res);
 				return "";
 			}
+#endif
 
 #if HAS_SCENEMANAGER
 			UnityEditor.SceneManagement.EditorSceneManager.RestoreSceneManagerSetup(openLevels);

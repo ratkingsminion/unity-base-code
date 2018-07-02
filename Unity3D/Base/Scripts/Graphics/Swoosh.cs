@@ -153,7 +153,7 @@ namespace RatKing.Base {
 				}
 			}
 			if (autoDestroyOnStop) {
-				if ((!Helpers.Math.Approx(savePos, transform.position) || !Helpers.Math.Approx(saveNorm, GetNormal()))) {
+				if ((!Math.Approx(savePos, transform.position) || !Math.Approx(saveNorm, GetNormal()))) {
 					autoDestroyCounter = Time.time + (maxLines * secondsPerLine) + 0.1f;
 				}
 				if (autoDestroyCounter < Time.time) {
