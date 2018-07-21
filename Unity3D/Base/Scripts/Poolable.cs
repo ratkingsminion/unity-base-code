@@ -153,6 +153,10 @@ namespace RatKing.Base {
 			stack.Push(this);
 		}
 
+		public bool IsPushable() {
+			return original != null;
+		}
+
 		//
 
 		void OnValidate() {
