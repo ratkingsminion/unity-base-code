@@ -58,6 +58,15 @@ namespace RatKing.Base {
 			}
 			return default(KeyValuePair<U, T>);
 		}
+		
+		public static T GetRandomElement<T>(this T[] array, System.Random generator = null) {
+			if (array.Length == 0) { return default(T); }
+			if (generator == null) {
+				if (randomGenerator == null) { randomGenerator = new System.Random(); }
+				generator = randomGenerator;
+			}
+			return array[generator.Next(0, array.Length)];
+		}
 
 		public static T GetFirstElement<T>(this HashSet<T> hs) {
 			foreach (T elem in hs)

@@ -5,31 +5,21 @@ using System.Collections.Generic;
 namespace RatKing.Base {
 
 	public static class Randomness {
-		public static Color GetColor(bool randomAlpha, float alpha = 1f) {
-			return new Color(Random.value, Random.value, Random.value, randomAlpha ? Random.value : alpha);
+		public static Color GetColor(float? alpha = null) {
+			return new Color(Random.value, Random.value, Random.value, alpha == null ? Random.value : alpha.Value);
 		}
 
 		public static class Probabilities {
-			public static int GetRandomIndex(float[] probabilites) {
-				float r = Random.value;
-				int i = 0;
-				for (; i < probabilites.Length; ++i) {
-					if (r < probabilites[i])
-						break;
+			public static int GetRandomIndex(float[] probabilities, System.Random generator = null) {
+				var count = probabilities.Length;
+				var s = 0f;
+				for (int i = 0; i < count; ++i) { s += probabilities[i]; }
+				var r = (generator == null ? Random.value : generator.NextDouble()) * s;
+				for (int i = count - 1; i >= 0; --i) {
+					s -= probabilities[i];
+					if (r > s) { return i; }
 				}
-				return i;
-			}
-			public static float[] Normalize(int[] probabilities) {
-				float sum = 0f;
-				float[] newProbs = new float[probabilities.Length];
-				for (int i = 0; i < probabilities.Length; ++i)
-					sum += (float)probabilities[i];
-				for (int i = 0; i < probabilities.Length; ++i)
-					newProbs[i] = ((float)probabilities[i] / sum);
-				for (int i = 1; i < probabilities.Length; ++i)
-					newProbs[i] += newProbs[i - 1];
-				newProbs[probabilities.Length - 1] = 1f; // to be sure.
-				return newProbs;
+				return probabilities.Length - 1;
 			}
 		}
 		//
