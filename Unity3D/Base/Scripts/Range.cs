@@ -45,6 +45,10 @@ namespace RatKing.Base {
 			return min + (max - min) * factor;
 		}
 
+		public float InverseLerp(float value) {
+			return (value - min) / (max - min);
+		}
+
 		public float Difference { get { return Mathf.Abs(max - min); } }
 	}
 
