@@ -220,7 +220,9 @@ public static partial class JSONTemplates {
 		Keyframe k = new Keyframe(obj.HasField("time")? obj.GetField("time").n : 0, obj.HasField("value")? obj.GetField("value").n : 0);
 		if(obj.HasField("inTangent")) k.inTangent = obj.GetField("inTangent").n;
 		if(obj.HasField("outTangent")) k.outTangent = obj.GetField("outTangent").n;
+#if !UNITY_2017_1_OR_NEWER
 		if(obj.HasField("tangentMode")) k.tangentMode = (int)obj.GetField("tangentMode").n;
+#endif
 		
 		return k;
 	}
@@ -228,7 +230,9 @@ public static partial class JSONTemplates {
 		JSONObject result = JSONObject.obj;
 		if(k.inTangent != 0)	result.AddField("inTangent", k.inTangent);
 		if(k.outTangent != 0)	result.AddField("outTangent", k.outTangent);
+#if !UNITY_2017_1_OR_NEWER
 		if(k.tangentMode != 0)	result.AddField("tangentMode", k.tangentMode);
+#endif
 		if(k.time != 0)	result.AddField("time", k.time);
 		if(k.value != 0)	result.AddField("value", k.value);
 		return result;
