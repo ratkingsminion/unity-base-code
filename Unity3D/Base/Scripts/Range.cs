@@ -20,6 +20,10 @@ namespace RatKing.Base {
 			if (generator == null) { return UnityEngine.Random.Range(a, b); }
 			return generator.Next(a, b);
 		}
+		
+		public int Clamp(int value) {
+			return value > max ? max : value < min ? min : value;
+		}
 
 		public int Difference { get { return Mathf.Abs(max - min); } }
 	}
@@ -47,6 +51,10 @@ namespace RatKing.Base {
 
 		public float InverseLerp(float value) {
 			return (value - min) / (max - min);
+		}
+		
+		public float Clamp(float value) {
+			return value > max ? max : value < min ? min : value;
 		}
 
 		public float Difference { get { return Mathf.Abs(max - min); } }
