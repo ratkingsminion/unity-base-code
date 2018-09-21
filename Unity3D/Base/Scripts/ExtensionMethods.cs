@@ -5,12 +5,22 @@ namespace RatKing {
 	public static class ExtensionMethods {
 		public static Vector2 ToVec2(this Vector3 v) { return new Vector2(v.x, v.y); }
 		public static Vector3 ToVec3(this Vector2 v, float z = 0f) { return new Vector3(v.x, v.y, z); }
+		
+		public static Vector3 ToVec2f(this Vector2Int v, float scale = 1f) { return new Vector2(v.x * scale, v.y * scale); }
+		public static Vector3 ToVec3f(this Vector3Int v, float scale = 1f) { return new Vector3(v.x * scale, v.y * scale, v.z * scale); }
+		public static Vector2Int ToVec2i(this Vector2 v, bool floor = false) { return floor ? new Vector2Int(Mathf.FloorToInt(v.x), Mathf.FloorToInt(v.y)) : new Vector2Int(Mathf.RoundToInt(v.x), Mathf.RoundToInt(v.y)); }
+		public static Vector3Int ToVec3i(this Vector3 v, bool floor = false) { return floor ? new Vector3Int(Mathf.FloorToInt(v.x), Mathf.FloorToInt(v.y), Mathf.FloorToInt(v.z)) : new Vector3Int(Mathf.RoundToInt(v.x), Mathf.RoundToInt(v.y), Mathf.RoundToInt(v.z)); }
 
 		public static Vector2 WithX(this Vector2 v, float x) { v.x = x; return v; } // "this" on structs is always by value, never by reference
 		public static Vector2 WithY(this Vector2 v, float y) { v.y = y; return v; } // thus the methods only edit a copy and return a copy
 		public static Vector3 WithX(this Vector3 v, float x) { v.x = x; return v; }
 		public static Vector3 WithY(this Vector3 v, float y) { v.y = y; return v; }
 		public static Vector3 WithZ(this Vector3 v, float z) { v.z = z; return v; }
+		public static Vector2Int WithX(this Vector2Int v, int x) { v.x = x; return v; } 
+		public static Vector2Int WithY(this Vector2Int v, int y) { v.y = y; return v; }
+		public static Vector3Int WithX(this Vector3Int v, int x) { v.x = x; return v; }
+		public static Vector3Int WithY(this Vector3Int v, int y) { v.y = y; return v; }
+		public static Vector3Int WithZ(this Vector3Int v, int z) { v.z = z; return v; }
 
 		public static Color WithRed(this Color c, float r) { c.r = r; return c; }
 		public static Color WithGreen(this Color c, float g) { c.g = g; return c; }
@@ -67,6 +77,10 @@ namespace RatKing {
 		public static Vector2 Add(this Vector2 v, Vector3 o) { return new Vector2(v.x + o.x, v.y + o.y); }
 		public static Vector3 Subtract(this Vector3 v, Vector2 o) { return new Vector3(v.x - o.x, v.y - o.y, v.z); }
 		public static Vector2 Subtract(this Vector2 v, Vector3 o) { return new Vector2(v.x - o.x, v.y - o.y); }
+		public static Vector3Int Add(this Vector3Int v, Vector2Int o) { return new Vector3Int(v.x + o.x, v.y + o.y, v.z); }
+		public static Vector2Int Add(this Vector2Int v, Vector3Int o) { return new Vector2Int(v.x + o.x, v.y + o.y); }
+		public static Vector3Int Subtract(this Vector3Int v, Vector2Int o) { return new Vector3Int(v.x - o.x, v.y - o.y, v.z); }
+		public static Vector2Int Subtract(this Vector2Int v, Vector3Int o) { return new Vector2Int(v.x - o.x, v.y - o.y); }
 
 		public static T GetOrAddComponent<T>(this GameObject go) where T : Component { var ac = go.GetComponent<T>(); if (ac == null) { ac = go.AddComponent<T>(); } return ac; }
 		public static T AddComponent<T>(this Component c) where T : Component { return c.gameObject.AddComponent<T>(); }
