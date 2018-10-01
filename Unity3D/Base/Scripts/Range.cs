@@ -17,8 +17,8 @@ namespace RatKing.Base {
 		public int Random(System.Random generator = null) {
 			int a = min, b = max;
 			if (a > b) { a = b; b = min; }
-			if (generator == null) { return UnityEngine.Random.Range(a, b); }
-			return generator.Next(a, b);
+			if (generator == null) { return UnityEngine.Random.Range(a, b + 1); }
+			return generator.Next(a, b + 1);
 		}
 		
 		public int Clamp(int value) {
@@ -26,6 +26,10 @@ namespace RatKing.Base {
 		}
 
 		public int Difference { get { return Mathf.Abs(max - min); } }
+
+		public override string ToString() {
+			return "[" + min + "," + max + "]";
+		}
 	}
 
 	[System.Serializable]
@@ -58,6 +62,10 @@ namespace RatKing.Base {
 		}
 
 		public float Difference { get { return Mathf.Abs(max - min); } }
+
+		public override string ToString() {
+			return "[" + min + "," + max + "]";
+		}
 	}
 
 }
