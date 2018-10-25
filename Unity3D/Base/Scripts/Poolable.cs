@@ -109,7 +109,7 @@ namespace RatKing.Base {
 				case Parenting.UsePoolParent:
 					t.SetParent(null);
 #if UNITY_EDITOR
-					PoolParent.name = "<" + PoolParentName + " Pool + " + PoolParent.childCount + ">";
+					PoolParent.name = "<" + PoolParentName + " Pool " + PoolParent.childCount + ">";
 #endif
 					break;
 				case Parenting.UseOriginalParent:
