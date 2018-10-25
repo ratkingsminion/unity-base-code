@@ -1,3 +1,5 @@
+// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+
 Shader "A Rat King/3D Text Shader" { 
 	Properties { 
 	   _MainTex ("Font Texture", 2D) = "white" {} 
@@ -40,7 +42,7 @@ Shader "A Rat King/3D Text Shader" {
 			v2f vert (f2v v)
 			{
 				v2f o;
-				o.pos = mul (UNITY_MATRIX_MVP, v.vertex);
+				o.pos = UnityObjectToClipPos (v.vertex);
 				o.projPos = ComputeScreenPos(o.pos);
 				COMPUTE_EYEDEPTH(o.projPos.z);
 				//o.uv = TRANSFORM_TEX(v.texcoord, _MainTex);

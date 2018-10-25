@@ -34,9 +34,9 @@ Shader "A Rat King/BoxMappingDiffuse" {
 
 		void surf (Input IN, inout SurfaceOutput o) {			
 			// taken from http://unifycommunity.com/wiki/index.php?title=3SideProjDiffuse
-			float2 tex0 = IN.worldPos.xy;// * _MainTex_ST.xy + _MainTex_ST.zw;
-			float2 tex1 = IN.worldPos.zx;// * _MainTex_ST.yx + _MainTex_ST.wz;
-			float2 tex2 = IN.worldPos.zy;// * _MainTex_ST.xy + _MainTex_ST.zw;
+			float2 tex0 = IN.worldPos.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+			float2 tex1 = IN.worldPos.zx * _MainTex_ST.yx + _MainTex_ST.wz;
+			float2 tex2 = IN.worldPos.zy * _MainTex_ST.xy + _MainTex_ST.zw;
 			float4 color0_ = tex2D(_MainTex, tex0);
 			float4 color1_ = tex2D(_MainTex, tex1);
 			float4 color2_ = tex2D(_MainTex, tex2);
