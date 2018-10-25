@@ -13,20 +13,14 @@ namespace RatKing.Base {
 			position = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label);
 			var indent = EditorGUI.indentLevel;
 			EditorGUI.indentLevel = 0;
-
-			var labelW = 30;
-			var width = position.width * 0.5f - labelW;
-
-			var minLabelRect = new Rect(position.x, position.y, labelW, position.height);
-			var minRect			= new Rect(position.x + labelW, position.y, width, position.height);
-			var maxLabelRect	= new Rect(position.x + width + labelW, position.y, labelW, position.height);
-			var maxRect			= new Rect(position.x + width + labelW * 2, position.y, width, position.height);
 			
-			EditorGUI.PrefixLabel(minLabelRect, new GUIContent("min"));
-			EditorGUI.PropertyField(minRect, property.FindPropertyRelative("min"), GUIContent.none);
-
-			EditorGUI.PrefixLabel(maxLabelRect, new GUIContent("max"));
-			EditorGUI.PropertyField(maxRect, property.FindPropertyRelative("max"), GUIContent.none);
+			var width = position.width * 0.5f;
+			var minRect	= new Rect(position.x, position.y, width, position.height);
+			var maxRect	= new Rect(position.x + width, position.y, width, position.height);
+			
+			EditorGUIUtility.labelWidth = 32f;
+			EditorGUI.PropertyField(minRect, property.FindPropertyRelative("min"), new GUIContent("min"));
+			EditorGUI.PropertyField(maxRect, property.FindPropertyRelative("max"), new GUIContent("max"));
 
 			EditorGUI.indentLevel = indent;
 
