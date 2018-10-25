@@ -25,6 +25,7 @@ namespace RatKing.Base {
 		static Material material;
 		static List<QuickGizmo> gizmos = new List<QuickGizmo>();
 		static List<float> gizmoTime = new List<float>();
+		static MaterialPropertyBlock matProperties = new MaterialPropertyBlock();
 
 		//
 
@@ -67,7 +68,7 @@ namespace RatKing.Base {
 #if UNITY_EDITOR
 			if (seconds < 0f || color.a <= 0f) { return; }
 			CreateInstance();
-			gizmos.Add(new QuickGizmo(GizmoType.Sphere, pos, Quaternion.identity, Vector3.one * radius, color, renderInGame));
+			gizmos.Add(new QuickGizmo(GizmoType.Sphere, pos, Quaternion.identity, Vector3.one * radius * 2f, color, renderInGame));
 			gizmoTime.Add(Time.realtimeSinceStartup + seconds);
 			if (gizmos.Count == 1) { inst.enabled = true; }
 #endif
@@ -77,7 +78,7 @@ namespace RatKing.Base {
 #if UNITY_EDITOR
 			if (seconds < 0f || color.a <= 0f) { return; }
 			CreateInstance();
-			gizmos.Add(new QuickGizmo(GizmoType.WiredSphere, pos, Quaternion.identity, Vector3.one * radius, color, false));
+			gizmos.Add(new QuickGizmo(GizmoType.WiredSphere, pos, Quaternion.identity, Vector3.one * radius * 2f, color, false));
 			gizmoTime.Add(Time.realtimeSinceStartup + seconds);
 			if (gizmos.Count == 1) { inst.enabled = true; }
 #endif
@@ -104,20 +105,19 @@ namespace RatKing.Base {
 		/// <summary>
 		/// Render the ingame gizmos
 		/// </summary>
-		public void OnPostRender() {
+		/// void On
+		void Update() {
 			for (int i = gizmos.Count - 1; i >= 0; --i) {
 				var g = gizmos[i];
 				if (!g.renderInGame) { continue; }
 				switch (g.type) {
 					case GizmoType.Box:
-						material.SetColor("_Color", g.color);
-						material.SetPass(0);
-						Graphics.DrawMeshNow(boxMesh, g.matrix);
+						matProperties.SetColor("_Color", g.color);
+						Graphics.DrawMesh(boxMesh, g.matrix, material, 0, Camera.main, 0, matProperties, false, false);
 						break;
 					case GizmoType.Sphere:
-						material.SetColor("_Color", g.color);
-						material.SetPass(0);
-						Graphics.DrawMeshNow(sphereMesh, g.matrix);
+						matProperties.SetColor("_Color", g.color);
+						Graphics.DrawMesh(sphereMesh, g.matrix, material, 0, Camera.main, 0, matProperties, false, false);
 						break;
 				}
 			}

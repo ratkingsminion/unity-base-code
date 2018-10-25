@@ -8,7 +8,9 @@ namespace RatKing.Base {
 
 		static QuickIMGUI inst;
 		static event System.Action OnDraw;
-		static Dictionary <string, System.Action> byIDs;
+		static event System.Action OnDrawOnce;
+		static Dictionary<string, System.Action> byIDs;
+		static int onDrawOnceCounter;
 		//
 		public static Texture2D texWhite;
 		public static Texture2D texWhiteTransparent;
@@ -29,24 +31,32 @@ namespace RatKing.Base {
 			texWhiteTransparent.Apply();
 		}
 
+		public static void DrawOnce(System.Action onDraw) {
+			if (onDraw == null) { return; }
+			CreateInstance();
+			if (OnDrawOnce == null && OnDraw == null) { inst.gameObject.SetActive(true); }
+			OnDrawOnce += onDraw;
+			onDrawOnceCounter = 2;
+		}
+
 		public static void Add(System.Action onDraw) {
 			if (onDraw == null) { return; }
 			CreateInstance();
-			if (OnDraw == null) { inst.gameObject.SetActive(true); }
+			if (OnDrawOnce == null && OnDraw == null) { inst.gameObject.SetActive(true); }
 			OnDraw += onDraw;
 		}
 
 		public static void Remove(System.Action onDraw) {
 			if (inst == null || onDraw == null) { return; }
 			OnDraw -= onDraw;
-			if (OnDraw == null) { inst.gameObject.SetActive(false); }
+			if (OnDrawOnce == null && OnDraw == null) { inst.gameObject.SetActive(false); }
 		}
 
 		public static void Add(string ID, System.Action onDraw) {
 			if (string.IsNullOrEmpty(ID) || onDraw == null) { return; }
 			CreateInstance();
 			if (byIDs.ContainsKey(ID)) { Debug.LogError("Trying to add ID twice"); return; }
-			if (OnDraw == null) { inst.gameObject.SetActive(true); }
+			if (OnDrawOnce == null && OnDraw == null) { inst.gameObject.SetActive(true); }
 			OnDraw += onDraw;
 			byIDs[ID] = onDraw;
 		}
@@ -57,7 +67,7 @@ namespace RatKing.Base {
 			if (byIDs.TryGetValue(ID, out onDraw)) {
 				OnDraw -= onDraw;
 				byIDs.Remove(ID);
-				if (OnDraw == null) { inst.gameObject.SetActive(false); }
+				if (OnDrawOnce == null && OnDraw == null) { inst.gameObject.SetActive(false); }
 			}
 		}
 
@@ -65,6 +75,16 @@ namespace RatKing.Base {
 
 		void OnGUI() {
 			if (OnDraw != null) { OnDraw(); }
+
+			if (OnDrawOnce != null) {
+				OnDrawOnce();
+				onDrawOnceCounter--;
+				if (onDrawOnceCounter <= 0) {
+					OnDrawOnce = null;
+					if (OnDraw == null) { gameObject.SetActive(false); }
+				}
+			}
+
 		}
 	}
 
