@@ -21,6 +21,17 @@ namespace RatKing {
 		public static Vector3Int WithX(this Vector3Int v, int x) { v.x = x; return v; }
 		public static Vector3Int WithY(this Vector3Int v, int y) { v.y = y; return v; }
 		public static Vector3Int WithZ(this Vector3Int v, int z) { v.z = z; return v; }
+		
+		public static Vector2 AddX(this Vector2 v, float x) { v.x += x; return v; }
+		public static Vector2 AddY(this Vector2 v, float y) { v.y += y; return v; }
+		public static Vector3 AddX(this Vector3 v, float x) { v.x += x; return v; }
+		public static Vector3 AddY(this Vector3 v, float y) { v.y += y; return v; }
+		public static Vector3 AddZ(this Vector3 v, float z) { v.z += z; return v; }
+		public static Vector2Int AddX(this Vector2Int v, int x) { v.x += x; return v; } 
+		public static Vector2Int AddY(this Vector2Int v, int y) { v.y += y; return v; }
+		public static Vector3Int AddX(this Vector3Int v, int x) { v.x += x; return v; }
+		public static Vector3Int AddY(this Vector3Int v, int y) { v.y += y; return v; }
+		public static Vector3Int AddZ(this Vector3Int v, int z) { v.z += z; return v; }
 
 		public static Color WithRed(this Color c, float r) { c.r = r; return c; }
 		public static Color WithGreen(this Color c, float g) { c.g = g; return c; }
@@ -59,6 +70,22 @@ namespace RatKing {
 		public static Vector3 SetLocalScaleX(this Transform t, float x) { var p = t.localScale; p.x = x; return t.localScale = p; }
 		public static Vector3 SetLocalScaleY(this Transform t, float y) { var p = t.localScale; p.y = y; return t.localScale = p; }
 		public static Vector3 SetLocalScaleZ(this Transform t, float z) { var p = t.localScale; p.z = z; return t.localScale = p; }
+
+		public static Vector3 AddPosX(this Transform t, float x) { var p = t.position; p.x += x; return t.position = p; }
+		public static Vector3 AddPosY(this Transform t, float y) { var p = t.position; p.y += y; return t.position = p; }
+		public static Vector3 AddPosZ(this Transform t, float z) { var p = t.position; p.z += z; return t.position = p; }
+		public static Vector3 AddLocalPosX(this Transform t, float x) { var p = t.localPosition; p.x += x; return t.localPosition = p; }
+		public static Vector3 AddLocalPosY(this Transform t, float y) { var p = t.localPosition; p.y += y; return t.localPosition = p; }
+		public static Vector3 AddLocalPosZ(this Transform t, float z) { var p = t.localPosition; p.z += z; return t.localPosition = p; }
+		public static Vector3 AddRotX(this Transform t, float x) { var p = t.eulerAngles; p.x += x; return t.eulerAngles = p; }
+		public static Vector3 AddRotY(this Transform t, float y) { var p = t.eulerAngles; p.y += y; return t.eulerAngles = p; }
+		public static Vector3 AddRotZ(this Transform t, float z) { var p = t.eulerAngles; p.z += z; return t.eulerAngles = p; }
+		public static Vector3 AddLocalRotX(this Transform t, float x) { var p = t.localEulerAngles; p.x += x; return t.localEulerAngles = p; }
+		public static Vector3 AddLocalRotY(this Transform t, float y) { var p = t.localEulerAngles; p.y += y; return t.localEulerAngles = p; }
+		public static Vector3 AddLocalRotZ(this Transform t, float z) { var p = t.localEulerAngles; p.z += z; return t.localEulerAngles = p; }
+		public static Vector3 AddLocalScaleX(this Transform t, float x) { var p = t.localScale; p.x += x; return t.localScale = p; }
+		public static Vector3 AddLocalScaleY(this Transform t, float y) { var p = t.localScale; p.y += y; return t.localScale = p; }
+		public static Vector3 AddLocalScaleZ(this Transform t, float z) { var p = t.localScale; p.z += z; return t.localScale = p; }
 
 		public static Vector2 SetSizeDeltaX(this RectTransform rt, float x) { var sd = rt.sizeDelta; sd.x = x; return rt.sizeDelta = sd; }
 		public static Vector2 SetSizeDeltaY(this RectTransform rt, float y) { var sd = rt.sizeDelta; sd.y = y; return rt.sizeDelta = sd; }
