@@ -26,10 +26,15 @@ namespace RatKing.Base {
 		}
 
 		public int Difference { get { return Mathf.Abs(max - min); } }
+		
+		//
 
-		public override string ToString() {
-			return "[" + min + "," + max + "]";
-		}
+		public static bool operator ==(RangeInt a, RangeInt b) { return a.min == b.min && a.max == b.max; }
+		public static bool operator !=(RangeInt a, RangeInt b) { return a.min != b.min || a.max != b.max; }
+		public override bool Equals(object o) { var p = (RangeInt)o; return p == this; }
+		public override int GetHashCode() { return base.GetHashCode(); }
+		public bool Equals(RangeInt other) { return min == other.min && max == other.max; }
+		public override string ToString() { return "[" + min + "," + max + "]"; }
 	}
 
 	[System.Serializable]
@@ -62,10 +67,15 @@ namespace RatKing.Base {
 		}
 
 		public float Difference { get { return Mathf.Abs(max - min); } }
+		
+		//
 
-		public override string ToString() {
-			return "[" + min + "," + max + "]";
-		}
+		public static bool operator ==(RangeFloat a, RangeFloat b) { return a.min == b.min && a.max == b.max; }
+		public static bool operator !=(RangeFloat a, RangeFloat b) { return a.min != b.min || a.max != b.max; }
+		public override bool Equals(object o) { var p = (RangeFloat)o; return p == this; }
+		public override int GetHashCode() { return base.GetHashCode(); }
+		public bool Equals(RangeFloat other) { return min == other.min && max == other.max; }
+		public override string ToString() { return "[" + min + "," + max + "]"; }
 	}
 
 }
