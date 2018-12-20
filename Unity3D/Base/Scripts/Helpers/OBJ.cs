@@ -105,7 +105,7 @@ namespace RatKing.Base {
 			for (int i = 0; i < filters.Length; ++i) {
 				var f = filters[i];
 				var r = f.GetComponent<Renderer>();
-				var m = f.mesh;
+				var m = f.sharedMesh;
 
 				if (r == null || m == null || m.vertexCount == 0) { continue; }
 
@@ -247,13 +247,18 @@ namespace RatKing.Base {
 
 				System.IO.File.WriteAllText(path + "/" + filename + ".mtl", mtlStr.ToString());
 			}
-			
-			for (int i = 0; i < textures.Count; ++i) {
-				var t = textures[i];
-				var tName = t.name;
-				for (int c = 0; c < invalidChars.Length; ++c) { tName = tName.Replace(invalidChars[c].ToString(), "_"); }
-				var bytes = t.EncodeToPNG();
-				System.IO.File.WriteAllBytes(path + "/" + tName + ".png", bytes); // TODO: same names?
+
+			try {
+				for (int i = 0; i < textures.Count; ++i) {
+					var t = textures[i];
+					var tName = t.name;
+					for (int c = 0; c < invalidChars.Length; ++c) { tName = tName.Replace(invalidChars[c].ToString(), "_"); }
+					var bytes = t.EncodeToPNG();
+					System.IO.File.WriteAllBytes(path + "/" + tName + ".png", bytes); // TODO: same names?
+				}
+			}
+			catch {
+				Debug.Log("PNG export didn't work, make it readable!");
 			}
 
 			UnityEngine.Debug.Log("Export of '" + filename + "' (OBJ) done.");
