@@ -138,6 +138,14 @@ namespace RatKing.Base {
 
 		//
 
+		public float GetWaitTimeOf(SoundType type) {
+			SoundProperties props;
+			if (!soundsProperties.TryGetValue(type, out props)) { return 0f; }
+			return Mathf.Max(0f, props.waiting - Time.unscaledTime);
+		}
+
+		//
+
 		IEnumerator CheckPlayingSoundsCR() {
 			do {
 				yield return null;
@@ -190,7 +198,14 @@ namespace RatKing.Base {
 			var source = prefab.GetComponent<AudioSource>();
 			source.priority = (int)((1f - type.Priority) * 256f);
 			source.loop = type.Loop;
+			source.panStereo = type.Pan;
 			source.spatialBlend = type.SpatialBlend;
+			if (type.SpatialBlend > 0f) {
+				source.spread = type.Spread3D;
+				source.rolloffMode = AudioRolloffMode.Linear;
+				source.minDistance = type.Distance3D.min;
+				source.maxDistance = type.Distance3D.max;
+			}
 			// TODO more specific things of sound prefab - linear and so on
 			typedPrefabs.Add(type, prefab);
 			for (int i = 0; i < type.PoolStartCount; ++i) { InstantiateTypedPrefabInPool(type, prefab, pool); }

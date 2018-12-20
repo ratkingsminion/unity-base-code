@@ -7,6 +7,7 @@ namespace RatKing.Base {
 		public bool IsPaused { get; private set; }
 		public bool InUse { get; private set; }
 		public string Tag { get; set; }
+		public AudioSource Source { get { return source; } }
 		//
 		AudioSource source;
 
@@ -66,6 +67,12 @@ namespace RatKing.Base {
 		public bool Rewind() {
 			if (!InUse) { return false; }
 			source.time = 0f;
+			return true;
+		}
+
+		public bool SetNormalizedTime(float t) {
+			if (!InUse || source.clip == null) { return false; }
+			source.time = Mathf.Repeat(t / source.clip.length, 1f);
 			return true;
 		}
 	}
