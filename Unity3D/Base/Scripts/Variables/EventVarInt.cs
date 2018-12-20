@@ -9,7 +9,7 @@ namespace RatKing.Base {
 	
 	[CreateAssetMenu(fileName="New Event Int", menuName="Variables/Event Int")]
 	public class EventVarInt : ScriptableObject, ISerializationCallbackReceiver {
-		[SerializeField] int startValue;
+		[SerializeField] int startValue = 0;
 		public int StartValue { get { return startValue; } }
 		//
 		int value;

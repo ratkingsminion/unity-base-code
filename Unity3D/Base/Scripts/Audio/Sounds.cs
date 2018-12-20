@@ -102,7 +102,7 @@ namespace RatKing.Base {
 		public Sound Play(SoundType type) {
 			if (type == null) { return null; }
 			//
-			var mightBeWaiting = type.WaitSeconds > 0f;
+			var mightBeWaiting = type.WaitSeconds.min > 0f;
 			var clipsCount = type.Clips.Length;
 			SoundProperties props = null;
 			if (mightBeWaiting || clipsCount > 1) {
@@ -132,7 +132,7 @@ namespace RatKing.Base {
 			sound.PlayType(type, clipIndex);
 			playingSounds.Add(sound);
 			if (runningCoroutine <= Time.unscaledTime) { StartCoroutine(CheckPlayingSoundsCR()); }
-			if (mightBeWaiting) { props.waiting = Time.unscaledTime + type.WaitSeconds; }
+			if (mightBeWaiting) { props.waiting = Time.unscaledTime + type.WaitSeconds.Random(); }
 			return sound;
 		}
 

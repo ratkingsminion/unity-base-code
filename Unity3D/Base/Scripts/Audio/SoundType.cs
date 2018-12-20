@@ -6,12 +6,12 @@ namespace RatKing.Base {
 	
 	[CreateAssetMenu(fileName = "SND", menuName = "Rat King/New Sound Type")]
 	public class SoundType : ScriptableObject {
-		[SerializeField] AudioClip[] clips;
+		[SerializeField] AudioClip[] clips = null;
 		[SerializeField] RangeFloat volume = new RangeFloat(0.5f, 0.6f);
 		[SerializeField] RangeFloat pitch = new RangeFloat(1f, 1f);
 		[SerializeField, Range(0f, 1f)] float priority = 0.5f;
-		[SerializeField] float waitSeconds = 0f;
-		[SerializeField] bool loop;
+		[SerializeField] RangeFloat waitSeconds = new RangeFloat(0f, 0f);
+		[SerializeField] bool loop = false;
 		[SerializeField, Range(0f, 1f)] float spatialBlend = 0f;
 		[Header("Pooling")]
 		[SerializeField] int startCount = 3;
@@ -21,7 +21,7 @@ namespace RatKing.Base {
 		public RangeFloat Volume { get { return volume; } }
 		public RangeFloat Pitch { get { return pitch; } }
 		public float Priority { get { return priority; } }
-		public float WaitSeconds { get { return waitSeconds; } }
+		public RangeFloat WaitSeconds { get { return waitSeconds; } }
 		public bool Loop { get { return loop; } }
 		public float SpatialBlend { get { return spatialBlend; } }
 		public int PoolStartCount { get { return startCount; } }

@@ -15,10 +15,10 @@ namespace RatKing.Base {
 
 	public class Particler : MonoBehaviour {
 		[Tooltip("Can be null, will get the first ParticleSystem component.")]
-		[SerializeField] ParticleSystem particles;
+		[SerializeField] ParticleSystem particles = null;
 		[Tooltip("Use Follow() to change during gameplay.")]
-		[SerializeField] Transform follow;
-		[SerializeField] bool followWithoutRotation;
+		[SerializeField] Transform follow = null;
+		[SerializeField] bool followWithoutRotation = false;
 		//
 		Coroutine following;
 		Vector3 followOffset;

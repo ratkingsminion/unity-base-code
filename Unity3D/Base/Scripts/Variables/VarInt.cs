@@ -8,7 +8,7 @@ namespace RatKing.Base {
 	
 	[CreateAssetMenu(fileName="New Int", menuName="Variables/Int")]
 	public class VarInt : ScriptableObject, ISerializationCallbackReceiver {
-		[SerializeField] int startValue;
+		[SerializeField] int startValue = 0;
 		public int StartValue { get { return startValue; } }
 		[System.NonSerialized] public int value;
 

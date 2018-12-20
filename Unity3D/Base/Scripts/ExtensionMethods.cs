@@ -6,7 +6,7 @@ namespace RatKing {
 		public static Vector2 ToVec2(this Vector3 v) { return new Vector2(v.x, v.y); }
 		public static Vector3 ToVec3(this Vector2 v, float z = 0f) { return new Vector3(v.x, v.y, z); }
 		
-		public static Vector3 ToVec2f(this Vector2Int v, float scale = 1f) { return new Vector2(v.x * scale, v.y * scale); }
+		public static Vector2 ToVec2f(this Vector2Int v, float scale = 1f) { return new Vector2(v.x * scale, v.y * scale); }
 		public static Vector3 ToVec3f(this Vector3Int v, float scale = 1f) { return new Vector3(v.x * scale, v.y * scale, v.z * scale); }
 		public static Vector2Int ToVec2i(this Vector2 v, bool floor = false) { return floor ? new Vector2Int(Mathf.FloorToInt(v.x), Mathf.FloorToInt(v.y)) : new Vector2Int(Mathf.RoundToInt(v.x), Mathf.RoundToInt(v.y)); }
 		public static Vector3Int ToVec3i(this Vector3 v, bool floor = false) { return floor ? new Vector3Int(Mathf.FloorToInt(v.x), Mathf.FloorToInt(v.y), Mathf.FloorToInt(v.z)) : new Vector3Int(Mathf.RoundToInt(v.x), Mathf.RoundToInt(v.y), Mathf.RoundToInt(v.z)); }

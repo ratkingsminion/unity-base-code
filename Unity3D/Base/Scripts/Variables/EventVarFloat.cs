@@ -10,7 +10,7 @@ namespace RatKing.Base {
 	[CreateAssetMenu(fileName="New Event Float", menuName="Variables/Event Float")]
 	public class EventVarFloat : ScriptableObject, ISerializationCallbackReceiver {
 		//
-		[SerializeField] float startValue;
+		[SerializeField] float startValue = 0f;
 		public float StartValue { get { return startValue; } }
 		//
 		float value;
