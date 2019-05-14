@@ -389,8 +389,8 @@ namespace RatKing.Base {
 			// channel-specific only
 			if (instance.channelsStringsActions.TryGetValue(channel, out eventsActions)) {
 				if (eventsActions.TryGetValue(@event, out actions)) {
-					foreach (var action in actions) {
-						((System.Action<T>)action)(value);
+					for (int i = actions.Count - 1; i >= 0; --i) {
+						((System.Action)actions[i])(value);
 					}
 				}
 			}
@@ -401,8 +401,8 @@ namespace RatKing.Base {
 			List<object> actions;
 			// all only
 			if (instance.allStringsActions.TryGetValue(@event, out actions)) {
-				foreach (var action in actions) {
-					((System.Action<T>)action)(value);
+				for (int i = actions.Count - 1; i >= 0; --i) {
+					((System.Action)actions[i])(value);
 				}
 			}
 		}
