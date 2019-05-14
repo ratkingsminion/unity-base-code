@@ -1,9 +1,9 @@
-﻿//#define DEBUG_EVENTS
+﻿// #define DEBUG_EVENTS
 
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace RatKing {
+namespace RatKing.Base {
 	
 	public class Event : System.IEquatable<Event> {
 		protected readonly string name;
@@ -33,6 +33,13 @@ namespace RatKing {
 	public class Event<T1, T2> : Event, System.IEquatable<Event<T1, T2>> {
 		public Event(string name) : base(name) { }
 		public bool Equals(Event<T1, T2> other) {
+			return name == other.name;
+		}
+	}
+
+	public class Event<T1, T2, T3> : Event, System.IEquatable<Event<T1, T2, T3>> {
+		public Event(string name) : base(name) { }
+		public bool Equals(Event<T1, T2, T3> other) {
 			return name == other.name;
 		}
 	}
@@ -242,8 +249,8 @@ namespace RatKing {
 			// channel-specific only
 			if (instance.channelsStringsActions.TryGetValue(channel, out stringsActions)) {
 				if (stringsActions.TryGetValue(@event, out actions)) {
-					foreach (var action in actions) {
-						((System.Action)action)();
+					for (int i = actions.Count - 1; i >= 0; --i) {
+						((System.Action)actions[i])();
 					}
 				}
 			}
@@ -254,8 +261,8 @@ namespace RatKing {
 			List<object> actions;
 			// all only
 			if (instance.allStringsActions.TryGetValue(@event, out actions)) {
-				foreach (var action in actions) {
-					((System.Action)action)();
+				for (int i = actions.Count - 1; i >= 0; --i) {
+					((System.Action)actions[i])();
 				}
 			}
 		}
@@ -312,8 +319,8 @@ namespace RatKing {
 			// channel-specific only
 			if (instance.channelsEventsActions.TryGetValue(channel, out eventsActions)) {
 				if (eventsActions.TryGetValue(@event, out actions)) {
-					foreach (var action in actions) {
-						((System.Action)action)();
+					for (int i = actions.Count - 1; i >= 0; --i) {
+						((System.Action)actions[i])();
 					}
 				}
 			}
@@ -324,8 +331,8 @@ namespace RatKing {
 			List<object> actions;
 			// all only
 			if (instance.allEventsActions.TryGetValue(@event, out actions)) {
-				foreach (var action in actions) {
-					((System.Action)action)();
+				for (int i = actions.Count - 1; i >= 0; --i) {
+					((System.Action)actions[i])();
 				}
 			}
 		}
@@ -452,8 +459,8 @@ namespace RatKing {
 			// channel-specific only
 			if (instance.channelsEventsActions.TryGetValue(channel, out eventsActions)) {
 				if (eventsActions.TryGetValue(@event, out actions)) {
-					foreach (var action in actions) {
-						((System.Action<T>)action)(value);
+					for (int i = actions.Count - 1; i >= 0; --i) {
+						((System.Action<T>)actions[i])(value);
 					}
 				}
 			}
@@ -464,8 +471,8 @@ namespace RatKing {
 			List<object> actions;
 			// all only
 			if (instance.allEventsActions.TryGetValue(@event, out actions)) {
-				foreach (var action in actions) {
-					((System.Action<T>)action)(value);
+				for (int i = actions.Count - 1; i >= 0; --i) {
+					((System.Action<T>)actions[i])(value);
 				}
 			}
 		}
@@ -522,8 +529,8 @@ namespace RatKing {
 			// channel-specific only
 			if (instance.channelsEventsActions.TryGetValue(channel, out eventsActions)) {
 				if (eventsActions.TryGetValue(@event, out actions)) {
-					foreach (var action in actions) {
-						((System.Action<T1, T2>)action)(value1, value2);
+					for (int i = actions.Count - 1; i >= 0; --i) {
+						((System.Action<T1, T2>)actions[i])(value1, value2);
 					}
 				}
 			}
@@ -534,8 +541,8 @@ namespace RatKing {
 			List<object> actions;
 			// all only
 			if (instance.allEventsActions.TryGetValue(@event, out actions)) {
-				foreach (var action in actions) {
-					((System.Action<T1, T2>)action)(value1, value2);
+				for (int i = actions.Count - 1; i >= 0; --i) {
+					((System.Action<T1, T2>)actions[i])(value1, value2);
 				}
 			}
 		}
@@ -592,8 +599,8 @@ namespace RatKing {
 			// channel-specific only
 			if (instance.channelsEventsActions.TryGetValue(channel, out eventsActions)) {
 				if (eventsActions.TryGetValue(@event, out actions)) {
-					foreach (var action in actions) {
-						((System.Action<T1, T2, T3>)action)(value1, value2, value3);
+					for (int i = actions.Count - 1; i >= 0; --i) {
+						((System.Action<T1, T2, T3>)actions[i])(value1, value2, value3);
 					}
 				}
 			}
@@ -604,12 +611,21 @@ namespace RatKing {
 			List<object> actions;
 			// all only
 			if (instance.allEventsActions.TryGetValue(@event, out actions)) {
-				foreach (var action in actions) {
-					((System.Action<T1, T2, T3>)action)(value1, value2, value3);
+				for (int i = actions.Count - 1; i >= 0; --i) {
+					((System.Action<T1, T2, T3>)actions[i])(value1, value2, value3);
 				}
 			}
 		}
 
+		//
+
+		public static bool EventExists(Event @event) {
+			return instance.allEventsActions.ContainsKey(@event);
+		}
+
+		public static bool EventExists(string @event) {
+			return instance.allStringsActions.ContainsKey(@event);
+		}
 	}
 
 }
