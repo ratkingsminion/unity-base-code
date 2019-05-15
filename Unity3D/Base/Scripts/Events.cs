@@ -123,7 +123,7 @@ namespace RatKing.Base {
 			// events: channel-specific
 			if (instance.channelsEventsActions.TryGetValue(channel, out eventsActions)) {
 				List<object> actions;
-				if (eventsActions.TryGetValue(@event, out actions)) { return; }
+				if (!eventsActions.TryGetValue(@event, out actions)) { return; }
 				eventsActions.Remove(@event);
 				// events: all
 				List<object> actionsAll = instance.allEventsActions[@event];
@@ -146,7 +146,7 @@ namespace RatKing.Base {
 			// strings: channel-specific
 			if (instance.channelsStringsActions.TryGetValue(channel, out stringsActions)) {
 				List<object> actions;
-				if (stringsActions.TryGetValue(@event, out actions)) { return; }
+				if (!stringsActions.TryGetValue(@event, out actions)) { return; }
 				stringsActions.Remove(@event);
 				// strings: all
 				List<object> actionsAll = instance.allStringsActions[@event];
