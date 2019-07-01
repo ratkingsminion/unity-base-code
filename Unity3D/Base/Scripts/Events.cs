@@ -390,7 +390,7 @@ namespace RatKing.Base {
 			if (instance.channelsStringsActions.TryGetValue(channel, out eventsActions)) {
 				if (eventsActions.TryGetValue(@event, out actions)) {
 					for (int i = actions.Count - 1; i >= 0; --i) {
-						((System.Action)actions[i])(value);
+						((System.Action<T>)actions[i])(value);
 					}
 				}
 			}
@@ -402,7 +402,7 @@ namespace RatKing.Base {
 			// all only
 			if (instance.allStringsActions.TryGetValue(@event, out actions)) {
 				for (int i = actions.Count - 1; i >= 0; --i) {
-					((System.Action)actions[i])(value);
+					((System.Action<T>)actions[i])(value);
 				}
 			}
 		}
