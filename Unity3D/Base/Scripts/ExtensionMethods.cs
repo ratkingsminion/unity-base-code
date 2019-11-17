@@ -104,10 +104,14 @@ namespace RatKing {
 		public static Vector2 Add(this Vector2 v, Vector3 o) { return new Vector2(v.x + o.x, v.y + o.y); }
 		public static Vector3 Subtract(this Vector3 v, Vector2 o) { return new Vector3(v.x - o.x, v.y - o.y, v.z); }
 		public static Vector2 Subtract(this Vector2 v, Vector3 o) { return new Vector2(v.x - o.x, v.y - o.y); }
+		public static Vector3 Multiply(this Vector3 v, Vector3 o) { return new Vector3(v.x * o.x, v.y * o.y, o.z * o.z); }
+		public static Vector2 Multiply(this Vector2 v, Vector2 o) { return new Vector2(v.x * o.x, v.y * o.y); }
 		public static Vector3Int Add(this Vector3Int v, Vector2Int o) { return new Vector3Int(v.x + o.x, v.y + o.y, v.z); }
 		public static Vector2Int Add(this Vector2Int v, Vector3Int o) { return new Vector2Int(v.x + o.x, v.y + o.y); }
 		public static Vector3Int Subtract(this Vector3Int v, Vector2Int o) { return new Vector3Int(v.x - o.x, v.y - o.y, v.z); }
 		public static Vector2Int Subtract(this Vector2Int v, Vector3Int o) { return new Vector2Int(v.x - o.x, v.y - o.y); }
+		public static Vector3Int Multiply(this Vector3Int v, Vector3Int o) { return new Vector3Int(v.x * o.x, v.y * o.y, o.z * o.z); }
+		public static Vector2Int Multiply(this Vector2Int v, Vector2Int o) { return new Vector2Int(v.x * o.x, v.y * o.y); }
 
 		public static T GetOrAddComponent<T>(this GameObject go) where T : Component { var ac = go.GetComponent<T>(); if (ac == null) { ac = go.AddComponent<T>(); } return ac; }
 		public static T AddComponent<T>(this Component c) where T : Component { return c.gameObject.AddComponent<T>(); }
