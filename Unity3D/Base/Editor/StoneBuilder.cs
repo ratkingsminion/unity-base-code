@@ -153,10 +153,14 @@ namespace RatKing.Base {
 			Target.Add("Mac OSX 32 bit", "build osx 32", "OSX32", "osx", 0, BuildTarget.StandaloneOSXIntel, ".exe", false);
 			Target.Add("Mac OSX 64 bit", "build osx 64", "OSX64", "osx", 1, BuildTarget.StandaloneOSXIntel64, ".app", true);
 #endif
-			Target.Add("Mac OSX Universal", "build osx uni", "OSX32+64", "osx-universal", 0, BuildTarget.StandaloneOSX, ".app", false);
+			Target.Add("Mac OSX", "build osx uni", "OSX", "osx-universal", 0, BuildTarget.StandaloneOSX, ".app", false);
+#if !UNITY_2019_2_OR_NEWER
 			Target.Add("Ubuntu 32 bit", "build lnx 32", "Ubuntu32", "linux", 0, BuildTarget.StandaloneLinux, "", false);
 			Target.Add("Ubuntu 64 bit", "build lnx 64", "Ubuntu64", "linux", 1, BuildTarget.StandaloneLinux64, "", true);
 			Target.Add("Ubuntu Universal", "build lnx uni", "Ubuntu32+64", "linux-universal", 0, BuildTarget.StandaloneLinuxUniversal, "", false);
+#else
+			Target.Add("Linux 64 bit", "build lnx 64", "Linux", "linux", 1, BuildTarget.StandaloneLinux64, "", true);
+#endif
 			//
 			targetNames = new string[targets.Count];
 			int i = 0;
@@ -627,9 +631,11 @@ namespace RatKing.Base {
 					format = "";
 					suffix = ".zip";
 					break;
+#if !UNITY_2019_2_OR_NEWER
 				case BuildTarget.StandaloneLinux:
-				case BuildTarget.StandaloneLinux64:
 				case BuildTarget.StandaloneLinuxUniversal:
+#endif
+				case BuildTarget.StandaloneLinux64:
 					isLinux = true;
 					format = "-ttar";
 					suffix = ".tar";

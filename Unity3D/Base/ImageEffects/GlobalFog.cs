@@ -231,6 +231,7 @@ namespace RatKing.ImageEffects.Modified
 			supportHDRTextures = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGBHalf);
 			supportDX11 = SystemInfo.graphicsShaderLevel >= 50 && SystemInfo.supportsComputeShaders;
 
+#if !UNITY_2019_2_OR_NEWER
 #if !UNITY_5_5_OR_NEWER
 			if (!SystemInfo.supportsImageEffects || !SystemInfo.supportsRenderTextures)
 #else
@@ -240,6 +241,7 @@ namespace RatKing.ImageEffects.Modified
 				NotSupported ();
 				return false;
 			}
+#endif
 
 			if (needDepth && !SystemInfo.SupportsRenderTextureFormat (RenderTextureFormat.Depth))
 			{

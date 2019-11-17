@@ -4,7 +4,11 @@ using UnityEditor;
 public static class PlayModeEditReminder {
 	static GUIStyle style;
 	static PlayModeEditReminder() {
+#if UNITY_2019_2_OR_NEWER
+		SceneView.duringSceneGui += OnSceneGUI;
+#else
 		SceneView.onSceneGUIDelegate += OnSceneGUI;
+#endif
 	}
 	static void OnSceneGUI(SceneView view) {
 		if (Application.isPlaying && Selection.activeGameObject != null && Selection.activeGameObject.scene.name != null) {
