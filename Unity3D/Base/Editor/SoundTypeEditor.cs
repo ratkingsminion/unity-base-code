@@ -81,6 +81,26 @@ namespace RatKing.Base {
 			serializedObject.ApplyModifiedProperties();
 		}
 
+#if UNITY_2019_2_OR_NEWER
+		// https://forum.unity.com/threads/way-to-play-audio-in-editor-using-an-editor-script.132042/#post-4767824
+
+		public static void PlayClip(AudioClip clip, int startSample = 0, bool loop = false) {
+			System.Reflection.Assembly unityEditorAssembly = typeof(AudioImporter).Assembly;
+			System.Type audioUtilClass = unityEditorAssembly.GetType("UnityEditor.AudioUtil");
+			System.Reflection.MethodInfo method = audioUtilClass.GetMethod(
+				"PlayClip",
+				System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public,
+				null,
+				new System.Type[] { typeof(AudioClip), typeof(int), typeof(bool) },
+				null
+			);
+			method.Invoke(
+				null,
+				new object[] { clip, startSample, loop }
+			);
+		}
+
+#else
 		// https://answers.unity.com/questions/36388/how-to-play-audioclip-in-edit-mode.html
 
 		public static void PlayClip(AudioClip clip) {
@@ -102,6 +122,8 @@ namespace RatKing.Base {
 				}
 			);
 		}
+#endif
+
 		public static void StopAllClips() {
 			var unityEditorAssembly = typeof(AudioImporter).Assembly;
 			var audioUtilClass = unityEditorAssembly.GetType("UnityEditor.AudioUtil");
