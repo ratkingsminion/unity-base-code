@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.Events;
 
 namespace RatKing.Base {
 
@@ -20,6 +21,8 @@ namespace RatKing.Base {
 			DontChangeParent
 		}
 		public Parenting parenting;
+		public UnityEvent onPop;
+		public UnityEvent onPush;
 		//
 		Poolable original;
 		bool isOriginal = true;
@@ -127,6 +130,9 @@ namespace RatKing.Base {
 			if (p.ps != null)
 				p.ps.Play();
 
+			if (onPop != null)
+				onPop.Invoke();
+
 			return p;
 		}
 
@@ -151,6 +157,9 @@ namespace RatKing.Base {
 			}
 			var stack = StackByPrefab[original];
 			stack.Push(this);
+
+			if (onPush != null)
+				onPush.Invoke();
 		}
 
 		public bool IsPushable() {
