@@ -130,8 +130,8 @@ namespace RatKing.Base {
 			if (p.ps != null)
 				p.ps.Play();
 
-			if (onPop != null)
-				onPop.Invoke();
+			if (p.onPop != null)
+				p.onPop.Invoke();
 
 			return p;
 		}
