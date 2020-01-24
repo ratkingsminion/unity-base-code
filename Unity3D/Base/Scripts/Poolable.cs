@@ -13,16 +13,16 @@ namespace RatKing.Base {
 		protected virtual Transform PoolParent { get { return _poolParent; } set { _poolParent = value; } }
 		protected virtual Dictionary<Poolable, Stack<Poolable>> StackByPrefab { get { return _stackByPrefab; } set { } }
 		//
-		public int startCount = 10;
-		public int addCount = 1;
+		[SerializeField] int startCount = 10;
+		[SerializeField] int addCount = 1;
 		public enum Parenting {
 			UsePoolParent,
 			UseOriginalParent,
 			DontChangeParent
 		}
-		public Parenting parenting;
-		public UnityEvent onPop;
-		public UnityEvent onPush;
+		[SerializeField] Parenting parenting = Parenting.UsePoolParent;
+		[SerializeField] UnityEvent onPop = null;
+		[SerializeField] UnityEvent onPush = null;
 		//
 		Poolable original;
 		bool isOriginal = true;
@@ -30,6 +30,10 @@ namespace RatKing.Base {
 		ParticleSystem ps;
 
 		//
+
+		void Awake() {
+			if (isOriginal && parenting == Parenting.UseOriginalParent) { gameObject.SetActive(false); }
+		}
 
 		void CreateInstanceInPool(Stack<Poolable> stack) {
 			var go = (GameObject)Instantiate(original.gameObject);
