@@ -10,6 +10,7 @@ namespace RatKing.Base {
 		public string name;
 		public string code;
 		public TextAsset file;
+		[System.NonSerialized] public string fileContent;
 	}
 
 	public class Localisation : MonoBehaviour {
@@ -18,7 +19,11 @@ namespace RatKing.Base {
 
 		public static Localisation Inst { get; private set; }
 		//
-		[SerializeField] List<LocalisationLanguage> languages = null;
+		[SerializeField] int keyPartCount = 16; // 16 should be more than enough anyway
+		[SerializeField, Tooltip("Optional: enter a definition file (JSON) that will define what languages exist")] string definitionFileName = "";
+		[SerializeField, Tooltip("If you don't have a definition file you need to add all languages here.")] List<LocalisationLanguage> languages = null;
+		//
+		public static List<LocalisationLanguage> Languages { get { return Inst.languages; } }
 		//
 		static int curLangIndex = 0;
 		static Dictionary<string, string> texts = new Dictionary<string, string>();
@@ -34,15 +39,10 @@ namespace RatKing.Base {
 			InitTranslations(0);
 			TranslateAll();
 
+			// for testing - create a file with all keys and texts
 			//var test = "";
-			//foreach (var k in texts) {
-			//	test += k.Value + "\n";
-			//}
-			//foreach (var k in textsAll) {
-			//	foreach (var v in k.Value) {
-			//		test += v + "\n";
-			//	}
-			//}
+			//foreach (var k in texts) { test += k.Value + "\n"; }
+			//foreach (var k in textsAll) { foreach (var v in k.Value) { test += v + "\n"; } }
 			//var filepath = Application.dataPath + "/ALL_TEXTS.txt";
 			//System.IO.File.WriteAllText(filepath, test);
 		}
@@ -54,22 +54,55 @@ namespace RatKing.Base {
 		}
 
 		void InitTranslations(int index) {
-			var curKeyParts = new string[16]; // 16 should be more than enough...
-			var json = SimpleJSON.JSONNode.Parse(languages[index].file.text);
-			if (json.IsObject && json["translations"] != null) { GetTranslationKeys(curKeyParts, 0, json["translations"]); }
-		}
-
-		void GetTranslationKeys(string[] curKeyParts, int keyPartsCount, SimpleJSON.JSONNode curField) {
-			if (curField.IsObject) {
-				foreach (var key in curField.Keys) {
-					curKeyParts[keyPartsCount] = key;
-					GetTranslationKeys(curKeyParts, keyPartsCount + 1, curField[key]);
+			var hasDefinitionFile = !string.IsNullOrWhiteSpace(definitionFileName);
+			if (!hasDefinitionFile && (languages == null || languages.Count == 0)) {
+				Debug.LogError("No translations present");
+				return;
+			}
+			//
+			SimpleJSON.JSONNode json;
+			if (hasDefinitionFile) {
+				if (languages == null) { languages = new List<LocalisationLanguage>(); }
+				var definitionString = System.IO.File.ReadAllText(Application.dataPath + "/" + definitionFileName);
+				json = SimpleJSON.JSONNode.Parse(definitionString);
+				if (!json.IsObject) { Debug.LogError("Malformed translations definition file"); return; }
+				foreach (var key in json.Keys) {
+					var jsonLang = json[key];
+					if (!jsonLang.IsObject) { Debug.LogWarning("Translation object " + key + " is malformed (" + jsonLang.ToString() + ")"); continue; }
+					var fileName = jsonLang["file"].Value;
+					var filePath = Application.dataPath + "/" + fileName;
+					if (!System.IO.File.Exists(filePath)) { Debug.LogWarning("Translation file for " + key + " does not exist"); continue; }
+					var fileContent = System.IO.File.ReadAllText(filePath);
+					if (string.IsNullOrWhiteSpace(fileContent)) { Debug.LogWarning("Translation file for " + key + " is malformed"); continue; }
+					languages.Add(new LocalisationLanguage() {
+						language = (SystemLanguage)System.Enum.Parse(typeof(SystemLanguage), key, true),
+						name = jsonLang["name"].Value,
+						code = jsonLang["code"].Value,
+						file = null,
+						fileContent = fileContent
+					});
 				}
 			}
-			else if (curField.IsArray) {
+			//
+			var curKeyParts = new string[keyPartCount];
+			var language = languages[index];
+			json = SimpleJSON.JSONNode.Parse(language.file == null ? language.fileContent : language.file.text);
+			if (json.IsObject) {
+				GetTranslationKeys(curKeyParts, 0, json);
+			}
+		}
+
+		void GetTranslationKeys(string[] curKeyParts, int keyPartsCount, SimpleJSON.JSONNode field) {
+			if (field.IsObject) {
+				foreach (var key in field.Keys) {
+					curKeyParts[keyPartsCount] = key;
+					GetTranslationKeys(curKeyParts, keyPartsCount + 1, field[key]);
+				}
+			}
+			else if (field.IsArray) {
 				var curKey = string.Join("/", curKeyParts, 0, keyPartsCount).Trim(keyTrimmer);
-				var list = new List<string>(curField.AsArray.Count);
-				foreach (var sub in curField.AsArray) {
+				var list = new List<string>(field.AsArray.Count);
+				foreach (var sub in field.AsArray) {
 					if (sub.Value.IsString) { list.Add(sub.Value); }
 				}
 				if (list.Count > 0) {
@@ -77,9 +110,9 @@ namespace RatKing.Base {
 					texts[curKey] = list[0];
 				}
 			}
-			else if (curField.IsString) {
+			else if (field.IsString) {
 				var curKey = string.Join("/", curKeyParts, 0, keyPartsCount).Trim(keyTrimmer);
-				texts[curKey] = curField.Value;
+				texts[curKey] = field.Value;
 			}
 		}
 
@@ -94,7 +127,7 @@ namespace RatKing.Base {
 		}
 
 		public static void ChangeLanguage(string code) {
-			var index = Inst.languages.FindIndex(l => l.code == code);
+			var index = Inst.languages.FindLastIndex(l => l.code == code);
 			if (index < 0) { Debug.LogWarning("Language " + code + " not found!"); }
 			else { ChangeLanguage(index); }
 		}

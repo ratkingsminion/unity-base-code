@@ -1,0 +1,12 @@
+﻿{
+	"buildings": {
+		"townhall": {
+			"name": "A townhall",
+			"description": "Increases your influence"
+		},
+		"townhall": {
+			"name": "A mill",
+			"description": "Makes flour."
+		}
+	}
+}
