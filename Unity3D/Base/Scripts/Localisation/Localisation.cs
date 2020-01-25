@@ -31,6 +31,7 @@ namespace RatKing.Base {
 		static List<ILocaliseMe> locas = new List<ILocaliseMe>(32);
 		//
 		readonly char[] keyTrimmer = new[] { '\\', '/', '\n', '\r', '\t', '"', ' ' };
+		bool addedDefinitions = false;
 
 		//
 
@@ -61,7 +62,7 @@ namespace RatKing.Base {
 			}
 			//
 			SimpleJSON.JSONNode json;
-			if (hasDefinitionFile) {
+			if (hasDefinitionFile && !addedDefinitions) {
 				if (languages == null) { languages = new List<LocalisationLanguage>(); }
 				var definitionString = System.IO.File.ReadAllText(Application.dataPath + "/" + definitionFileName);
 				json = SimpleJSON.JSONNode.Parse(definitionString);
@@ -82,6 +83,7 @@ namespace RatKing.Base {
 						fileContent = fileContent
 					});
 				}
+				addedDefinitions = true;
 			}
 			//
 			var curKeyParts = new string[keyPartCount];
