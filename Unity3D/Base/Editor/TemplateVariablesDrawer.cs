@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEditor;
+using System.Collections.Generic;
 
 namespace RatKing.Base {
 	
@@ -9,8 +10,12 @@ namespace RatKing.Base {
 		static readonly float buttonsHeight = 20f;
 		static readonly float entriesHeight = 20f;
 
+		//
+
 		public override float GetPropertyHeight(SerializedProperty property, GUIContent label) {
-			var variables = fieldInfo.GetValue(property.serializedObject.targetObject) as TemplateVariables;
+			var serializedObject = property.serializedObject;
+			var templateVariables = fieldInfo.GetValue(serializedObject.targetObject) as TemplateVariables;
+			var variables = templateVariables.List;
 			var h = labelsHeight + buttonsHeight * 2;
 			if (variables != null && variables.Count > 0) { h += variables.Count * entriesHeight + labelsHeight; }
 			return h;
@@ -22,7 +27,8 @@ namespace RatKing.Base {
 			//EditorGUI.BeginProperty(position, label, property);
 			
 			var serializedObject = property.serializedObject;
-			var variables = fieldInfo.GetValue(serializedObject.targetObject) as TemplateVariables;
+			var templateVariables = fieldInfo.GetValue(serializedObject.targetObject) as TemplateVariables;
+			var variables = templateVariables.List;
 			
 			var r = new Rect();
 			position.width -= 5f;
@@ -99,8 +105,8 @@ namespace RatKing.Base {
 			//EditorGUI.EndProperty();
 		}
 
-		public static void AddVariable<T>(Object asset, ref TemplateVariables variables) where T : TemplateVar {
-			if (variables == null) { variables = new TemplateVariables(); }
+		public static void AddVariable<T>(Object asset, ref List<TemplateVar> variables) where T : TemplateVar {
+			if (variables == null) { variables = new List<TemplateVar>(); }
 			var si = ScriptableObject.CreateInstance<T>();
 			variables.Add(si);
 			EditorUtility.SetDirty(si);

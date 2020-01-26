@@ -24,11 +24,5 @@ namespace RatKing.Base {
 		}
 #endif
 	}
-	
-	[System.Serializable]
-	public class TemplateVar<T> : TemplateVar {
-		//public System.Type GetBaseType() { return typeof(T); }
-		public virtual T GetValue() { return default; }
-	}
 
 }

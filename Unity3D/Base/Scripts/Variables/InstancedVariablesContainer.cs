@@ -51,9 +51,12 @@ namespace RatKing.Base {
 	public class InstancedVariablesContainer {
 		readonly int varCount = 0;
 		readonly List<TemplateVar> templateVars = null;
-		IInstanceVar[] instanceVars; 
+		IInstanceVar[] instanceVars;
 
 		//
+
+		public InstancedVariablesContainer(TemplateVariables templateVars) : this(templateVars.List) {
+		}
 
 		public InstancedVariablesContainer(List<TemplateVar> templateVars) {
 			if (templateVars == null) { return; }
