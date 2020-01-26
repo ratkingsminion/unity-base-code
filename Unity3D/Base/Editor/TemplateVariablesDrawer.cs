@@ -29,6 +29,7 @@ namespace RatKing.Base {
 			var serializedObject = property.serializedObject;
 			var templateVariables = fieldInfo.GetValue(serializedObject.targetObject) as TemplateVariables;
 			var variables = templateVariables.List;
+			var variablesCount = variables != null ? variables.Count : 0;
 			
 			var r = new Rect();
 			position.width -= 5f;
@@ -37,10 +38,10 @@ namespace RatKing.Base {
 			GUI.BeginGroup(position);
 
 			r.Set(0f, 0f, w, labelsHeight);
-			GUI.Label(r, "<b>" + label.text + " (" + variables.Count + ")</b>:", headerStyle);
+			GUI.Label(r, "<b>" + label.text + " (" + variablesCount + ")</b>:", headerStyle);
 			//GUI.changed = false;
 
-			if (variables != null && variables.Count > 0) {
+			if (variablesCount > 0) {
 				r.Set(0f, r.y + r.height, 0f, labelsHeight);
 				r.width = 38f; GUI.Label(r, "TYP");
 				r.x += r.width; r.width = 62f; GUI.Label(r, "ID");

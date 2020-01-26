@@ -6,14 +6,15 @@ using System.Collections.Generic;
 
 namespace RatKing.Base {
 	
-	[System.Serializable, SerializeField]
+	[System.Serializable]
 	public class TemplateVariables {
-		[SerializeField] List<TemplateVar> list = new List<TemplateVar>();
+		[SerializeField] List<TemplateVar> list = null;
 		public List<TemplateVar> List { get => list; }
 
 		//
 
 		public T Get<T>(string id, T standardValue = default) where T:TemplateVar {
+			if (list == null) { return standardValue; }
 			foreach (var v in list) {
 				if (v is T && v.name == id) { return v as T; }
 			}
@@ -21,6 +22,7 @@ namespace RatKing.Base {
 		}
 
 		public T GetByBaseType<T>(string id, T standardValue = default) {
+			if (list == null) { return standardValue; }
 			foreach (var v in list) {
 				if (v.name == id && v is TemplateVar<T> vt) {
 					return vt.GetValue();
