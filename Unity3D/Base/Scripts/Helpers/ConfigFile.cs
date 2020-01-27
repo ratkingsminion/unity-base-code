@@ -55,7 +55,7 @@ namespace RatKing.Base {
 						else if (value == "off" || value == "false") {
 							valuesBool[key] = false;
 						}
-						else if (float.TryParse(value, out valueNumber)) {
+						else if (float.TryParse(value, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out valueNumber)) {
 							valuesNumber[key] = valueNumber;
 						}
 						else { // is string
