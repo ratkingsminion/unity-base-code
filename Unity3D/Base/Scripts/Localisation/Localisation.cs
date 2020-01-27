@@ -12,7 +12,8 @@ namespace RatKing.Base {
 		public TextAsset file;
 		[System.NonSerialized] public string fileContent;
 	}
-
+	
+	[DefaultExecutionOrder(-5000)]
 	public class Localisation : MonoBehaviour {
 
 		public static Base.Event LANGUAGE_CHANGES = new Base.Event("language_changes");
@@ -21,17 +22,17 @@ namespace RatKing.Base {
 		//
 		[SerializeField] int keyPartCount = 16; // 16 should be more than enough anyway
 		[SerializeField, Tooltip("Optional: enter a definition file (JSON) that will define what languages exist")] string definitionFileName = "";
-		[SerializeField, Tooltip("If you don't have a definition file you need to add all languages here.")] List<LocalisationLanguage> languages = null;
+		[SerializeField, Tooltip("If you don't have a definition file you need to add all languages here.")] LocalisationLanguage[] languages = null;
 		//
-		public static List<LocalisationLanguage> Languages { get { return Inst.languages; } }
+		public static List<LocalisationLanguage> Languages { get; private set; }
 		//
 		static int curLangIndex = 0;
 		static Dictionary<string, string> texts = new Dictionary<string, string>();
 		static Dictionary<string, string[]> textsAll = new Dictionary<string, string[]>();
 		static List<ILocaliseMe> locas = new List<ILocaliseMe>(32);
 		//
-		readonly char[] keyTrimmer = new[] { '\\', '/', '\n', '\r', '\t', '"', ' ' };
-		bool addedDefinitions = false;
+		static readonly char[] keyTrimmer = new[] { '\\', '/', '\n', '\r', '\t', '"', ' ' };
+		static bool addedDefinitions = false;
 
 		//
 
@@ -56,14 +57,17 @@ namespace RatKing.Base {
 
 		void InitTranslations(int index) {
 			var hasDefinitionFile = !string.IsNullOrWhiteSpace(definitionFileName);
-			if (!hasDefinitionFile && (languages == null || languages.Count == 0)) {
+			if (!hasDefinitionFile && (languages == null || languages.Length == 0)) {
 				Debug.LogError("No translations present");
 				return;
 			}
 			//
 			SimpleJSON.JSONNode json;
+			if (Languages == null) {
+				if (languages != null) { Languages = new List<LocalisationLanguage>(languages); }
+				else { Languages = new List<LocalisationLanguage>(); }
+			}
 			if (hasDefinitionFile && !addedDefinitions) {
-				if (languages == null) { languages = new List<LocalisationLanguage>(); }
 				var definitionString = System.IO.File.ReadAllText(Application.dataPath + "/" + definitionFileName);
 				json = SimpleJSON.JSONNode.Parse(definitionString);
 				if (!json.IsObject) { Debug.LogError("Malformed translations definition file"); return; }
@@ -75,7 +79,7 @@ namespace RatKing.Base {
 					if (!System.IO.File.Exists(filePath)) { Debug.LogWarning("Translation file for " + key + " does not exist"); continue; }
 					var fileContent = System.IO.File.ReadAllText(filePath);
 					if (string.IsNullOrWhiteSpace(fileContent)) { Debug.LogWarning("Translation file for " + key + " is malformed"); continue; }
-					languages.Add(new LocalisationLanguage() {
+					Languages.Add(new LocalisationLanguage() {
 						language = (SystemLanguage)System.Enum.Parse(typeof(SystemLanguage), key, true),
 						name = jsonLang["name"].Value,
 						code = jsonLang["code"].Value,
@@ -86,11 +90,10 @@ namespace RatKing.Base {
 				addedDefinitions = true;
 			}
 			//
-			var curKeyParts = new string[keyPartCount];
-			var language = languages[index];
+			var language = Languages[index];
 			json = SimpleJSON.JSONNode.Parse(language.file == null ? language.fileContent : language.file.text);
 			if (json.IsObject) {
-				GetTranslationKeys(curKeyParts, 0, json);
+				GetTranslationKeys(new string[keyPartCount], 0, json);
 			}
 		}
 
@@ -125,17 +128,18 @@ namespace RatKing.Base {
 		}
 
 		public static SystemLanguage GetCurLanguage() {
-			return Inst.languages[curLangIndex].language;
+			return Languages[curLangIndex].language;
 		}
 
 		public static void ChangeLanguage(string code) {
-			var index = Inst.languages.FindLastIndex(l => l.code == code);
-			if (index < 0) { Debug.LogWarning("Language " + code + " not found!"); }
+			var index = Languages.FindLastIndex(l => l.code == code);
+			if (index < 0) { Debug.LogWarning("Language " + code + " not found!"); return; }
 			else { ChangeLanguage(index); }
 		}
 
 		public static void ChangeLanguage(int index) {
-			if (Inst == null || curLangIndex == index) { return; }
+			if (Inst == null) { Debug.LogWarning("Could not change language because instance is null! Call this later or change this script's execution order to be as early as possible."); return; }
+			if (curLangIndex == index) { return; }
 			Inst.InitTranslations(index);
 			curLangIndex = index;
 			Base.Events.BroadcastAll(LANGUAGE_CHANGES);
