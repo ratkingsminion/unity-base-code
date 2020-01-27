@@ -68,14 +68,19 @@ namespace RatKing.Base {
 				else { Languages = new List<LocalisationLanguage>(); }
 			}
 			if (hasDefinitionFile && !addedDefinitions) {
-				var definitionString = System.IO.File.ReadAllText(Application.dataPath + "/" + definitionFileName);
+#if UNITY_EDITOR
+				var dataPath = Application.dataPath + "/";
+#else
+				var dataPath = Application.dataPath + "/../";
+#endif
+				var definitionString = System.IO.File.ReadAllText(dataPath + "/" + definitionFileName);
 				json = SimpleJSON.JSONNode.Parse(definitionString);
 				if (!json.IsObject) { Debug.LogError("Malformed translations definition file"); return; }
 				foreach (var key in json.Keys) {
 					var jsonLang = json[key];
 					if (!jsonLang.IsObject) { Debug.LogWarning("Translation object " + key + " is malformed (" + jsonLang.ToString() + ")"); continue; }
 					var fileName = jsonLang["file"].Value;
-					var filePath = Application.dataPath + "/" + fileName;
+					var filePath = dataPath + "/" + fileName;
 					if (!System.IO.File.Exists(filePath)) { Debug.LogWarning("Translation file for " + key + " does not exist"); continue; }
 					var fileContent = System.IO.File.ReadAllText(filePath);
 					if (string.IsNullOrWhiteSpace(fileContent)) { Debug.LogWarning("Translation file for " + key + " is malformed"); continue; }
