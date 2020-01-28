@@ -99,7 +99,7 @@ namespace RatKing.Base {
 		public void FadeIn(float seconds) {
 			if (fadingIn) { return; }
 			if (!awoken) { Awake(); }
-			if (fadingOut) { fadingOut = false; LeanTween.cancel(tweenID); }
+			if (fadingOut) { fadingOut = false; Tweens.Stop(tweenID); }
 			for (int i = additionalFades.Count - 1; i >= 0; --i) {
 				tempColorFades[i] = additionalFades[i].color;
 				if (!gameObject.activeSelf) { additionalFades[i].color = minColorFades[i]; }
@@ -109,16 +109,17 @@ namespace RatKing.Base {
 			gameObject.SetActive(true);
 			if (seconds > 0f) {
 				fadingIn = true;
-				tweenID = LeanTween.value(gameObject, 0f, 1f, seconds)
-					.setIgnoreTimeScale(true)
-					.setOnUpdate((float f) => {
+				tweenID = Tweens.Do(0f, 1f, seconds)
+					.IgnoreTimeScale(true)
+					.Ease(Tweens.Ease.SmoothStep)
+					.OnUpdate((float f) => {
 						for (int i = additionalFades.Count - 1; i >= 0; --i) { additionalFades[i].color = Color.Lerp(tempColorFades[i], maxColorFades[i], f); }
 						text.color = Color.Lerp(startColorText, maxColorText, f);
 					})
-					.setOnComplete(() => {
+					.OnComplete(() => {
 						fadingIn = false;
 					})
-					.uniqueId;
+					.id;
 			}
 			else {
 				for (int i = additionalFades.Count - 1; i >= 0; --i) { additionalFades[i].color = maxColorFades[i]; }
@@ -129,22 +130,23 @@ namespace RatKing.Base {
 		public void FadeOut(float seconds) {
 			if (fadingOut || !gameObject.activeSelf) { return; }
 			if (!awoken) { Awake(); }
-			if (fadingIn) { fadingIn = false; LeanTween.cancel(tweenID); }
+			if (fadingIn) { fadingIn = false; Tweens.Stop(tweenID); }
 			for (int i = additionalFades.Count - 1; i >= 0; --i) { tempColorFades[i] = additionalFades[i].color; }
 			var startColorText = text.color;
 			if (seconds > 0f) {
 				fadingOut = true;
-				tweenID = LeanTween.value(gameObject, 0f, 1f, seconds)
-					.setIgnoreTimeScale(true)
-					.setOnUpdate((float f) => {
+				tweenID = Tweens.Do(0f, 1f, seconds)
+					.IgnoreTimeScale(true)
+					.Ease(Tweens.Ease.SmoothStep)
+					.OnUpdate((float f) => {
 						for (int i = additionalFades.Count - 1; i >= 0; --i) { additionalFades[i].color = Color.Lerp(tempColorFades[i], minColorFades[i], f); }
 						text.color = Color.Lerp(startColorText, minColorText, f);
 					})
-					.setOnComplete(() => {
+					.OnComplete(() => {
 						gameObject.SetActive(false);
 						fadingOut = false;
 					})
-					.uniqueId;
+					.id;
 			}
 			else {
 				for (int i = additionalFades.Count - 1; i >= 0; --i) { additionalFades[i].color = minColorFades[i]; }
