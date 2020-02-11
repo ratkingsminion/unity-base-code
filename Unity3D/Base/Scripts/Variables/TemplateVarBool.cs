@@ -15,6 +15,12 @@ namespace RatKing.Base {
 		protected override string Unity3DGetButtonName() { return "Y/N"; }
 		protected override void Unity3DSetStandardValue(Rect r) { standardValue = EditorGUI.Toggle(r, standardValue); }
 #endif
+
+		//
+
+		public static implicit operator bool(TemplateVarBool tv) {
+			return tv.standardValue;
+		}
 	}
 
 }

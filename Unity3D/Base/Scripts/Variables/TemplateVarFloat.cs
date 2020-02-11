@@ -21,6 +21,12 @@ namespace RatKing.Base {
 		public bool IsOutsideMinMax(InstanceVarFloat num) {
 			return num.value < valueMin || num.value > valueMax;
 		}
+
+		//
+
+		public static implicit operator float(TemplateVarFloat tv) {
+			return tv.standardValue;
+		}
 	}
 
 }

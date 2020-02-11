@@ -48,10 +48,6 @@ namespace RatKing.Base {
 			OnChanged -= listener;
 		}
 
-		public static explicit operator float(EventVarFloat observable) {
-			return observable.value;
-		}
-
 		public override string ToString() {
 			return value.ToString();
 		}
@@ -69,6 +65,15 @@ namespace RatKing.Base {
 		public override int GetHashCode() {
 			return value.GetHashCode();
 		}
+
+		//
+
+		public static implicit operator float(EventVarFloat ev) {
+			return ev.value;
+		}
+
+		public static EventVarFloat operator ++(EventVarFloat ev) { ev.Value++; return ev; }
+		public static EventVarFloat operator --(EventVarFloat ev) { ev.Value--; return ev; }
 	}
 
 }

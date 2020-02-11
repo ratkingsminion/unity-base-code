@@ -18,6 +18,15 @@ namespace RatKing.Base {
 
 		void ISerializationCallbackReceiver.OnAfterDeserialize() { value = startValue; }
 		void ISerializationCallbackReceiver.OnBeforeSerialize() { }
+
+		//
+
+		public static implicit operator float(VarFloat v) {
+			return v.value;
+		}
+
+		public static VarFloat operator ++(VarFloat v) { v.value++; return v; }
+		public static VarFloat operator --(VarFloat v) { v.value--; return v; }
 	}
 
 }

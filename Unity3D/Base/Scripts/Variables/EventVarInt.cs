@@ -47,10 +47,6 @@ namespace RatKing.Base {
 			OnChanged -= listener;
 		}
 
-		public static explicit operator int(EventVarInt observable) {
-			return observable.value;
-		}
-
 		public override string ToString() {
 			return value.ToString();
 		}
@@ -68,6 +64,15 @@ namespace RatKing.Base {
 		public override int GetHashCode() {
 			return value.GetHashCode();
 		}
+
+		//
+
+		public static implicit operator int(EventVarInt ev) {
+			return ev.value;
+		}
+
+		public static EventVarInt operator ++(EventVarInt ev) { ev.Value++; return ev; }
+		public static EventVarInt operator --(EventVarInt ev) { ev.Value--; return ev; }
 	}
 
 }
