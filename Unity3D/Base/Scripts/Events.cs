@@ -5,43 +5,43 @@ using UnityEngine;
 
 namespace RatKing.Base {
 	
-	public class Event : System.IEquatable<Event> {
-		protected readonly string name;
-		protected readonly int hash;
-		public Event(string name) {
-			this.name = name;
-			hash = name.GetHashCode();
-		}
-		public bool Equals(Event other) {
-			return name == other.name;
-		}
-		public override int GetHashCode() {
-			return hash;
-		}
-		public override string ToString() {
-			return name;
-		}
+	public interface IEvent {
 	}
 
-	public class Event<T> : Event, System.IEquatable<Event<T>> {
-		public Event(string name) : base(name) { }
-		public bool Equals(Event<T> other) {
-			return name == other.name;
-		}
+	public class Event : IEvent, System.IEquatable<Event> {
+		readonly string name;
+		readonly int hash;
+		public Event(string name) { this.name = name; hash = name.GetHashCode(); }
+		public bool Equals(Event other) { return name == other.name; }
+		public override int GetHashCode() { return hash; }
+		public override string ToString() { return name; }
 	}
 
-	public class Event<T1, T2> : Event, System.IEquatable<Event<T1, T2>> {
-		public Event(string name) : base(name) { }
-		public bool Equals(Event<T1, T2> other) {
-			return name == other.name;
-		}
+	public class Event<T> : IEvent, System.IEquatable<Event<T>> {
+		readonly string name;
+		readonly int hash;
+		public Event(string name) { this.name = name; hash = name.GetHashCode(); }
+		public bool Equals(Event<T> other) { return name == other.name; }
+		public override int GetHashCode() { return hash; }
+		public override string ToString() { return name; }
 	}
 
-	public class Event<T1, T2, T3> : Event, System.IEquatable<Event<T1, T2, T3>> {
-		public Event(string name) : base(name) { }
-		public bool Equals(Event<T1, T2, T3> other) {
-			return name == other.name;
-		}
+	public class Event<T1, T2> : IEvent, System.IEquatable<Event<T1, T2>> {
+		readonly string name;
+		readonly int hash;
+		public Event(string name) { this.name = name; hash = name.GetHashCode(); }
+		public bool Equals(Event<T1, T2> other) { return name == other.name; }
+		public override int GetHashCode() { return hash; }
+		public override string ToString() { return name; }
+	}
+
+	public class Event<T1, T2, T3> : IEvent, System.IEquatable<Event<T1, T2, T3>> {
+		readonly string name;
+		readonly int hash;
+		public Event(string name) { this.name = name; hash = name.GetHashCode(); }
+		public bool Equals(Event<T1, T2, T3> other) { return name == other.name; }
+		public override int GetHashCode() { return hash; }
+		public override string ToString() { return name; }
 	}
 
 	//
@@ -65,11 +65,11 @@ namespace RatKing.Base {
 			if (dict != null) { dict.Clear(); stringDictPool.Push(dict); }
 		}
 
-		static Stack<Dictionary<Event, List<object>>> eventDictPool;
-		static Dictionary<Event, List<object>> PooledEventDictPop() {
-			return eventDictPool.Count == 0 ? new Dictionary<Event, List<object>>() : eventDictPool.Pop();
+		static Stack<Dictionary<IEvent, List<object>>> eventDictPool;
+		static Dictionary<IEvent, List<object>> PooledEventDictPop() {
+			return eventDictPool.Count == 0 ? new Dictionary<IEvent, List<object>>() : eventDictPool.Pop();
 		}
-		static void PooledEventDictPush(Dictionary<Event, List<object>> dict) {
+		static void PooledEventDictPush(Dictionary<IEvent, List<object>> dict) {
 			if (dict != null) { dict.Clear(); eventDictPool.Push(dict); }
 		}
 
@@ -78,8 +78,8 @@ namespace RatKing.Base {
 		static Events instance;
 		Dictionary<object, Dictionary<string, List<object>>> channelsStringsActions;
 		Dictionary<string, List<object>> allStringsActions;
-		Dictionary<object, Dictionary<Event, List<object>>> channelsEventsActions;
-		Dictionary<Event, List<object>> allEventsActions;
+		Dictionary<object, Dictionary<IEvent, List<object>>> channelsEventsActions;
+		Dictionary<IEvent, List<object>> allEventsActions;
 
 		//
 
@@ -87,13 +87,13 @@ namespace RatKing.Base {
 			if (instance != null) { return; }
 			objectListPool = new Stack<List<object>>();
 			stringDictPool = new Stack<Dictionary<string, List<object>>>();
-			eventDictPool = new Stack<Dictionary<Event, List<object>>>();
+			eventDictPool = new Stack<Dictionary<IEvent, List<object>>>();
 			instance = new GameObject("<EVENTS>").AddComponent<Events>();
 			DontDestroyOnLoad(instance.gameObject);
 			instance.channelsStringsActions = new Dictionary<object, Dictionary<string, List<object>>>();
 			instance.allStringsActions = new Dictionary<string, List<object>>();
-			instance.channelsEventsActions = new Dictionary<object, Dictionary<Event, List<object>>>();
-			instance.allEventsActions = new Dictionary<Event, List<object>>();
+			instance.channelsEventsActions = new Dictionary<object, Dictionary<IEvent, List<object>>>();
+			instance.allEventsActions = new Dictionary<IEvent, List<object>>();
 		}
 
 #if DEBUG_EVENTS && UNITY_EDITOR
@@ -117,9 +117,9 @@ namespace RatKing.Base {
 
 		//
 
-		public static void UnregisterAll(object channel, Event @event) {
+		public static void UnregisterAll(object channel, IEvent @event) {
 			if (instance == null) { return; }
-			Dictionary<Event, List<object>> eventsActions;
+			Dictionary<IEvent, List<object>> eventsActions;
 			// events: channel-specific
 			if (instance.channelsEventsActions.TryGetValue(channel, out eventsActions)) {
 				List<object> actions;
@@ -165,7 +165,7 @@ namespace RatKing.Base {
 
 		public static void UnregisterAll(object channel) {
 			if (instance == null) { return; }
-			Dictionary<Event, List<object>> eventsActions;
+			Dictionary<IEvent, List<object>> eventsActions;
 			Dictionary<string, List<object>> stringsActions;
 			// events: channel-specific + all
 			if (instance.channelsEventsActions.TryGetValue(channel, out eventsActions)) {
@@ -271,7 +271,7 @@ namespace RatKing.Base {
 
 		public static void Register(object channel, Event @event, System.Action action) {
 			if (instance == null) { Init(); }
-			Dictionary<Event, List<object>> eventsActions;
+			Dictionary<IEvent, List<object>> eventsActions;
 			List<object> actions = null;
 			// channel-specific
 			if (!instance.channelsEventsActions.TryGetValue(channel, out eventsActions)) {
@@ -286,7 +286,7 @@ namespace RatKing.Base {
 
 		public static void Unregister(object channel, Event @event, System.Action action) {
 			if (instance == null) { return; }
-			Dictionary<Event, List<object>> eventsActions;
+			Dictionary<IEvent, List<object>> eventsActions;
 			List<object> actions;
 			// channel-specific
 			if (instance.channelsEventsActions.TryGetValue(channel, out eventsActions)) {
@@ -314,7 +314,7 @@ namespace RatKing.Base {
 
 		public static void Broadcast(object channel, Event @event) {
 			if (instance == null) { return; }
-			Dictionary<Event, List<object>> eventsActions;
+			Dictionary<IEvent, List<object>> eventsActions;
 			List<object> actions;
 			// channel-specific only
 			if (instance.channelsEventsActions.TryGetValue(channel, out eventsActions)) {
@@ -411,7 +411,7 @@ namespace RatKing.Base {
 
 		public static void Register<T>(object channel, Event<T> @event, System.Action<T> action) {
 			if (instance == null) { Init(); }
-			Dictionary<Event, List<object>> eventsActions;
+			Dictionary<IEvent, List<object>> eventsActions;
 			List<object> actions = null;
 			// channel-specific
 			if (!instance.channelsEventsActions.TryGetValue(channel, out eventsActions)) {
@@ -426,7 +426,7 @@ namespace RatKing.Base {
 
 		public static void Unregister<T>(object channel, Event<T> @event, System.Action<T> action) {
 			if (instance == null) { return; }
-			Dictionary<Event, List<object>> eventsActions;
+			Dictionary<IEvent, List<object>> eventsActions;
 			List<object> actions;
 			// channel-specific
 			if (instance.channelsEventsActions.TryGetValue(channel, out eventsActions)) {
@@ -454,7 +454,7 @@ namespace RatKing.Base {
 
 		public static void Broadcast<T>(object channel, Event<T> @event, T value) {
 			if (instance == null) { return; }
-			Dictionary<Event, List<object>> eventsActions;
+			Dictionary<IEvent, List<object>> eventsActions;
 			List<object> actions;
 			// channel-specific only
 			if (instance.channelsEventsActions.TryGetValue(channel, out eventsActions)) {
@@ -481,7 +481,7 @@ namespace RatKing.Base {
 
 		public static void Register<T1, T2>(object channel, Event<T1, T2> @event, System.Action<T1, T2> action) {
 			if (instance == null) { Init(); }
-			Dictionary<Event, List<object>> eventsActions;
+			Dictionary<IEvent, List<object>> eventsActions;
 			List<object> actions = null;
 			// channel-specific
 			if (!instance.channelsEventsActions.TryGetValue(channel, out eventsActions)) {
@@ -496,7 +496,7 @@ namespace RatKing.Base {
 
 		public static void Unregister<T1, T2>(object channel, Event<T1, T2> @event, System.Action<T1, T2> action) {
 			if (instance == null) { return; }
-			Dictionary<Event, List<object>> eventsActions;
+			Dictionary<IEvent, List<object>> eventsActions;
 			List<object> actions;
 			// channel-specific
 			if (instance.channelsEventsActions.TryGetValue(channel, out eventsActions)) {
@@ -524,7 +524,7 @@ namespace RatKing.Base {
 
 		public static void Broadcast<T1, T2>(object channel, Event<T1, T2> @event, T1 value1, T2 value2) {
 			if (instance == null) { return; }
-			Dictionary<Event, List<object>> eventsActions;
+			Dictionary<IEvent, List<object>> eventsActions;
 			List<object> actions;
 			// channel-specific only
 			if (instance.channelsEventsActions.TryGetValue(channel, out eventsActions)) {
@@ -551,7 +551,7 @@ namespace RatKing.Base {
 
 		public static void Register<T1, T2, T3>(object channel, Event<T1, T2, T3> @event, System.Action<T1, T2, T3> action) {
 			if (instance == null) { Init(); }
-			Dictionary<Event, List<object>> eventsActions;
+			Dictionary<IEvent, List<object>> eventsActions;
 			List<object> actions = null;
 			// channel-specific
 			if (!instance.channelsEventsActions.TryGetValue(channel, out eventsActions)) {
@@ -566,7 +566,7 @@ namespace RatKing.Base {
 
 		public static void Unregister<T1, T2, T3>(object channel, Event<T1, T2, T3> @event, System.Action<T1, T2, T3> action) {
 			if (instance == null) { return; }
-			Dictionary<Event, List<object>> eventsActions;
+			Dictionary<IEvent, List<object>> eventsActions;
 			List<object> actions;
 			// channel-specific
 			if (instance.channelsEventsActions.TryGetValue(channel, out eventsActions)) {
@@ -594,7 +594,7 @@ namespace RatKing.Base {
 
 		public static void Broadcast<T1, T2, T3>(object channel, Event<T1, T2, T3> @event, T1 value1, T2 value2, T3 value3) {
 			if (instance == null) { return; }
-			Dictionary<Event, List<object>> eventsActions;
+			Dictionary<IEvent, List<object>> eventsActions;
 			List<object> actions;
 			// channel-specific only
 			if (instance.channelsEventsActions.TryGetValue(channel, out eventsActions)) {
@@ -619,7 +619,7 @@ namespace RatKing.Base {
 
 		//
 
-		public static bool EventExists(Event @event) {
+		public static bool EventExists(IEvent @event) {
 			return instance.allEventsActions.ContainsKey(@event);
 		}
 
