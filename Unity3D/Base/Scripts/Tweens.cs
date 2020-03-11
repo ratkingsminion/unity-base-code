@@ -253,31 +253,29 @@ namespace RatKing.Base {
 
 		//
 
-		void CreateInstance() {
-			if (inst != null) { return; }
-			var go = new GameObject("<TWEENS>");
-			inst = go.AddComponent<Tweens>();
-		}
-
-		void Awake() {
-			inst = this;
-		}
-
-		//
-
 		public static Tween Timer(float seconds, System.Action completeFunc) {
+			if (inst == null) { var go = new GameObject("<TWEENS>"); DontDestroyOnLoad(go); inst = go.AddComponent<Tweens>(); }
 			var tween = PoolPopTween(0f, 1f, 1f / seconds);
 			tween.completeFunc = completeFunc;
 			return tween;
 		}
 
+		public static Tween Do(float seconds, System.Action<float> updateFunc = null) {
+			if (inst == null) { var go = new GameObject("<TWEENS>"); DontDestroyOnLoad(go); inst = go.AddComponent<Tweens>(); }
+			var tween = PoolPopTween(0f, 1f, 1f / seconds);
+			tween.updateFunc = updateFunc;
+			return tween;
+		}
+
 		public static Tween Do(float start, float end, float seconds, System.Action<float> updateFunc = null) {
+			if (inst == null) { var go = new GameObject("<TWEENS>"); DontDestroyOnLoad(go); inst = go.AddComponent<Tweens>(); }
 			var tween = PoolPopTween(start, end, 1f / seconds);
 			tween.updateFunc = updateFunc;
 			return tween;
 		}
 
 		public static bool Stop(string name, bool withComplete = false) {
+			if (inst == null) { return false; }
 			var removed = false;
 			for (int i = curTweens.Count - 1; i >= 0; --i) {
 				var t = curTweens[i];
@@ -292,6 +290,7 @@ namespace RatKing.Base {
 		}
 
 		public static bool Stop(int id, bool withComplete = false) {
+			if (inst == null) { return false; }
 			var removed = false;
 			for (int i = curTweens.Count - 1; i >= 0; --i) {
 				var t = curTweens[i];
