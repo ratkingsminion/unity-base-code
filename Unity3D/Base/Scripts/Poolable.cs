@@ -16,9 +16,9 @@ namespace RatKing.Base {
 		[SerializeField] int startCount = 10;
 		[SerializeField] int addCount = 1;
 		public enum Parenting {
-			UsePoolParent,
-			UseOriginalParent,
-			DontChangeParent
+			UsePoolParent, // a generated parent will be used for the pooled object
+			UseOriginalParent, // the parent of the original will be used for the pooled object, and it will be set inactive
+			DontChangeParent // no parent change will happen, the pooled object will be set inactive
 		}
 		[SerializeField] Parenting parenting = Parenting.UsePoolParent;
 		[SerializeField] UnityEvent onPop = null;
@@ -87,6 +87,18 @@ namespace RatKing.Base {
 		}
 
 		//
+
+		public T PoolPop<T>() where T : Component {
+			return PoolPop().GetComponent<T>();
+		}
+
+		public T PoolPop<T>(Vector3 pos) where T : Component {
+			return PoolPop(pos).GetComponent<T>();
+		}
+
+		public T PoolPop<T>(Vector3 pos, Quaternion rot) where T : Component {
+			return PoolPop(pos, rot).GetComponent<T>();
+		}
 
 		public Poolable PoolPop() {
 			if (original == null)
