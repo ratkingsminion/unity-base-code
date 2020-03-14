@@ -4,70 +4,88 @@ using UnityEngine;
 
 namespace RatKing.Base {
 
-	public class Root : MonoBehaviour {
+	public class Child : MonoBehaviour {
 		[SerializeField] Transform root = null;
 		public Transform Root { get { return root; } }
 
 		//
 
+		public T GetRootComponent<T>() where T : Component {
+			return (root != null ? root : transform).GetComponent<T>();
+		}
+
+		public T[] GetRootComponents<T>() where T : Component {
+			return (root != null ? root : transform).GetComponents<T>();
+		}
+
+		public T GetRootComponentInChildren<T>(bool includeInactive = false) where T : Component {
+			return (root != null ? root : transform).GetComponentInChildren<T>(includeInactive);
+		}
+
+		public T[] GetRootComponentsInChildren<T>( bool includeInactive = false) where T : Component {
+			return (root != null ? root : transform).GetComponentsInChildren<T>(includeInactive);
+		}
+	}
+
+	public static class Root {
 		public static Transform Get(Transform t) {
 			if (t == null) { return null; }
-			if (t.TryGetComponent(out Root r)) { return r.root; }
+			if (t.TryGetComponent(out Child c)) { return c.Root; }
 			return t;
 		}
 
 		public static GameObject Get(GameObject go) {
 			if (go == null) { return null; }
-			if (go.TryGetComponent(out Root r)) { return r.root.gameObject; }
+			if (go.TryGetComponent(out Child c)) { return c.Root.gameObject; }
 			return go;
 		}
 
 		public static T GetComponent<T>(Transform t) where T : Component {
 			if (t == null) { return null; }
-			if (t.TryGetComponent(out Root r)) { return r.root.GetComponent<T>(); }
+			if (t.TryGetComponent(out Child c)) { return c.Root.GetComponent<T>(); }
 			return t.GetComponent<T>();
 		}
 
 		public static T GetComponent<T>(GameObject go) where T : Component {
 			if (go == null) { return null; }
-			if (go.TryGetComponent(out Root r)) { return r.root.GetComponent<T>(); }
+			if (go.TryGetComponent(out Child c)) { return c.Root.GetComponent<T>(); }
 			return go.GetComponent<T>();
 		}
 
 		public static T[] GetComponents<T>(Transform t) where T : Component {
 			if (t == null) { return null; }
-			if (t.TryGetComponent(out Root r)) { return r.root.GetComponents<T>(); }
+			if (t.TryGetComponent(out Child c)) { return c.Root.GetComponents<T>(); }
 			return t.GetComponents<T>();
 		}
 
 		public static T[] GetComponents<T>(GameObject go) where T : Component {
 			if (go == null) { return null; }
-			if (go.TryGetComponent(out Root r)) { return r.root.GetComponents<T>(); }
+			if (go.TryGetComponent(out Child c)) { return c.Root.GetComponents<T>(); }
 			return go.GetComponents<T>();
 		}
 
 		public static T GetComponentInChildren<T>(Transform t, bool includeInactive = false) where T : Component {
 			if (t == null) { return null; }
-			if (t.TryGetComponent(out Root r)) { return r.root.GetComponentInChildren<T>(includeInactive); }
+			if (t.TryGetComponent(out Child c)) { return c.Root.GetComponentInChildren<T>(includeInactive); }
 			return t.GetComponentInChildren<T>(includeInactive);
 		}
 
 		public static T GetComponentInChildren<T>(GameObject go, bool includeInactive = false) where T : Component {
 			if (go == null) { return null; }
-			if (go.TryGetComponent(out Root r)) { return r.root.GetComponentInChildren<T>(includeInactive); }
+			if (go.TryGetComponent(out Child c)) { return c.Root.GetComponentInChildren<T>(includeInactive); }
 			return go.GetComponentInChildren<T>(includeInactive);
 		}
 
 		public static T[] GetComponentsInChildren<T>(Transform t, bool includeInactive = false) where T : Component {
 			if (t == null) { return null; }
-			if (t.TryGetComponent(out Root r)) { return r.root.GetComponentsInChildren<T>(includeInactive); }
-			return t.GetComponentInChildren<T>();
+			if (t.TryGetComponent(out Child c)) { return c.Root.GetComponentsInChildren<T>(includeInactive); }
+			return t.GetComponentsInChildren<T>(includeInactive);
 		}
 
 		public static T[] GetComponentsInChildren<T>(GameObject go, bool includeInactive = false) where T : Component {
 			if (go == null) { return null; }
-			if (go.TryGetComponent(out Root r)) { return r.root.GetComponentsInChildren<T>(includeInactive); }
-			return go.GetComponentsInChildren<T>();
+			if (go.TryGetComponent(out Child c)) { return c.Root.GetComponentsInChildren<T>(includeInactive); }
+			return go.GetComponentsInChildren<T>(includeInactive);
 		}
 	}
 
