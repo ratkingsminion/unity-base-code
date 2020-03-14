@@ -37,6 +37,7 @@ namespace RatKing.Base {
 				rotationAxis = rotAxis,
 				originalRotation = target.localRotation,
 				startTime = Random.value * Mathf.PI,
+				ignoreTimeScale = true
 			};
 			animations.Add(wa);
 			return wa;
@@ -52,13 +53,15 @@ namespace RatKing.Base {
 					continue;
 				}
 
-				a.seconds -= Time.deltaTime;
+				var dt = a.ignoreTimeScale ? Time.unscaledDeltaTime : Time.deltaTime;
+				var time = a.ignoreTimeScale ? Time.unscaledTime : Time.time;
+				a.seconds -= dt;
 
 				//var targetFactor = 1f + Mathf.Log(a.seconds / a.startSeconds) * 0.1f;
 				//var targetFactor = Mathf.Sqrt(Mathf.Sqrt(a.seconds / a.startSeconds));
 				//var targetFactor = Mathf.Sqrt(a.seconds / a.startSeconds);
 				var targetFactor = Mathf.Clamp01(a.seconds / a.startSeconds);
-				a.factor = Mathf.MoveTowards(a.factor, targetFactor, Time.deltaTime * 10f);
+				a.factor = Mathf.MoveTowards(a.factor, targetFactor, dt * 10f);
 
 				if (a.factor <= 0f && a.seconds <= 0f) {
 					if (a.type == Type.Scale || a.type == Type.Both) { a.target.localScale = a.originalScale; }
@@ -70,12 +73,12 @@ namespace RatKing.Base {
 				if (a.type == Type.Scale || a.type == Type.Both) {
 					a.target.localScale = Mathf.Lerp(
 							1f,
-							Base.Math.Remap(Mathf.Sin(a.startTime + Time.time * 20f), -1f, 1f, Mathf.LerpUnclamped(1f, 0.75f, a.strength), Mathf.LerpUnclamped(1f, 1.5f, a.strength)),
+							Base.Math.Remap(Mathf.Sin(a.startTime + time * 20f), -1f, 1f, Mathf.LerpUnclamped(1f, 0.75f, a.strength), Mathf.LerpUnclamped(1f, 1.5f, a.strength)),
 							a.factor) * a.originalScale;
 				}
 				if (a.type == Type.Rotation || a.type == Type.Both) {
 					a.target.localRotation = a.originalRotation;
-					a.target.Rotate(a.rotationAxis, a.strength * a.factor * Mathf.Sin(a.startTime + Time.time * 15f) * 15f, Space.Self);
+					a.target.Rotate(a.rotationAxis, a.strength * a.factor * Mathf.Sin(a.startTime + time * 15f) * 15f, Space.Self);
 				}
 			}
 		}

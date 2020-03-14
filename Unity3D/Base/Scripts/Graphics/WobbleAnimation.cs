@@ -15,6 +15,9 @@ namespace RatKing.Base {
 		public Vector3 rotationAxis;
 		public Quaternion originalRotation;
 		public float startTime = 0f;
+		public bool ignoreTimeScale;
+
+		public void IgnoreTimeScale(bool ignore = true) { ignoreTimeScale = ignore; }
 	}
 
 }
