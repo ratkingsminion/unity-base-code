@@ -55,7 +55,7 @@ namespace RatKing.Base {
 		public static ImmutablePosition3 back    = new ImmutablePosition3(0, 0, -1);
 		//
 		public override bool Equals(object o) { var p = (ImmutablePosition3)o; return p == this; }
-		public override int GetHashCode() { return base.GetHashCode(); }
+		public override int GetHashCode() { return x * 18397 + y * 20483 + z * 29303; } // base.GetHashCode(); }
 		public override string ToString() { return x + ", " + y + ", " + z; }
 		//
 		public bool Equals(Position3 other) { return x == other.x && y == other.y && z == other.z; }
@@ -113,7 +113,7 @@ namespace RatKing.Base {
 		public static Position3 back { get { return new Position3(0, 0, -1); } }
 		//
 		public override bool Equals(object o) { Position3 p = (Position3)o; return p == this; }
-		public override int GetHashCode() { return base.GetHashCode(); } // TODO change
+		public override int GetHashCode() { return x * 18397 + y * 20483 + z * 29303; } // base.GetHashCode(); }
 		public override string ToString() { return x + ", " + y + ", " + z; }
 		//
 		public bool Equals(Position3 other) { return x == other.x && y == other.y && z == other.z; }
@@ -161,7 +161,7 @@ namespace RatKing.Base {
 		public static ImmutablePosition2 down  = new ImmutablePosition2(0, -1);
 		//
 		public override bool Equals(object o) { return (o is ImmutablePosition2) && (ImmutablePosition2)o == this; }
-		public override int GetHashCode() { return base.GetHashCode(); } // TODO change
+		public override int GetHashCode() { return x * 18397 + y * 29303; } // base.GetHashCode(); }
 		public override string ToString() { return x + ", " + y; }
 		//
 		public bool Equals(Position2 other) { return x == other.x && y == other.y; }
@@ -172,13 +172,19 @@ namespace RatKing.Base {
 	[System.Serializable]
 	public struct Position2 : IPosition, System.IEquatable<Position2> {
 		public int x, y;
+		public static Position2 Rounded(float x, float y) { return new Position2(Mathf.RoundToInt(x), Mathf.RoundToInt(y)); }
 		public static Position2 RoundedVector(Vector2 v) { return new Position2(Mathf.RoundToInt(v.x), Mathf.RoundToInt(v.y)); }
+		public static Position2 Floored(float x, float y) { return new Position2(Mathf.FloorToInt(x), Mathf.FloorToInt(y)); }
 		public static Position2 FlooredVector(Vector2 v) { return new Position2(Mathf.FloorToInt(v.x), Mathf.FloorToInt(v.y)); }
+		public static Position2 Ceiled(float x, float y) { return new Position2(Mathf.CeilToInt(x), Mathf.CeilToInt(y)); }
 		public static Position2 CeiledVector(Vector2 v) { return new Position2(Mathf.CeilToInt(v.x), Mathf.CeilToInt(v.y)); }
 		public Position2(int x = 0, int y = 0) { this.x = x; this.y = y; }
 		public void Set(int x, int y) { this.x = x; this.y = y; }
 		public void Reset() { x = y = 0; }
 		//
+		public float GetDistanceFloatTo(IPosition other) {
+			return (other.ToVector() - ToVector()).magnitude;
+		}
 		public int GetDistanceTo(IPosition other) {
 			return (int)(other.ToVector() - ToVector()).magnitude;
 		}
@@ -193,7 +199,11 @@ namespace RatKing.Base {
 			int md = GetManhattanDistanceTo(other);
 			return md * md;
 		}
+		public Vector2 ToVector2() { return new Vector2(x, y); }
 		public Vector3 ToVector() { return new Vector3(x, y, 0f); }
+		public Vector3 ToVector(float scaleFactor) { return new Vector3(x * scaleFactor, y * scaleFactor, 0f); }
+		public Vector3 ToVectorXZ() { return new Vector3(x, 0f, y); }
+		public Vector3 ToVectorXZ(float scaleFactor) { return new Vector3(x * scaleFactor, 0f, y * scaleFactor); }
 		//
 		public static bool operator ==(Position2 a, Position2 b) { return a.x == b.x && a.y == b.y; }
 		public static bool operator !=(Position2 a, Position2 b) { return a.x != b.x || a.y != b.y; }
@@ -211,7 +221,7 @@ namespace RatKing.Base {
 		public static Position2 down { get { return new Position2(0, -1); } }
 		//
 		public override bool Equals(object o) { return (o is Position2) && (Position2)o == this; }
-		public override int GetHashCode() { return base.GetHashCode(); }
+		public override int GetHashCode() { return x * 18397 + y * 29303; } // base.GetHashCode(); }
 		public override string ToString() { return x + ", " + y; }
 		//
 		public bool Equals(Position2 other) { return x == other.x && y == other.y; }
