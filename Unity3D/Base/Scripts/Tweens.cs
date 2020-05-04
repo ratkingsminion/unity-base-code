@@ -162,21 +162,22 @@ namespace RatKing.Base {
 			public Tween Reset(float start, float end, float seconds) {
 				name = "";
 				factor = 0f;
+				this.speed = seconds != 0f ? (1f / seconds) : float.MaxValue;
 				this.start = start;
 				this.end = end;
-				this.speed = 1f / seconds;
 				easeFunc = Tweens.Ease.Linear;
 				updateFunc = null;
 				completeFunc = null;
+				delay = -1f;
 				id = Random.Range(int.MinValue, int.MaxValue);
 				ignoreTimeScale = false;
 				return this;
 			}
 
 			public Tween(float start, float end, float seconds) {
+				this.speed = seconds != 0f ? (1f / seconds) : float.MaxValue;
 				this.start = start;
 				this.end = end;
-				this.speed = seconds != 0f ? (1f / seconds) : float.MaxValue;
 				easeFunc = Tweens.Ease.Linear;
 				id = Random.Range(int.MinValue, int.MaxValue);
 			}
@@ -221,15 +222,16 @@ namespace RatKing.Base {
 		//
 
 		static Stack<Tween> poolTweens = new Stack<Tween>();
-		static Tween PoolPopTween(float start, float end, float seconds) {
-			var t = (poolTweens.Count == 0) ? new Tween(start, end, seconds) : poolTweens.Pop().Reset(start, end, seconds);
-			curTweens.Add(t);
-			return t;
-		}
 		static void PoolPushTween(Tween t) {
 			poolTweens.Push(t);
 			curTweens.Remove(t);
 		}
+		static Tween PoolPopTween(float start, float end, float seconds) {
+			var t = (poolTweens.Count == 0) ? new Tween(start, end, seconds) : poolTweens.Pop().Reset(start, end, seconds);
+			newTweens.Add(t);
+			return t;
+		}
+		static List<Tween> newTweens = new List<Tween>();
 		static List<Tween> curTweens = new List<Tween>();
 		static Tweens inst = null;
 		
@@ -242,6 +244,11 @@ namespace RatKing.Base {
 		//
 
 		void Update() {
+			curTweens.AddRange(newTweens);
+			newTweens.Clear();
+#if UNITY_EDITOR
+			name = "<TWEENS> Count:" + curTweens.Count;
+#endif
 			for (int i = curTweens.Count - 1; i >= 0; --i) {
 				var t = curTweens[i];
 				if (t.factor >= 1f) { // done
@@ -295,7 +302,8 @@ namespace RatKing.Base {
 
 		public static void StopAll() {
 			if (inst == null) { return; }
-			for (int i = curTweens.Count - 1; i >= 0; --i) { PoolPushTween(curTweens[i]); }
+			for (int i = curTweens.Count - 1; i >= 0; --i) { poolTweens.Push(curTweens[i]); }
+			curTweens.Clear();
 		}
 
 		public static bool Stop(string name, bool withComplete = false) {
@@ -303,12 +311,11 @@ namespace RatKing.Base {
 			var removed = false;
 			for (int i = curTweens.Count - 1; i >= 0; --i) {
 				var t = curTweens[i];
-				if (t.name == name) {
-					if (withComplete && t.completeFunc != null) { t.completeFunc(); }
-					PoolPushTween(t);
-					curTweens.RemoveAt(i);
-					removed = true;
-				}
+				if (t.name != name) { continue; }
+				if (withComplete && t.completeFunc != null) { t.completeFunc(); }
+				poolTweens.Push(t);
+				curTweens.RemoveAt(i);
+				removed = true;
 			}
 			return removed;
 		}
@@ -318,12 +325,11 @@ namespace RatKing.Base {
 			var removed = false;
 			for (int i = curTweens.Count - 1; i >= 0; --i) {
 				var t = curTweens[i];
-				if (t.id == id) {
-					if (withComplete && t.completeFunc != null) { t.completeFunc(); }
-					PoolPushTween(t);
-					curTweens.RemoveAt(i);
-					removed = true;
-				}
+				if (t.id != id) { continue; }
+				if (withComplete && t.completeFunc != null) { t.completeFunc(); }
+				poolTweens.Push(t);
+				curTweens.RemoveAt(i);
+				removed = true;
 			}
 			return removed;
 		}
