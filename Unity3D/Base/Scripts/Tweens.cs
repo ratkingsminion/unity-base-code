@@ -5,6 +5,7 @@ using UnityEngine;
 namespace RatKing.Base {
 	
 	// very simple tweening class, just to be independent from plugins like LeanTween
+	[DefaultExecutionOrder(-100000)]
 	public class Tweens : MonoBehaviour {
 
 		public static class Ease {
@@ -154,16 +155,16 @@ namespace RatKing.Base {
 			public System.Func<float, float> easeFunc;
 			public System.Action<float> updateFunc;
 			public System.Action completeFunc;
-			public float delay;
-			public int id;
+			public float delay = -1f;
+			public object id;
 			public bool ignoreTimeScale = false;
 
-			public Tween Reset(float start, float end, float speed) {
+			public Tween Reset(float start, float end, float seconds) {
 				name = "";
 				factor = 0f;
 				this.start = start;
 				this.end = end;
-				this.speed = speed;
+				this.speed = 1f / seconds;
 				easeFunc = Tweens.Ease.Linear;
 				updateFunc = null;
 				completeFunc = null;
@@ -172,10 +173,10 @@ namespace RatKing.Base {
 				return this;
 			}
 
-			public Tween(float start, float end, float speed) {
+			public Tween(float start, float end, float seconds) {
 				this.start = start;
 				this.end = end;
-				this.speed = speed;
+				this.speed = seconds != 0f ? (1f / seconds) : float.MaxValue;
 				easeFunc = Tweens.Ease.Linear;
 				id = Random.Range(int.MinValue, int.MaxValue);
 			}
@@ -200,12 +201,13 @@ namespace RatKing.Base {
 				return this;
 			}
 
+			// set to -1f if you want no delay, 0f if you want only a frame of delay
 			public Tween Delay(float delay) {
 				this.delay = delay;
 				return this;
 			}
 
-			public Tween ID(int id) {
+			public Tween ID(object id) {
 				this.id = id;
 				return this;
 			}
@@ -219,8 +221,8 @@ namespace RatKing.Base {
 		//
 
 		static Stack<Tween> poolTweens = new Stack<Tween>();
-		static Tween PoolPopTween(float start, float end, float speed) {
-			var t = (poolTweens.Count == 0) ? new Tween(start, end, speed) : poolTweens.Pop().Reset(start, end, speed);
+		static Tween PoolPopTween(float start, float end, float seconds) {
+			var t = (poolTweens.Count == 0) ? new Tween(start, end, seconds) : poolTweens.Pop().Reset(start, end, seconds);
 			curTweens.Add(t);
 			return t;
 		}
@@ -230,48 +232,70 @@ namespace RatKing.Base {
 		}
 		static List<Tween> curTweens = new List<Tween>();
 		static Tweens inst = null;
+		
+		static void CreateInstance() {
+			var go = new GameObject("<TWEENS>");
+			DontDestroyOnLoad(go);
+			inst = go.AddComponent<Tweens>();
+		}
 
 		//
 
 		void Update() {
-			var count = curTweens.Count;
-			for (int i = count - 1; i >= 0; --i) {
+			for (int i = curTweens.Count - 1; i >= 0; --i) {
 				var t = curTweens[i];
-				var dt = t.ignoreTimeScale ? Time.unscaledDeltaTime : Time.deltaTime;
-				if (t.delay > 0f) { t.delay -= dt; continue; }
 				if (t.factor >= 1f) { // done
 					if (t.completeFunc != null) { t.completeFunc(); }
 					PoolPushTween(t);
 					continue;
 				}
+				var dt = t.ignoreTimeScale ? Time.unscaledDeltaTime : Time.deltaTime;
+				if (t.delay >= 0f) { t.delay -= dt; continue; }
 				t.factor += dt * t.speed;
 				if (t.factor >= 1f) { t.factor = 1f; } // done
-				var value = Mathf.Lerp(t.start, t.end, t.easeFunc(t.factor));
-				if (t.updateFunc != null) { t.updateFunc(value); }
+				if (t.updateFunc != null) {
+					var e = t.easeFunc(t.factor);
+					t.updateFunc(t.start * (1f - e) + t.end * e);
+				}
 			}
 		}
 
 		//
 
+		public static Tween NextFrame(System.Action completeFunc) {
+			if (inst == null) { CreateInstance(); }
+			var tween = PoolPopTween(0f, 0f, 0f);
+			tween.delay = 0f;
+			tween.completeFunc = completeFunc;
+			tween.ignoreTimeScale = true;
+			return tween;
+		}
+
 		public static Tween Timer(float seconds, System.Action completeFunc) {
-			if (inst == null) { var go = new GameObject("<TWEENS>"); DontDestroyOnLoad(go); inst = go.AddComponent<Tweens>(); }
-			var tween = PoolPopTween(0f, 1f, 1f / seconds);
+			if (inst == null) { CreateInstance(); }
+			var tween = PoolPopTween(0f, 0f, 0f);
+			tween.delay = seconds;
 			tween.completeFunc = completeFunc;
 			return tween;
 		}
 
 		public static Tween Do(float seconds, System.Action<float> updateFunc = null) {
-			if (inst == null) { var go = new GameObject("<TWEENS>"); DontDestroyOnLoad(go); inst = go.AddComponent<Tweens>(); }
-			var tween = PoolPopTween(0f, 1f, 1f / seconds);
+			if (inst == null) { CreateInstance(); }
+			var tween = PoolPopTween(0f, 1f, seconds);
 			tween.updateFunc = updateFunc;
 			return tween;
 		}
 
 		public static Tween Do(float start, float end, float seconds, System.Action<float> updateFunc = null) {
-			if (inst == null) { var go = new GameObject("<TWEENS>"); DontDestroyOnLoad(go); inst = go.AddComponent<Tweens>(); }
-			var tween = PoolPopTween(start, end, 1f / seconds);
+			if (inst == null) { CreateInstance(); }
+			var tween = PoolPopTween(start, end, seconds);
 			tween.updateFunc = updateFunc;
 			return tween;
+		}
+
+		public static void StopAll() {
+			if (inst == null) { return; }
+			for (int i = curTweens.Count - 1; i >= 0; --i) { PoolPushTween(curTweens[i]); }
 		}
 
 		public static bool Stop(string name, bool withComplete = false) {
@@ -289,7 +313,7 @@ namespace RatKing.Base {
 			return removed;
 		}
 
-		public static bool Stop(int id, bool withComplete = false) {
+		public static bool Stop(object id, bool withComplete = false) {
 			if (inst == null) { return false; }
 			var removed = false;
 			for (int i = curTweens.Count - 1; i >= 0; --i) {
@@ -302,6 +326,22 @@ namespace RatKing.Base {
 				}
 			}
 			return removed;
+		}
+
+		public static bool IsTweening(object id) {
+			if (inst == null) { return false; }
+			for (int i = curTweens.Count - 1; i >= 0; --i) {
+				if (curTweens[i].id == id) { return true; }
+			}
+			return false;
+		}
+
+		public static bool IsTweening(string name) {
+			if (inst == null) { return false; }
+			for (int i = curTweens.Count - 1; i >= 0; --i) {
+				if (curTweens[i].name == name) { return true; }
+			}
+			return false;
 		}
 	}
 
