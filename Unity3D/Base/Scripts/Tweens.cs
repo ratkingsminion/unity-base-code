@@ -251,18 +251,16 @@ namespace RatKing.Base {
 #endif
 			for (int i = curTweens.Count - 1; i >= 0; --i) {
 				var t = curTweens[i];
-				if (t.factor >= 1f) { // done
-					if (t.completeFunc != null) { t.completeFunc(); }
-					PoolPushTween(t);
-					continue;
-				}
 				var dt = t.ignoreTimeScale ? Time.unscaledDeltaTime : Time.deltaTime;
 				if (t.delay >= 0f) { t.delay -= dt; continue; }
-				t.factor += dt * t.speed;
-				if (t.factor >= 1f) { t.factor = 1f; } // done
+				t.factor = Mathf.Clamp01(t.factor + dt * t.speed);
 				if (t.updateFunc != null) {
 					var e = t.easeFunc(t.factor);
 					t.updateFunc(t.start * (1f - e) + t.end * e);
+				}
+				if (t.factor >= 1f) {
+					if (t.completeFunc != null) { t.completeFunc(); }
+					PoolPushTween(t);
 				}
 			}
 		}
