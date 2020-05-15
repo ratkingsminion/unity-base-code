@@ -147,7 +147,10 @@ namespace RatKing.Base {
 		//
 
 		public class Tween {
-			public string name = "";
+			public string name = null;
+			public int id = -1;
+			public GameObject go = null;
+			public bool cancelWithGO = false;
 			public float factor = 0f;
 			public float speed = 0f;
 			public float start;
@@ -156,11 +159,12 @@ namespace RatKing.Base {
 			public System.Action<float> updateFunc;
 			public System.Action completeFunc;
 			public float delay = -1f;
-			public object id;
 			public bool ignoreTimeScale = false;
 
 			public Tween Reset(float start, float end, float seconds) {
-				name = "";
+				name = null;
+				go = null;
+				cancelWithGO = false;
 				factor = 0f;
 				this.speed = seconds != 0f ? (1f / seconds) : float.MaxValue;
 				this.start = start;
@@ -179,7 +183,7 @@ namespace RatKing.Base {
 				this.start = start;
 				this.end = end;
 				easeFunc = Tweens.Ease.Linear;
-				id = Random.Range(int.MinValue, int.MaxValue);
+				id = Random.Range(1, int.MaxValue);
 			}
 
 			public Tween Ease(System.Func<float, float> func) {
@@ -197,19 +201,25 @@ namespace RatKing.Base {
 				return this;
 			}
 
+			public Tween ID(int id) {
+				this.id = id;
+				return this;
+			}
+
 			public Tween Name(string name) {
 				this.name = name;
+				return this;
+			}
+
+			public Tween GameObject(GameObject go, bool cancelWith = true) {
+				this.go = go;
+				this.cancelWithGO = cancelWith && go != null;
 				return this;
 			}
 
 			// set to -1f if you want no delay, 0f if you want only a frame of delay
 			public Tween Delay(float delay) {
 				this.delay = delay;
-				return this;
-			}
-
-			public Tween ID(object id) {
-				this.id = id;
 				return this;
 			}
 
@@ -251,6 +261,10 @@ namespace RatKing.Base {
 #endif
 			for (int i = curTweens.Count - 1; i >= 0; --i) {
 				var t = curTweens[i];
+				if (t.cancelWithGO && t.go == null) { // missing gameobject
+					PoolPushTween(t);
+					continue;
+				}
 				var dt = t.ignoreTimeScale ? Time.unscaledDeltaTime : Time.deltaTime;
 				if (t.delay >= 0f) { t.delay -= dt; continue; }
 				t.factor = Mathf.Clamp01(t.factor + dt * t.speed);
@@ -258,7 +272,7 @@ namespace RatKing.Base {
 					var e = t.easeFunc(t.factor);
 					t.updateFunc(t.start * (1f - e) + t.end * e);
 				}
-				if (t.factor >= 1f) {
+				if (t.factor >= 1f) { // done
 					if (t.completeFunc != null) { t.completeFunc(); }
 					PoolPushTween(t);
 				}
@@ -304,6 +318,20 @@ namespace RatKing.Base {
 			curTweens.Clear();
 		}
 
+		public static bool Stop(int id, bool withComplete = false) {
+			if (inst == null) { return false; }
+			var removed = false;
+			for (int i = curTweens.Count - 1; i >= 0; --i) {
+				var t = curTweens[i];
+				if (t.id != id) { continue; }
+				if (withComplete && t.completeFunc != null) { t.completeFunc(); }
+				poolTweens.Push(t);
+				curTweens.RemoveAt(i);
+				removed = true;
+			}
+			return removed;
+		}
+
 		public static bool Stop(string name, bool withComplete = false) {
 			if (inst == null) { return false; }
 			var removed = false;
@@ -318,12 +346,12 @@ namespace RatKing.Base {
 			return removed;
 		}
 
-		public static bool Stop(object id, bool withComplete = false) {
+		public static bool Stop(GameObject go, bool withComplete = false) {
 			if (inst == null) { return false; }
 			var removed = false;
 			for (int i = curTweens.Count - 1; i >= 0; --i) {
 				var t = curTweens[i];
-				if (t.id != id) { continue; }
+				if (t.go != go) { continue; }
 				if (withComplete && t.completeFunc != null) { t.completeFunc(); }
 				poolTweens.Push(t);
 				curTweens.RemoveAt(i);
@@ -332,7 +360,7 @@ namespace RatKing.Base {
 			return removed;
 		}
 
-		public static bool IsTweening(object id) {
+		public static bool IsTweening(int id) {
 			if (inst == null) { return false; }
 			for (int i = curTweens.Count - 1; i >= 0; --i) {
 				if (curTweens[i].id == id) { return true; }
@@ -344,6 +372,14 @@ namespace RatKing.Base {
 			if (inst == null) { return false; }
 			for (int i = curTweens.Count - 1; i >= 0; --i) {
 				if (curTweens[i].name == name) { return true; }
+			}
+			return false;
+		}
+
+		public static bool IsTweening(GameObject go) {
+			if (inst == null) { return false; }
+			for (int i = curTweens.Count - 1; i >= 0; --i) {
+				if (curTweens[i].go == go) { return true; }
 			}
 			return false;
 		}
