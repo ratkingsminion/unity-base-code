@@ -40,7 +40,7 @@ namespace RatKing.Base {
 
 		public void AddListener(System.Action<EventVarInt, int, int> listener, bool callAtOnce = false) {
 			OnChanged += listener;
-			listener(this, value, value);
+			if (callAtOnce) { listener(this, value, value); }
 		}
 
 		public void RemoveListener(System.Action<EventVarInt, int, int> listener) {
