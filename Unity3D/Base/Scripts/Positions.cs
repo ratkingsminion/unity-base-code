@@ -15,10 +15,11 @@ namespace RatKing.Base {
 	[System.Serializable]
 	public struct ImmutablePosition3 : IPosition, System.IEquatable<ImmutablePosition3> {
 		public readonly int x, y, z;
+		readonly int hash;
 		public static ImmutablePosition3 RoundedVector(Vector3 v) { return new ImmutablePosition3(Mathf.RoundToInt(v.x), Mathf.RoundToInt(v.y), Mathf.RoundToInt(v.z)); }
 		public static ImmutablePosition3 FlooredVector(Vector3 v) { return new ImmutablePosition3(Mathf.FloorToInt(v.x), Mathf.FloorToInt(v.y), Mathf.FloorToInt(v.z)); }
 		public static ImmutablePosition3 CeiledVector(Vector3 v) { return new ImmutablePosition3(Mathf.CeilToInt(v.x), Mathf.CeilToInt(v.y), Mathf.CeilToInt(v.z)); }
-		public ImmutablePosition3(int x = 0, int y = 0, int z = 0) { this.x = x; this.y = y; this.z = z; }
+		public ImmutablePosition3(int x = 0, int y = 0, int z = 0) { this.x = x; this.y = y; this.z = z; hash = ((x * 73856093) ^ (y * 19349669) ^ (z * 83492791)) % 65537; }
 		//
 		public int GetDistanceTo(IPosition other) {
 			return (int)(other.ToVector() - ToVector()).magnitude;
@@ -55,7 +56,7 @@ namespace RatKing.Base {
 		public static ImmutablePosition3 back    = new ImmutablePosition3(0, 0, -1);
 		//
 		public override bool Equals(object o) { var p = (ImmutablePosition3)o; return p == this; }
-		public override int GetHashCode() { return x * 18397 + y * 20483 + z * 29303; } // base.GetHashCode(); }
+		public override int GetHashCode() { return hash; }
 		public override string ToString() { return x + ", " + y + ", " + z; }
 		//
 		public bool Equals(Position3 other) { return x == other.x && y == other.y && z == other.z; }
@@ -95,6 +96,8 @@ namespace RatKing.Base {
 		public Vector3 ToVector() { return new Vector3(x, y, z); }
 		public Vector3 ToVector(float width) { return new Vector3(x * width, y * width, z * width); }
 		//
+		public bool IsZero() { return x == 0 && y == 0 && z == 0; }
+		//
 		public static bool operator ==(Position3 a, Position3 b) { return a.x == b.x && a.y == b.y && a.z == b.z; }
 		public static bool operator !=(Position3 a, Position3 b) { return a.x != b.x || a.y != b.y || a.z != b.z; }
 		public static Position3 operator +(Position3 a, Position3 b) { return new Position3(a.x + b.x, a.y + b.y, a.z + b.z); }
@@ -113,7 +116,7 @@ namespace RatKing.Base {
 		public static Position3 back { get { return new Position3(0, 0, -1); } }
 		//
 		public override bool Equals(object o) { Position3 p = (Position3)o; return p == this; }
-		public override int GetHashCode() { return x * 18397 + y * 20483 + z * 29303; } // base.GetHashCode(); }
+		public override int GetHashCode() { return ((x * 73856093) ^ (y * 19349669) ^ (z * 83492791)) % 65537; }
 		public override string ToString() { return x + ", " + y + ", " + z; }
 		//
 		public bool Equals(Position3 other) { return x == other.x && y == other.y && z == other.z; }
@@ -124,10 +127,11 @@ namespace RatKing.Base {
 	[System.Serializable]
 	public struct ImmutablePosition2 : IPosition, System.IEquatable<ImmutablePosition2> {
 		public readonly int x, y;
+		readonly int hash;
 		public static ImmutablePosition2 RoundedVector(Vector2 v) { return new ImmutablePosition2(Mathf.RoundToInt(v.x), Mathf.RoundToInt(v.y)); }
 		public static ImmutablePosition2 FlooredVector(Vector2 v) { return new ImmutablePosition2(Mathf.FloorToInt(v.x), Mathf.FloorToInt(v.y)); }
 		public static ImmutablePosition2 CeiledVector(Vector2 v) { return new ImmutablePosition2(Mathf.CeilToInt(v.x), Mathf.CeilToInt(v.y)); }
-		public ImmutablePosition2(int x = 0, int y = 0) { this.x = x; this.y = y; }
+		public ImmutablePosition2(int x = 0, int y = 0) { this.x = x; this.y = y; hash = ((x * 73856093) ^ (y * 19349669)) % 65537; }
 		//
 		public int GetDistanceTo(IPosition other) {
 			return (int)(other.ToVector() - ToVector()).magnitude;
@@ -161,7 +165,7 @@ namespace RatKing.Base {
 		public static ImmutablePosition2 down  = new ImmutablePosition2(0, -1);
 		//
 		public override bool Equals(object o) { return (o is ImmutablePosition2) && (ImmutablePosition2)o == this; }
-		public override int GetHashCode() { return x * 18397 + y * 29303; } // base.GetHashCode(); }
+		public override int GetHashCode() { return hash; }
 		public override string ToString() { return x + ", " + y; }
 		//
 		public bool Equals(Position2 other) { return x == other.x && y == other.y; }
@@ -221,7 +225,7 @@ namespace RatKing.Base {
 		public static Position2 down { get { return new Position2(0, -1); } }
 		//
 		public override bool Equals(object o) { return (o is Position2) && (Position2)o == this; }
-		public override int GetHashCode() { return x * 18397 + y * 29303; } // base.GetHashCode(); }
+		public override int GetHashCode() { return ((x * 73856093) ^ (y * 19349669)) % 65537; }
 		public override string ToString() { return x + ", " + y; }
 		//
 		public bool Equals(Position2 other) { return x == other.x && y == other.y; }
