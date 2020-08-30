@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 namespace RatKing.Base {
 
+	[DefaultExecutionOrder(6000)]
 	public class CameraFacingBillboard : MonoBehaviour {
 
 		static CamFaceBillboards mgr;
