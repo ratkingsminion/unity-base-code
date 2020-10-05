@@ -141,8 +141,12 @@ namespace RatKing.Base {
 				return t < 0.5f ? (1f - BounceOut(1f - 2f * t)) * 0.5f
 					: (1f + BounceOut(2f * t - 1f)) * 0.5f;
 			}
-
 		}
+
+		// stolen from https://github.com/dentedpixel/LeanTween/blob/master/Assets/LeanTween/Framework/LeanTween.cs#L271
+		public static readonly AnimationCurve punch = new AnimationCurve( new Keyframe(0.0f, 0.0f ), new Keyframe(0.112586f, 0.9976035f ), new Keyframe(0.3120486f, -0.1720615f ), new Keyframe(0.4316337f, 0.07030682f ), new Keyframe(0.5524869f, -0.03141804f ), new Keyframe(0.6549395f, 0.003909959f ), new Keyframe(0.770987f, -0.009817753f ), new Keyframe(0.8838775f, 0.001939224f ), new Keyframe(1.0f, 0.0f ) );
+    	public static readonly AnimationCurve shake = new AnimationCurve( new Keyframe(0f, 0f), new Keyframe(0.25f, 1f), new Keyframe(0.75f, -1f), new Keyframe(1f, 0f) ) ;
+
 
 		//
 
@@ -155,6 +159,7 @@ namespace RatKing.Base {
 			public float speed = 0f;
 			public float start;
 			public float end;
+			public AnimationCurve easeCurve;
 			public System.Func<float, float> easeFunc;
 			public System.Action<float> updateFunc;
 			public System.Action completeFunc;
@@ -184,6 +189,11 @@ namespace RatKing.Base {
 				this.end = end;
 				easeFunc = Tweens.Ease.Linear;
 				id = Random.Range(1, int.MaxValue);
+			}
+
+			public Tween Ease(AnimationCurve curve) {
+				easeFunc = f => curve.Evaluate(f);
+				return this;
 			}
 
 			public Tween Ease(System.Func<float, float> func) {
