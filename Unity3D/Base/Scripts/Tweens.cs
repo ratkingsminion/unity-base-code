@@ -370,6 +370,20 @@ namespace RatKing.Base {
 			return removed;
 		}
 
+		public static bool Stop(GameObject go, string name, bool withComplete = false) {
+			if (inst == null) { return false; }
+			var removed = false;
+			for (int i = curTweens.Count - 1; i >= 0; --i) {
+				var t = curTweens[i];
+				if (t.go != go || t.name != name) { continue; }
+				if (withComplete && t.completeFunc != null) { t.completeFunc(); }
+				poolTweens.Push(t);
+				curTweens.RemoveAt(i);
+				removed = true;
+			}
+			return removed;
+		}
+
 		public static bool IsTweening(int id) {
 			if (inst == null) { return false; }
 			for (int i = curTweens.Count - 1; i >= 0; --i) {
