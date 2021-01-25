@@ -28,6 +28,12 @@ namespace RatKing.Base {
 	}
 
 	public static class Root {
+		public static Transform Get(Component t) {
+			if (t == null) { return null; }
+			if (t.TryGetComponent(out Child c)) { return c.Root; }
+			return t.transform;
+		}
+
 		public static Transform Get(Transform t) {
 			if (t == null) { return null; }
 			if (t.TryGetComponent(out Child c)) { return c.Root; }
@@ -52,6 +58,16 @@ namespace RatKing.Base {
 			return go.GetComponent<T>();
 		}
 
+		public static bool TryGetComponent<T>(Transform t, out T result) where T : Component {
+			if (t != null && t.TryGetComponent(out Child c)) { return c.Root.TryGetComponent(out result); }
+			else { result = null; return false; }
+		}
+
+		public static bool TryGetComponent<T>(GameObject go, out T result) where T : Component {
+			if (go != null && go.TryGetComponent(out Child c)) { return c.Root.TryGetComponent(out result); }
+			else { result = null; return false; }
+		}
+
 		public static T[] GetComponents<T>(Transform t) where T : Component {
 			if (t == null) { return null; }
 			if (t.TryGetComponent(out Child c)) { return c.Root.GetComponents<T>(); }
@@ -74,6 +90,16 @@ namespace RatKing.Base {
 			if (go == null) { return null; }
 			if (go.TryGetComponent(out Child c)) { return c.Root.GetComponentInChildren<T>(includeInactive); }
 			return go.GetComponentInChildren<T>(includeInactive);
+		}
+
+		public static bool TryGetComponentInChildren<T>(Transform t, out T result, bool includeInactive = false) where T : Component {
+			if (t != null && t.TryGetComponent(out Child c)) { result = c.Root.GetComponentInChildren<T>(includeInactive); return result != null; }
+			else { result = null; return false; }
+		}
+
+		public static bool TryGetComponentInChildren<T>(GameObject go, out T result, bool includeInactive = false) where T : Component {
+			if (go != null && go.TryGetComponent(out Child c)) { result = c.Root.GetComponentInChildren<T>(includeInactive); return result != null; }
+			else { result = null; return false; }
 		}
 
 		public static T[] GetComponentsInChildren<T>(Transform t, bool includeInactive = false) where T : Component {
