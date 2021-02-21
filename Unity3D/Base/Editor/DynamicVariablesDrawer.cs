@@ -114,10 +114,10 @@ namespace RatKing.Base {
 			}
 
 			r.Set(0f, r.y + r.height, w / 5f, buttonsHeight);
-							if (GUI.Button(r, "+Txt"  )) { AddVariable<DynamicVarString>(property, ref variables); }
+							if (GUI.Button(r, "+Str"  )) { AddVariable<DynamicVarString>(property, ref variables); }
 			r.x += r.width;	if (GUI.Button(r, "+Int"  )) { AddVariable<DynamicVarInt>(property, ref variables); }
-			r.x += r.width;	if (GUI.Button(r, "+Float")) { AddVariable<DynamicVarFloat>(property, ref variables); }
-			r.x += r.width;	if (GUI.Button(r, "+Bool" )) { AddVariable<DynamicVarBool>(property, ref variables); }
+			r.x += r.width;	if (GUI.Button(r, "+Flt")) { AddVariable<DynamicVarFloat>(property, ref variables); }
+			r.x += r.width;	if (GUI.Button(r, "+Y/N" )) { AddVariable<DynamicVarBool>(property, ref variables); }
 			r.x += r.width;	if (GUI.Button(r, "+Obj" )) { AddVariable<DynamicVarObject>(property, ref variables); }
 			// can add more types here
 

@@ -43,7 +43,7 @@ namespace RatKing.Base {
 		public DynamicVarInt(string id, string value) : base(id, value) { this.value = int.Parse(value); }
 		public override int Value { get => value; set => this.value = value; }
 		public override IDynamicVar GetCopy() { return new DynamicVarInt(id, value); }
-		public override string TypeIdentifier => "i";
+		public override string TypeIdentifier => "int";
 		public override string ToString() => value.ToString();
 #if UNITY_EDITOR
 		public override bool Unity3DSetValue(Rect r) { EditorGUI.BeginChangeCheck(); value = EditorGUI.IntField(r, value); return EditorGUI.EndChangeCheck(); }
@@ -57,7 +57,7 @@ namespace RatKing.Base {
 		public DynamicVarFloat(string id, string value) : base(id, value) { this.value = float.Parse(value, System.Globalization.CultureInfo.InvariantCulture); }
 		public override float Value { get => value; set => this.value = value; }
 		public override IDynamicVar GetCopy() { return new DynamicVarFloat(id, value); }
-		public override string TypeIdentifier => "f";
+		public override string TypeIdentifier => "flt";
 		public override string ToString() => value.ToString(System.Globalization.CultureInfo.InvariantCulture);
 #if UNITY_EDITOR
 		public override bool Unity3DSetValue(Rect r) { EditorGUI.BeginChangeCheck(); value = EditorGUI.FloatField(r, value); return EditorGUI.EndChangeCheck(); }
@@ -70,8 +70,8 @@ namespace RatKing.Base {
 		public DynamicVarString(string id, string value) : base(id, value) { this.value = value; }
 		public override string Value { get => value; set => this.value = value; }
 		public override IDynamicVar GetCopy() { return new DynamicVarString(id, value); }
-		public override string TypeIdentifier => "s";
-		public override string ToString() => value.ToString();
+		public override string TypeIdentifier => "str";
+		public override string ToString() => (value ?? "").ToString();
 #if UNITY_EDITOR
 		public override bool Unity3DSetValue(Rect r) { EditorGUI.BeginChangeCheck(); value = EditorGUI.TextField(r, value); return EditorGUI.EndChangeCheck(); }
 #endif
@@ -84,7 +84,7 @@ namespace RatKing.Base {
 		public DynamicVarBool(string id, string value) : base(id, value) { this.value = bool.Parse(value); }
 		public override bool Value { get => value; set => this.value = value; }
 		public override IDynamicVar GetCopy() { return new DynamicVarBool(id, value); }
-		public override string TypeIdentifier => "b";
+		public override string TypeIdentifier => "y/n";
 		public override string ToString() => value.ToString();
 #if UNITY_EDITOR
 		public override bool Unity3DSetValue(Rect r) { EditorGUI.BeginChangeCheck(); value = EditorGUI.Toggle(r, value); return EditorGUI.EndChangeCheck(); }
@@ -97,7 +97,7 @@ namespace RatKing.Base {
 		public DynamicVarObject(string id, GameObject value) : base(id, value) { this.value = value; }
 		public override GameObject Value { get => value; set => this.value = value; }
 		public override IDynamicVar GetCopy() { return new DynamicVarObject(id, value); }
-		public override string TypeIdentifier => "o";
+		public override string TypeIdentifier => "obj";
 		public override string ToString() => value != null ? value.ToString() : "(null)";
 #if UNITY_EDITOR
 		public override bool Unity3DSetValue(Rect r) { EditorGUI.BeginChangeCheck(); value = (GameObject)EditorGUI.ObjectField(r, value, typeof(GameObject), true); return EditorGUI.EndChangeCheck(); }
@@ -247,7 +247,7 @@ namespace RatKing.Base {
 			if (serialized == null) { serialized = new List<string>(Variables.Count * 2); }
 			else { serialized.Clear(); }
 			foreach (var v in Variables) {
-				serialized.Add(v.TypeIdentifier + v.ID);
+				serialized.Add(v.TypeIdentifier[0] + v.ID);
 				if (v is DynamicVarObject o) {
 					var idx = gameObjects.IndexOf(o.Value);
 					if (idx < 0) { idx = gameObjects.Count; gameObjects.Add(o.Value); }
