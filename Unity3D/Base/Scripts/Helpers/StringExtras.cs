@@ -24,6 +24,12 @@ namespace RatKing.Base {
 			int m = seconds / 60;
 			return m.ToString() + ":" + (s < 10 ? ("0" + s) : s.ToString());
 		}
+		public static string DisplayHours(int seconds) {
+			int h = seconds / (60 * 60);
+			int m = (seconds / 60) % 60;
+			int s = seconds % 60;
+			return (h < 10 ? ("0" + h) : h.ToString()) + ":" + (m < 10 ? ("0" + m) : m.ToString()) + ":" + (s < 10 ? ("0" + s) : s.ToString());
+		}
 
 		public static string CreateID(int numBlocks = 4, int lengthBlock = 4, string delimiter = "-", string possibleCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYabcdefghijklmnopqrstuvwxyzZ1234567890") {
 			string code = "";
