@@ -44,8 +44,10 @@ namespace RatKing.Base {
 			//base.OnInspectorGUI();
 			serializedObject.Update();
 
+			// AUDIO STUFF
+
 			EditorGUILayout.PropertyField(clips, true);
-			if (GUILayout.Button("Test")) {
+			if (GUILayout.Button("Test") && clips != null && clips.arraySize > 0) {
 				var idx = UnityEngine.Random.Range(0, clips.arraySize);
 				var clip = clips.GetArrayElementAtIndex(idx).objectReferenceValue as AudioClip;
 				if (Camera.main != null && clip != null) {
@@ -88,7 +90,11 @@ namespace RatKing.Base {
 			System.Reflection.Assembly unityEditorAssembly = typeof(AudioImporter).Assembly;
 			System.Type audioUtilClass = unityEditorAssembly.GetType("UnityEditor.AudioUtil");
 			System.Reflection.MethodInfo method = audioUtilClass.GetMethod(
+#if UNITY_2020_2_OR_NEWER
+				"PlayPreviewClip",
+#else
 				"PlayClip",
+#endif
 				System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public,
 				null,
 				new System.Type[] { typeof(AudioClip), typeof(int), typeof(bool) },
@@ -128,7 +134,11 @@ namespace RatKing.Base {
 			var unityEditorAssembly = typeof(AudioImporter).Assembly;
 			var audioUtilClass = unityEditorAssembly.GetType("UnityEditor.AudioUtil");
 			var method = audioUtilClass.GetMethod(
+#if UNITY_2020_2_OR_NEWER
+				"StopAllPreviewClips",
+#else
 				"StopAllClips",
+#endif
 				BindingFlags.Static | BindingFlags.Public,
 				null,
 				new System.Type[] { },
