@@ -92,26 +92,32 @@ namespace RatKing.Base {
 	}
 	
 	[System.Serializable]
-	public class DynamicVarObject : DynamicVar<GameObject> {
+	public class DynamicVarObject : DynamicVar<Object> {
 		public DynamicVarObject() { }
-		public DynamicVarObject(string id, GameObject value) : base(id, value) { this.value = value; }
-		public override GameObject Value { get => value; set => this.value = value; }
+		public DynamicVarObject(string id, Object value) : base(id, value) { this.value = value; }
+		public override Object Value { get => value; set => this.value = value; }
 		public override IDynamicVar GetCopy() { return new DynamicVarObject(id, value); }
 		public override string TypeIdentifier => "obj";
 		public override string ToString() => value != null ? value.ToString() : "(null)";
 #if UNITY_EDITOR
-		public override bool Unity3DSetValue(Rect r) { EditorGUI.BeginChangeCheck(); value = (GameObject)EditorGUI.ObjectField(r, value, typeof(GameObject), true); return EditorGUI.EndChangeCheck(); }
+		public override bool Unity3DSetValue(Rect r) { var oldVal = value; value = EditorGUI.ObjectField(r, value, typeof(Object), true); return oldVal != value; }
 #endif
 	}
 
 	[System.Serializable]
 	public class DynamicVariables : ISerializationCallbackReceiver {
-		[SerializeField] List<GameObject> gameObjects = default;
+		[SerializeField] List<Object> objects = default;
 		[SerializeField] List<string> serialized = default;
 		public List<IDynamicVar> Variables { get; private set; } = new List<IDynamicVar>();
 		public int Count => Variables.Count;
 
 		//
+
+		public void Clear() {
+			objects.Clear();
+			serialized.Clear();
+			Variables.Clear();
+		}
 			
 		public void Set<T>(string id, T value) {
 			foreach (var v in Variables) {
@@ -126,7 +132,7 @@ namespace RatKing.Base {
 				case float f: Variables.Add(new DynamicVarFloat(id, f)); break;
 				case string s: Variables.Add(new DynamicVarString(id, s)); break;
 				case bool b: Variables.Add(new DynamicVarBool(id, b)); break;
-				case GameObject g: Variables.Add(new DynamicVarObject(id, g)); break;
+				case Object o: Variables.Add(new DynamicVarObject(id, o)); break;
 			}
 		}
 
@@ -242,15 +248,15 @@ namespace RatKing.Base {
 		//
 
         void ISerializationCallbackReceiver.OnBeforeSerialize() {
-			if (gameObjects == null) { gameObjects = new List<GameObject>(); }
-			else { gameObjects.Clear(); }
+			if (objects == null) { objects = new List<Object>(); }
+			else { objects.Clear(); }
 			if (serialized == null) { serialized = new List<string>(Variables.Count * 2); }
 			else { serialized.Clear(); }
 			foreach (var v in Variables) {
 				serialized.Add(v.TypeIdentifier[0] + v.ID);
 				if (v is DynamicVarObject o) {
-					var idx = gameObjects.IndexOf(o.Value);
-					if (idx < 0) { idx = gameObjects.Count; gameObjects.Add(o.Value); }
+					var idx = objects.IndexOf(o.Value);
+					if (idx < 0) { idx = objects.Count; objects.Add(o.Value); }
 					serialized.Add(idx.ToString());
 				}
 				else {
@@ -270,7 +276,7 @@ namespace RatKing.Base {
 					case 'i': Variables.Add(new DynamicVarInt(id, value)); break;
 					case 's': Variables.Add(new DynamicVarString(id, value)); break;
 					case 'b': Variables.Add(new DynamicVarBool(id, value)); break;
-					case 'o': Variables.Add(new DynamicVarObject(id, gameObjects[int.Parse(value)])); break;
+					case 'o': Variables.Add(new DynamicVarObject(id, objects[int.Parse(value)])); break;
 				}
 			}
 		}

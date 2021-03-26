@@ -11,6 +11,13 @@ namespace RatKing.Base {
 		static readonly float buttonsHeight = 20f;
 		static readonly float entriesHeight = 20f;
 
+		static GUIStyle headerStyle;
+
+		public static GUIStyle GetHeaderStyle() {
+			if (headerStyle == null) { headerStyle = new GUIStyle(GUI.skin.GetStyle("label")) { richText = true }; }
+			return headerStyle;
+		}
+
 		//
 
 		// from https://github.com/lordofduct/spacepuppy-unity-framework/blob/master/SpacepuppyBaseEditor/EditorHelper.cs
@@ -62,7 +69,7 @@ namespace RatKing.Base {
 		}
 
 		public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
-			var headerStyle = EditorHelpers.GetHeaderStyle();
+			var headerStyle = GetHeaderStyle();
 			
 			var serializedObject = property.serializedObject;
 			var dynamicDict = GetTargetObjectOfProperty(property) as DynamicVariables;
@@ -76,8 +83,10 @@ namespace RatKing.Base {
 			GUI.BeginGroup(position);
 
 			r.Set(0f, 0f, w, labelsHeight);
-			GUI.Label(r, "<b>" + label.text + " (" + variablesCount + ")</b>:", headerStyle);
+			GUI.Label(r, label.text + " (" + variablesCount + "):", headerStyle);
 			//GUI.changed = false;
+			
+			var isDirty = false;
 
 			if (variablesCount > 0) {
 				r.Set(0f, r.y + r.height, 0f, labelsHeight);
@@ -90,8 +99,8 @@ namespace RatKing.Base {
 					r.Set(0f, r.y + r.height, w - 50f, entriesHeight);
 					if (v != null) {
 						var rw = r.width; r.width = 38f; GUI.Label(r, v.Unity3DGetButtonName());
-						r.x += r.width; r.width = 62f; v.ID = GUI.TextField(r, v.ID ?? "");
-						r.x += r.width; r.width = rw - 100f; if (v.Unity3DSetValue(r)) { SetDirty(serializedObject); }
+						r.x += r.width; r.width = 62f; var oldID = v.ID; v.ID = GUI.TextField(r, v.ID ?? ""); isDirty = isDirty || (v.ID != oldID);
+						r.x += r.width; r.width = rw - 100f; if (v.Unity3DSetValue(r)) { isDirty = true; }
 					}
 
 					r.x += r.width; r.width = 30f;
@@ -99,7 +108,7 @@ namespace RatKing.Base {
 						// delete a variable
 						variables.Remove(v);
 						if (variables.Count == 0) { variables = null; }
-						SetDirty(serializedObject);
+						isDirty = true;
 						return;
 					}
 					// sorting the variables:
@@ -107,27 +116,28 @@ namespace RatKing.Base {
 					if (i++ != 0 && GUI.Button(r, "^")) {
 						variables.Remove(v);
 						variables.Insert(i - 1, v);
-						SetDirty(serializedObject);
+						isDirty = true;
 						return;
 					}
 				}
 			}
 
 			r.Set(0f, r.y + r.height, w / 5f, buttonsHeight);
-							if (GUI.Button(r, "+Str"  )) { AddVariable<DynamicVarString>(property, ref variables); }
-			r.x += r.width;	if (GUI.Button(r, "+Int"  )) { AddVariable<DynamicVarInt>(property, ref variables); }
+							if (GUI.Button(r, "+Str")) { AddVariable<DynamicVarString>(property, ref variables); }
+			r.x += r.width;	if (GUI.Button(r, "+Int")) { AddVariable<DynamicVarInt>(property, ref variables); }
 			r.x += r.width;	if (GUI.Button(r, "+Flt")) { AddVariable<DynamicVarFloat>(property, ref variables); }
-			r.x += r.width;	if (GUI.Button(r, "+Y/N" )) { AddVariable<DynamicVarBool>(property, ref variables); }
-			r.x += r.width;	if (GUI.Button(r, "+Obj" )) { AddVariable<DynamicVarObject>(property, ref variables); }
+			r.x += r.width;	if (GUI.Button(r, "+Y/N")) { AddVariable<DynamicVarBool>(property, ref variables); }
+			r.x += r.width;	if (GUI.Button(r, "+Obj")) { AddVariable<DynamicVarObject>(property, ref variables); }
 			// can add more types here
 
 			r.Set(0f, r.y + r.height, w, buttonsHeight);
 			if (GUI.Button(r, "Clear all")) {
 				variables.Clear();
 				variables = null;
-				SetDirty(serializedObject);
-				return;
+				isDirty = true;
 			}
+
+			if (isDirty) { SetDirty(serializedObject); }
 			
 			GUI.EndGroup();
 
@@ -141,11 +151,11 @@ namespace RatKing.Base {
 		}
 
 		void SetDirty(SerializedObject so) {
+			if (so == null || so.targetObject == null) { return; }
 			so.ApplyModifiedProperties();
 			EditorUtility.SetDirty(so.targetObject);
-			//Debug.Log(so.targetObject.name);
 			if (AssetDatabase.IsMainAsset(so.targetObject)) { // TODO?
-				AssetDatabase.SaveAssets();
+			//	AssetDatabase.SaveAssets();
 			}
 			else {
 				var c = so.targetObject as Component;
