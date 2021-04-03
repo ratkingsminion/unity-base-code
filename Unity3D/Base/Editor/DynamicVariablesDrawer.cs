@@ -89,18 +89,20 @@ namespace RatKing.Base {
 			var isDirty = false;
 
 			if (variablesCount > 0) {
+				var typeWidth = 32f;
+				var idWidth = Screen.width * 0.25f;
 				r.Set(0f, r.y + r.height, 0f, labelsHeight);
-				r.width = 38f; GUI.Label(r, "Typ");
-				r.x += r.width; r.width = 62f; GUI.Label(r, "ID");
+				r.width = typeWidth; GUI.Label(r, "Typ");
+				r.x += r.width; r.width = idWidth; GUI.Label(r, "ID");
 				r.x += r.width; r.width = w - r.x; GUI.Label(r, "Value");
 				
 				int i = 0;
 				foreach (var v in variables) {
 					r.Set(0f, r.y + r.height, w - 50f, entriesHeight);
 					if (v != null) {
-						var rw = r.width; r.width = 38f; GUI.Label(r, v.Unity3DGetButtonName());
-						r.x += r.width; r.width = 62f; var oldID = v.ID; v.ID = GUI.TextField(r, v.ID ?? ""); isDirty = isDirty || (v.ID != oldID);
-						r.x += r.width; r.width = rw - 100f; if (v.Unity3DSetValue(r)) { isDirty = true; }
+						var rw = r.width; r.width = typeWidth; GUI.Label(r, v.Unity3DGetButtonName());
+						r.x += r.width; r.width = idWidth; var oldID = v.ID; v.ID = GUI.TextField(r, v.ID ?? ""); isDirty = isDirty || (v.ID != oldID);
+						r.x += r.width; r.width = rw - (idWidth + typeWidth); if (v.Unity3DSetValue(r)) { isDirty = true; }
 					}
 
 					r.x += r.width; r.width = 30f;
