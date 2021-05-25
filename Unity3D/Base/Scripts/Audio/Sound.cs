@@ -90,7 +90,7 @@ namespace RatKing.Base {
 
 		public bool SetNormalizedTime(float t) {
 			if (!InUse || source.clip == null) { return false; }
-			source.time = Mathf.Repeat(t / source.clip.length, 1f);
+			source.time = Mathf.Repeat(t, 1f) * source.clip.length;
 			return true;
 		}
 	}
