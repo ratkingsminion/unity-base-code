@@ -294,7 +294,7 @@ namespace RatKing.Base {
 		public static Tween NextFrame(System.Action completeFunc) {
 			if (inst == null) { CreateInstance(); }
 			var tween = PoolPopTween(0f, 0f, 0f);
-			tween.delay = 0f;
+			//tween.delay = 0f;
 			tween.completeFunc = completeFunc;
 			tween.ignoreTimeScale = true;
 			return tween;
