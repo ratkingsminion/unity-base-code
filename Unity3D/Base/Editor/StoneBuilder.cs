@@ -14,9 +14,9 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.IO;
 
-// STONE BUILDER v0.6
+// STONE BUILDER v0.7
 // Standalone build editor for Unity
-// 2015-2017 (c) ratking (www.ratking.de)
+// 2015-2021 (c) ratking (www.ratking.de)
 
 // open Stone Builder via Tools -> Stone Builder
 
@@ -26,6 +26,9 @@ using System.IO;
 // TODO: enable packing on mac, and even linux
 // TODO: option for autoincreasing version number?
 
+// changes 0.7
+//	 can get/set bundle version now
+//	 allow "STONE_VERSION" in batch script, will be replaced with version
 // changes 0.6
 //	 can create .bat file now
 //	 can create itch.io build script now
@@ -83,6 +86,12 @@ namespace RatKing.Base {
 		static bool showTargets;
 		[SerializeField] static StoneBuilderSettings settings;
 		static SerializedObject settingsObj;
+
+		static string Version { get {
+				var v = settings != null && !settings.useBundleVersion ? settings.version : PlayerSettings.bundleVersion;
+				return v;
+			}
+		}
 
 		//
 
@@ -153,13 +162,13 @@ namespace RatKing.Base {
 			Target.Add("Mac OSX 32 bit", "build osx 32", "OSX32", "osx", 0, BuildTarget.StandaloneOSXIntel, ".exe", false);
 			Target.Add("Mac OSX 64 bit", "build osx 64", "OSX64", "osx", 1, BuildTarget.StandaloneOSXIntel64, ".app", true);
 #endif
-			Target.Add("Mac OSX", "build osx uni", "OSX", "osx-universal", 0, BuildTarget.StandaloneOSX, ".app", false);
+			Target.Add("Mac OSX Universal", "build osx uni", "OSX32+64", "osx-universal", 0, BuildTarget.StandaloneOSX, ".app", false);
 #if !UNITY_2019_2_OR_NEWER
 			Target.Add("Ubuntu 32 bit", "build lnx 32", "Ubuntu32", "linux", 0, BuildTarget.StandaloneLinux, "", false);
+#endif
 			Target.Add("Ubuntu 64 bit", "build lnx 64", "Ubuntu64", "linux", 1, BuildTarget.StandaloneLinux64, "", true);
+#if !UNITY_2019_2_OR_NEWER
 			Target.Add("Ubuntu Universal", "build lnx uni", "Ubuntu32+64", "linux-universal", 0, BuildTarget.StandaloneLinuxUniversal, "", false);
-#else
-			Target.Add("Linux 64 bit", "build lnx 64", "Linux", "linux", 1, BuildTarget.StandaloneLinux64, "", true);
 #endif
 			//
 			targetNames = new string[targets.Count];
@@ -213,7 +222,9 @@ namespace RatKing.Base {
 			//TextArea("Version", ref settings.version);
 			EditorGUILayout.PropertyField(settingsObj.FindProperty("gameShortName"), new GUIContent("App Name"));
 			EditorGUILayout.PropertyField(settingsObj.FindProperty("subfolderName"), new GUIContent("Folder Name"));
-			EditorGUILayout.PropertyField(settingsObj.FindProperty("version"), new GUIContent("Version"));
+			EditorGUILayout.PropertyField(settingsObj.FindProperty("useBundleVersion"), new GUIContent("Use Bundle Version"));
+			if (settings.useBundleVersion) { PlayerSettings.bundleVersion = EditorGUILayout.TextField("Version", PlayerSettings.bundleVersion); }
+			else { EditorGUILayout.PropertyField(settingsObj.FindProperty("version"), new GUIContent("Version")); }
 			if (EditorGUI.EndChangeCheck()) {
 				settingsObj.ApplyModifiedProperties();
 			}
@@ -332,6 +343,7 @@ namespace RatKing.Base {
 			
 			EditorGUI.BeginChangeCheck();
 			EditorGUILayout.LabelField("Batch Script");
+			EditorGUILayout.LabelField("(STONE_VERSION will be replaced with Version.)");
 			//settings.script = EditorGUILayout.TextArea(settings.script);
 			EditorGUILayout.PropertyField(settingsObj.FindProperty("script"), GUIContent.none);
 			if (EditorGUI.EndChangeCheck()) {
@@ -359,7 +371,7 @@ namespace RatKing.Base {
 			
 			EditorGUILayout.Space();
 
-			if (string.IsNullOrEmpty(settings.buildPath) || string.IsNullOrEmpty(settings.gameShortName) || string.IsNullOrEmpty(settings.subfolderName) || string.IsNullOrEmpty(settings.version)) {
+			if (string.IsNullOrEmpty(settings.buildPath) || string.IsNullOrEmpty(settings.gameShortName) || string.IsNullOrEmpty(settings.subfolderName) || string.IsNullOrEmpty(Version)) {
 				var color = GUI.color;
 				GUI.color = Color.red;
 				EditorGUILayout.LabelField("WARNING", EditorStyles.whiteLabel);
@@ -445,7 +457,7 @@ namespace RatKing.Base {
 						for (var iter = targets.GetEnumerator(); iter.MoveNext();) {
 							var t = iter.Current.Value;
 							if (t.GetActive()) {
-								var path = settings.buildPath + "/" + settings.gameShortName + "-" + settings.version + "/" + t.shortPath + "/" + settings.subfolderName + "/";
+								var path = settings.buildPath + "/" + settings.gameShortName + "-" + Version + "/" + t.shortPath + "/" + settings.subfolderName + "/";
 								CopyAdditionalFiles(path);
 								CreateBatchScript(path, settings.script);
 								PackGame(t.shortPath, t.target);
@@ -528,8 +540,8 @@ namespace RatKing.Base {
 		/// <param name="script"></param>
 		static void CreateBatchScript(string path, string script) {
 			script = script.Trim();
-			if (string.IsNullOrEmpty(script)) { return; }
-			if (script == "") { return; }
+			if (string.IsNullOrWhiteSpace(script)) { return; }
+			script = script.Replace("STONE_VERSION", Version);
 			var filename = "____script.bat";
 			File.WriteAllText(path + "/" + filename, script);
 			var startInfo = new ProcessStartInfo(filename) {
@@ -547,7 +559,7 @@ namespace RatKing.Base {
 		static void CreateItchScript(StoneBuilderSettings settings) {
 			var s = settings;
 			if (!s.createItchBat) { return; }
-			string path = settings.buildPath + "/" + settings.gameShortName + "-" + settings.version + "/publish_to_itch.bat";
+			string path = settings.buildPath + "/" + settings.gameShortName + "-" + Version + "/publish_to_itch.bat";
 			string script = "";
 			List<Target> activeTargets = new List<Target>();
 			for (var iter = targets.GetEnumerator(); iter.MoveNext();) {
@@ -560,9 +572,9 @@ namespace RatKing.Base {
 			for (var iter = activeTargets.GetEnumerator(); iter.MoveNext(); ) {
 				var t = iter.Current;
 				if (script != "") { script += "\r\n"; }
-				var pat = settings.buildPath + "/" + settings.gameShortName + "-" + settings.version + "/" + t.shortPath + "/" + settings.subfolderName;
+				var pat = settings.buildPath + "/" + settings.gameShortName + "-" + Version + "/" + t.shortPath + "/" + settings.subfolderName;
 				var tag = !string.IsNullOrEmpty(settings.itchAdditionalTags) ? ("-" + settings.itchAdditionalTags) : "";
-				script += "butler push " + pat + " " + settings.itchUsername + "/" + settings.itchGamename + ":" + t.itchName + tag + " --userversion " + settings.version;
+				script += "butler push " + pat + " " + settings.itchUsername + "/" + settings.itchGamename + ":" + t.itchName + tag + " --userversion " + Version;
 			}
 			File.WriteAllText(path, script);
 		}
@@ -599,7 +611,7 @@ namespace RatKing.Base {
 				prc.StartInfo.FileName = Path.GetDirectoryName(path);
 			}
 			else {
-				prc.StartInfo.FileName = Path.GetDirectoryName(settings.buildPath + "/" + settings.gameShortName + "-" + settings.version + "/");
+				prc.StartInfo.FileName = Path.GetDirectoryName(settings.buildPath + "/" + settings.gameShortName + "-" + Version + "/");
 			}
 			prc.Start();
 		}
@@ -631,11 +643,11 @@ namespace RatKing.Base {
 					format = "";
 					suffix = ".zip";
 					break;
+				case BuildTarget.StandaloneLinux64:
 #if !UNITY_2019_2_OR_NEWER
 				case BuildTarget.StandaloneLinux:
 				case BuildTarget.StandaloneLinuxUniversal:
 #endif
-				case BuildTarget.StandaloneLinux64:
 					isLinux = true;
 					format = "-ttar";
 					suffix = ".tar";
@@ -644,8 +656,8 @@ namespace RatKing.Base {
 					return;
 			}
 
-			var path = settings.buildPath + "/" + settings.gameShortName + "-" + settings.version + "/" + buildTargetName + "/";
-			var packedFile = settings.gameShortName + "-" + settings.version + "-" + buildTargetName + suffix;
+			var path = settings.buildPath + "/" + settings.gameShortName + "-" + Version + "/" + buildTargetName + "/";
+			var packedFile = settings.gameShortName + "-" + Version + "-" + buildTargetName + suffix;
 			var ignorePDB = settings.ignorePDB ? " -r -x!*.pdb" : "";
 
 			// var info = new FileInfo("/Applications/TextEdit.app/Contents/MacOS/TextEdit");
@@ -671,7 +683,7 @@ namespace RatKing.Base {
 			if (!File.Exists(path + "/" + packedFile)) {
 				UnityEngine.Debug.Log("Could not pack " + target + ", build it first!");
 			}
-			var moveTo = settings.buildPath + "/" + settings.gameShortName + "-" + settings.version + "/" + packedFile;
+			var moveTo = settings.buildPath + "/" + settings.gameShortName + "-" + Version + "/" + packedFile;
 			if (File.Exists(moveTo)) {
 				File.Delete(moveTo);
 			}
@@ -702,20 +714,20 @@ namespace RatKing.Base {
 #endif
 
 			// path
-			string path = settings.buildPath + "/" + settings.gameShortName + "-" + settings.version + "/" + buildTargetName + "/" + settings.subfolderName + "/";
-			Directory.CreateDirectory(settings.buildPath + "/" + settings.gameShortName + "-" + settings.version);
+			string path = settings.buildPath + "/" + settings.gameShortName + "-" + Version + "/" + buildTargetName + "/" + settings.subfolderName + "/";
+			Directory.CreateDirectory(settings.buildPath + "/" + settings.gameShortName + "-" + Version);
 
-			if (Directory.Exists(settings.buildPath + "/" + settings.gameShortName + "-" + settings.version + "/" + buildTargetName)) {
+			if (Directory.Exists(settings.buildPath + "/" + settings.gameShortName + "-" + Version + "/" + buildTargetName)) {
 				// clean directory before building
-				foreach (var d in Directory.GetDirectories(settings.buildPath + "/" + settings.gameShortName + "-" + settings.version + "/" + buildTargetName)) {
+				foreach (var d in Directory.GetDirectories(settings.buildPath + "/" + settings.gameShortName + "-" + Version + "/" + buildTargetName)) {
 					Directory.Delete(d, true);
 				}
-				foreach (var f in Directory.GetFiles(settings.buildPath + "/" + settings.gameShortName + "-" + settings.version + "/" + buildTargetName)) {
+				foreach (var f in Directory.GetFiles(settings.buildPath + "/" + settings.gameShortName + "-" + Version + "/" + buildTargetName)) {
 					File.Delete(f);
 				}
 			}
 
-			Directory.CreateDirectory(settings.buildPath + "/" + settings.gameShortName + "-" + settings.version + "/" + buildTargetName);
+			Directory.CreateDirectory(settings.buildPath + "/" + settings.gameShortName + "-" + Version + "/" + buildTargetName);
 
 			// BUILD
 			Directory.CreateDirectory(path);

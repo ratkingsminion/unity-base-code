@@ -9,6 +9,7 @@ namespace RatKing.Base {
 		public string gameShortName = "AppName";
 		public string subfolderName = "GameFolder";
 		public string version = "0.0.1";
+		public bool useBundleVersion = true;
 		public List<Object> levels = new List<Object>();
 		public Object[] includedFiles = new Object[0];
 		public Object[] includedFilesWithDirStruct = new Object[0];
