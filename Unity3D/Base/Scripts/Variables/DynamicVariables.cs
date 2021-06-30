@@ -173,7 +173,6 @@ namespace RatKing.Base {
 			return false;
 		}
 
-
 		public bool HasNumber(string id) {
 			foreach (var v in Variables) {
 				if (v.ID == id && (v is DynamicVar<float> || v is DynamicVar<int>)) {
@@ -181,6 +180,15 @@ namespace RatKing.Base {
 				}
 			}
 			return false;
+		}
+
+		public void Remove<T>(string id) {
+			for (int i = Variables.Count - 1; i >= 0; --i) {
+				var v = Variables[i];
+				if (v.ID == id && v is DynamicVar<T>) {
+					Variables.RemoveAt(i);
+				}
+			}
 		}
 
 		public DynamicVariables GetCopy() {
