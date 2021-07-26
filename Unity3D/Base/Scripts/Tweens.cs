@@ -253,6 +253,7 @@ namespace RatKing.Base {
 		}
 		static List<Tween> newTweens = new List<Tween>();
 		static List<Tween> curTweens = new List<Tween>();
+		static List<Tween> updTweens = new List<Tween>();
 		static Tweens inst = null;
 		
 		static void CreateInstance() {
@@ -266,11 +267,14 @@ namespace RatKing.Base {
 		void Update() {
 			curTweens.AddRange(newTweens);
 			newTweens.Clear();
+			updTweens.Clear();
+			updTweens.AddRange(curTweens);
 #if UNITY_EDITOR
 			name = "<TWEENS> Count:" + curTweens.Count;
 #endif
-			for (int i = curTweens.Count - 1; i >= 0; --i) {
-				var t = curTweens[i];
+			//for (int i = updTweens.Count - 1; i >= 0; --i) {
+			//	var t = updTweens[i];
+			foreach (var t in updTweens) {
 				if (t.cancelWithGO && t.go == null) { // missing gameobject
 					PoolPushTween(t);
 					continue;
@@ -326,6 +330,7 @@ namespace RatKing.Base {
 			if (inst == null) { return; }
 			for (int i = curTweens.Count - 1; i >= 0; --i) { poolTweens.Push(curTweens[i]); }
 			curTweens.Clear();
+			newTweens.Clear();
 		}
 
 		public static bool Stop(int id, bool withComplete = false) {
