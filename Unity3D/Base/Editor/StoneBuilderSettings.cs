@@ -9,7 +9,7 @@ namespace RatKing.Base {
 		public string gameShortName = "AppName";
 		public string subfolderName = "GameFolder";
 		public string version = "0.0.1";
-		public bool useBundleVersion = true;
+		public bool useBundleVersion = false;
 		public List<Object> levels = new List<Object>();
 		public Object[] includedFiles = new Object[0];
 		public Object[] includedFilesWithDirStruct = new Object[0];
@@ -18,6 +18,7 @@ namespace RatKing.Base {
 		public string itchUsername;
 		public string itchGamename;
 		public string itchAdditionalTags;
+		[Multiline] public string itchAddScript = "";
 		// saved in playerprefs (ie. individual for each workstation):
 		[System.NonSerialized] public string buildPath = "C:/BUILDS";
 		[System.NonSerialized] public List<bool> targetsActive = new List<bool>();

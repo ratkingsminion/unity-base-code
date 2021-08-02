@@ -14,7 +14,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.IO;
 
-// STONE BUILDER v0.7
+// STONE BUILDER v0.8
 // Standalone build editor for Unity
 // 2015-2021 (c) ratking (www.ratking.de)
 
@@ -26,6 +26,8 @@ using System.IO;
 // TODO: enable packing on mac, and even linux
 // TODO: option for autoincreasing version number?
 
+// changes 0.8
+//	 can add more stuff to the itch.io upload script
 // changes 0.7
 //	 can get/set bundle version now
 //	 allow "STONE_VERSION" in batch script, will be replaced with version
@@ -361,9 +363,13 @@ namespace RatKing.Base {
 				//TextArea("   User Name", ref settings.itchUsername);
 				//TextArea("   Game Name", ref settings.itchGamename);
 				//TextArea("   Add Tags", ref settings.itchAdditionalTags);
-				EditorGUILayout.PropertyField(settingsObj.FindProperty("itchUsername"), new GUIContent("   User Name"));
-				EditorGUILayout.PropertyField(settingsObj.FindProperty("itchGamename"), new GUIContent("   Game Name"));
-				EditorGUILayout.PropertyField(settingsObj.FindProperty("itchAdditionalTags"), new GUIContent("   Add Tags"));
+				GUILayout.BeginVertical("box");
+				EditorGUILayout.PropertyField(settingsObj.FindProperty("itchUsername"), new GUIContent("User Name"));
+				EditorGUILayout.PropertyField(settingsObj.FindProperty("itchGamename"), new GUIContent("Game Name"));
+				EditorGUILayout.PropertyField(settingsObj.FindProperty("itchAdditionalTags"), new GUIContent("Add Tags"));
+				EditorGUILayout.LabelField("Additional script (added after building)");
+				EditorGUILayout.PropertyField(settingsObj.FindProperty("itchAddScript"), GUIContent.none);
+				GUILayout.EndVertical();
 			}
 			if (EditorGUI.EndChangeCheck()) {
 				settingsObj.ApplyModifiedProperties();
@@ -575,6 +581,10 @@ namespace RatKing.Base {
 				var pat = settings.buildPath + "/" + settings.gameShortName + "-" + Version + "/" + t.shortPath + "/" + settings.subfolderName;
 				var tag = !string.IsNullOrEmpty(settings.itchAdditionalTags) ? ("-" + settings.itchAdditionalTags) : "";
 				script += "butler push " + pat + " " + settings.itchUsername + "/" + settings.itchGamename + ":" + t.itchName + tag + " --userversion " + Version;
+			}
+			if (!string.IsNullOrWhiteSpace(settings.itchAddScript)) {
+				script += "\n" + settings.itchAddScript;
+				script = script.Replace("STONE_VERSION", Version);
 			}
 			File.WriteAllText(path, script);
 		}
