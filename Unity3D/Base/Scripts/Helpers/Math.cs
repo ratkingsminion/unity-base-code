@@ -234,6 +234,12 @@ namespace RatKing.Base {
 		public static float RemapClamped(this float value, float oldMin, float oldMax, float newMin, float newMax) {
 			return ((newMax - newMin) * Mathf.Clamp01((value - oldMin) / (oldMax - oldMin))) + newMin;
 		}
+		
+		//
+
+		public static void Swap<T>(ref T a, ref T b) {
+			var t = a; a = b; b = t;
+		}
 	}
 
 }
