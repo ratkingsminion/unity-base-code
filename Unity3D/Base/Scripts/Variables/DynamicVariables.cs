@@ -155,6 +155,28 @@ namespace RatKing.Base {
 			return standard;
 		}
 
+		public bool TryGet<T>(string id, out T result) {
+			foreach (var v in Variables) {
+				if (v.ID == id && v is DynamicVar<T> dv) {
+					result = dv.Value;
+					return true;
+				}
+			}
+			result = default;
+			return false;
+		}
+
+		public bool TryGetNumber(string id, out float result) {
+			foreach (var v in Variables) {
+				if (v.ID == id) {
+					if (v is DynamicVar<float> df) { result = df.Value; return true; }
+					else if (v is DynamicVar<int> di) { result = di.Value; return true; }
+				}
+			}
+			result = -1f;
+			return false;
+		}
+
 		public bool Has(string id) {
 			foreach (var v in Variables) {
 				if (v.ID == id) {
@@ -225,7 +247,7 @@ namespace RatKing.Base {
 					case DynamicVarFloat f: if (other.Get<float>(v.ID) != f.Value) { return false; } break;
 					case DynamicVarString s: if (other.Get<string>(v.ID) != s.Value) { return false; } break;
 					case DynamicVarBool b: if (other.Get<bool>(v.ID) != b.Value) { return false; } break;
-					case DynamicVarObject o: if (other.Get<bool>(v.ID) != o.Value) { return false; } break;
+					case DynamicVarObject o: if (other.Get<Object>(v.ID) != o.Value) { return false; } break;
 				}
 			}
 			return true;
