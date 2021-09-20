@@ -21,7 +21,7 @@ namespace RatKing.Base {
 			if (Input.GetKeyDown(KeyCode.F12)) {
 				Debugging.CreateScreenshot(screenshotPrefix);
 			}
-			if (Input.GetKeyDown(KeyCode.R)) {
+			if (Input.GetKeyDown(KeyCode.F4)) {
 				UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
 			}
 		}
