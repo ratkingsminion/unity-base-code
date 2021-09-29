@@ -145,15 +145,23 @@ namespace RatKing.Base {
 	// no parameters
 	public class TargetedSignal<TTarget> : ISignal {
 		HashSet<TTarget> targets = new HashSet<TTarget>();
-		Dictionary<TTarget, System.Action> targetedActions = new Dictionary<TTarget, System.Action>();
+		Dictionary<TTarget, System.Action<TTarget>> targetedActions = new Dictionary<TTarget, System.Action<TTarget>>();
+		HashSet<TTarget> freeTargets = new HashSet<TTarget>();
+		Dictionary<TTarget, System.Action> freeTargetedActions = new Dictionary<TTarget, System.Action>();
 		System.Action<TTarget> generalActions;
 
 		//
 
-		public void Register(TTarget target, System.Action action) {
+		public void Register(TTarget target, System.Action<TTarget> action) {
 			if (target == null || action == null || (target is UnityEngine.Object obj && obj == null)) { UnityEngine.Debug.LogError("trying to register null"); return; }
 			if (!targetedActions.TryGetValue(target, out var actions)) { targets.Add(target); targetedActions.Add(target, action); }
 			else { targetedActions[target] = actions + action; }
+		}
+
+		public void Register(TTarget target, System.Action action) {
+			if (target == null || action == null || (target is UnityEngine.Object obj && obj == null)) { UnityEngine.Debug.LogError("trying to register null"); return; }
+			if (!freeTargetedActions.TryGetValue(target, out var actions)) { freeTargets.Add(target); freeTargetedActions.Add(target, action); }
+			else { freeTargetedActions[target] = actions + action; }
 		}
 
 		public void Register(System.Action<TTarget> action) {
@@ -161,7 +169,7 @@ namespace RatKing.Base {
 			generalActions += action;
 		}
 
-		public void Unregister(TTarget target, System.Action action) {
+		public void Unregister(TTarget target, System.Action<TTarget> action) {
 			if (target == null || action == null || (target is UnityEngine.Object obj && obj == null)) { UnityEngine.Debug.LogError("trying to unregister null"); return; }
 			if (!targetedActions.TryGetValue(target, out var actions)) { return; }
 			actions -= action;
@@ -169,7 +177,26 @@ namespace RatKing.Base {
 			else { targets.Remove(target); targetedActions.Remove(target); }
 		}
 
+		public void Unregister(TTarget target, System.Action action) {
+			if (target == null || action == null || (target is UnityEngine.Object obj && obj == null)) { UnityEngine.Debug.LogError("trying to unregister null"); return; }
+			if (!freeTargetedActions.TryGetValue(target, out var actions)) { return; }
+			actions -= action;
+			if (actions != null) { freeTargetedActions[target] = actions; }
+			else { freeTargets.Remove(target); freeTargetedActions.Remove(target); }
+		}
+
 		public void Unregister(System.Action action) {
+			if (action == null) { UnityEngine.Debug.LogError("trying to unregister null"); return; }
+			foreach (var target in freeTargets) {
+				var actions = freeTargetedActions[target];
+				actions -= action;
+				if (actions != null) { freeTargetedActions[target] = actions; }
+				else { freeTargetedActions.Remove(target); }
+			}
+			freeTargets.RemoveWhere(t => !freeTargetedActions.ContainsKey(t));
+		}
+
+		public void Unregister(System.Action<TTarget> action) {
 			if (action == null) { UnityEngine.Debug.LogError("trying to unregister null"); return; }
 			foreach (var target in targets) {
 				var actions = targetedActions[target];
@@ -178,10 +205,6 @@ namespace RatKing.Base {
 				else { targetedActions.Remove(target); }
 			}
 			targets.RemoveWhere(t => !targetedActions.ContainsKey(t));
-		}
-
-		public void Unregister(System.Action<TTarget> action) {
-			if (action == null) { UnityEngine.Debug.LogError("trying to unregister null"); return; }
 			generalActions -= action;
 		}
 
@@ -189,18 +212,23 @@ namespace RatKing.Base {
 			if (target == null || (target is UnityEngine.Object obj && obj == null)) { UnityEngine.Debug.LogError("trying to unregister null"); return; }
 			targets.Remove(target);
 			targetedActions.Remove(target);
+			freeTargets.Remove(target);
+			freeTargetedActions.Remove(target);
 		}
 		
 		public void UnregisterAll() {
 			targets.Clear();
 			targetedActions.Clear();
+			freeTargets.Clear();
+			freeTargetedActions.Clear();
 			generalActions = null;
 		}
 
 		public void Broadcast(TTarget target, SignalCallee callee = SignalCallee.Both) {
 			if (target == null || (callee & SignalCallee.Both) == 0 || (target is UnityEngine.Object obj && obj == null)) { UnityEngine.Debug.LogError("trying to broadcast null"); return; }
-			if ((callee & SignalCallee.TargetOnly) != 0 && targetedActions.TryGetValue(target, out var actions)) {
-				actions();
+			if ((callee & SignalCallee.TargetOnly) != 0) {
+				if (freeTargetedActions.TryGetValue(target, out var freeActions)) { freeActions(); }
+				if (targetedActions.TryGetValue(target, out var actions)) { actions(target); }
 			}
 			if ((callee & SignalCallee.GeneralOnly) != 0 && generalActions != null) {
 				generalActions(target);
@@ -211,15 +239,23 @@ namespace RatKing.Base {
 	// one parameter
 	public class TargetedSignal<TTarget, T1> : ISignal {
 		HashSet<TTarget> targets = new HashSet<TTarget>();
-		Dictionary<TTarget, System.Action<T1>> targetedActions = new Dictionary<TTarget, System.Action<T1>>();
+		Dictionary<TTarget, System.Action<TTarget, T1>> targetedActions = new Dictionary<TTarget, System.Action<TTarget, T1>>();
+		HashSet<TTarget> freeTargets = new HashSet<TTarget>();
+		Dictionary<TTarget, System.Action<T1>> freeTargetedActions = new Dictionary<TTarget, System.Action<T1>>();
 		System.Action<TTarget, T1> generalActions;
 
 		//
 
-		public void Register(TTarget target, System.Action<T1> action) {
+		public void Register(TTarget target, System.Action<TTarget, T1> action) {
 			if (target == null || action == null || (target is UnityEngine.Object obj && obj == null)) { UnityEngine.Debug.LogError("trying to register null"); return; }
 			if (!targetedActions.TryGetValue(target, out var actions)) { targets.Add(target); targetedActions.Add(target, action); }
 			else { targetedActions[target] = actions + action; }
+		}
+
+		public void Register(TTarget target, System.Action<T1> action) {
+			if (target == null || action == null || (target is UnityEngine.Object obj && obj == null)) { UnityEngine.Debug.LogError("trying to register null"); return; }
+			if (!freeTargetedActions.TryGetValue(target, out var actions)) { freeTargets.Add(target); freeTargetedActions.Add(target, action); }
+			else { freeTargetedActions[target] = actions + action; }
 		}
 
 		public void Register(System.Action<TTarget, T1> action) {
@@ -227,7 +263,7 @@ namespace RatKing.Base {
 			generalActions += action;
 		}
 
-		public void Unregister(TTarget target, System.Action<T1> action) {
+		public void Unregister(TTarget target, System.Action<TTarget, T1> action) {
 			if (target == null || action == null || (target is UnityEngine.Object obj && obj == null)) { UnityEngine.Debug.LogError("trying to unregister null"); return; }
 			if (!targetedActions.TryGetValue(target, out var actions)) { return; }
 			actions -= action;
@@ -235,7 +271,26 @@ namespace RatKing.Base {
 			else { targets.Remove(target); targetedActions.Remove(target); }
 		}
 
+		public void Unregister(TTarget target, System.Action<T1> action) {
+			if (target == null || action == null || (target is UnityEngine.Object obj && obj == null)) { UnityEngine.Debug.LogError("trying to unregister null"); return; }
+			if (!freeTargetedActions.TryGetValue(target, out var actions)) { return; }
+			actions -= action;
+			if (actions != null) { freeTargetedActions[target] = actions; }
+			else { freeTargets.Remove(target); freeTargetedActions.Remove(target); }
+		}
+
 		public void Unregister(System.Action<T1> action) {
+			if (action == null) { UnityEngine.Debug.LogError("trying to unregister null"); return; }
+			foreach (var target in freeTargets) {
+				var actions = freeTargetedActions[target];
+				actions -= action;
+				if (actions != null) { freeTargetedActions[target] = actions; }
+				else { freeTargetedActions.Remove(target); }
+			}
+			freeTargets.RemoveWhere(t => !freeTargetedActions.ContainsKey(t));
+		}
+
+		public void Unregister(System.Action<TTarget, T1> action) {
 			if (action == null) { UnityEngine.Debug.LogError("trying to unregister null"); return; }
 			foreach (var target in targets) {
 				var actions = targetedActions[target];
@@ -244,10 +299,6 @@ namespace RatKing.Base {
 				else { targetedActions.Remove(target); }
 			}
 			targets.RemoveWhere(t => !targetedActions.ContainsKey(t));
-		}
-
-		public void Unregister(System.Action<TTarget, T1> action) {
-			if (action == null) { UnityEngine.Debug.LogError("trying to unregister null"); return; }
 			generalActions -= action;
 		}
 
@@ -255,21 +306,26 @@ namespace RatKing.Base {
 			if (target == null || (target is UnityEngine.Object obj && obj == null)) { UnityEngine.Debug.LogError("trying to unregister null"); return; }
 			targets.Remove(target);
 			targetedActions.Remove(target);
+			freeTargets.Remove(target);
+			freeTargetedActions.Remove(target);
 		}
 		
 		public void UnregisterAll() {
 			targets.Clear();
 			targetedActions.Clear();
+			freeTargets.Clear();
+			freeTargetedActions.Clear();
 			generalActions = null;
 		}
 
-		public void Broadcast(TTarget target, T1 value1, SignalCallee callee = SignalCallee.Both) {
+		public void Broadcast(TTarget target, T1 value, SignalCallee callee = SignalCallee.Both) {
 			if (target == null || (callee & SignalCallee.Both) == 0 || (target is UnityEngine.Object obj && obj == null)) { UnityEngine.Debug.LogError("trying to broadcast null"); return; }
-			if ((callee & SignalCallee.TargetOnly) != 0 && targetedActions.TryGetValue(target, out var actions)) {
-				actions(value1);
+			if ((callee & SignalCallee.TargetOnly) != 0) {
+				if (freeTargetedActions.TryGetValue(target, out var freeActions)) { freeActions(value); }
+				if (targetedActions.TryGetValue(target, out var actions)) { actions(target, value); }
 			}
 			if ((callee & SignalCallee.GeneralOnly) != 0 && generalActions != null) {
-				generalActions(target, value1);
+				generalActions(target, value);
 			}
 		}
 	}
@@ -277,15 +333,23 @@ namespace RatKing.Base {
 	// two parameters
 	public class TargetedSignal<TTarget, T1, T2> : ISignal {
 		HashSet<TTarget> targets = new HashSet<TTarget>();
-		Dictionary<TTarget, System.Action<T1, T2>> targetedActions = new Dictionary<TTarget, System.Action<T1, T2>>();
+		Dictionary<TTarget, System.Action<TTarget, T1, T2>> targetedActions = new Dictionary<TTarget, System.Action<TTarget, T1, T2>>();
+		HashSet<TTarget> freeTargets = new HashSet<TTarget>();
+		Dictionary<TTarget, System.Action<T1, T2>> freeTargetedActions = new Dictionary<TTarget, System.Action<T1, T2>>();
 		System.Action<TTarget, T1, T2> generalActions;
 
 		//
 
-		public void Register(TTarget target, System.Action<T1, T2> action) {
+		public void Register(TTarget target, System.Action<TTarget, T1, T2> action) {
 			if (target == null || action == null || (target is UnityEngine.Object obj && obj == null)) { UnityEngine.Debug.LogError("trying to register null"); return; }
 			if (!targetedActions.TryGetValue(target, out var actions)) { targets.Add(target); targetedActions.Add(target, action); }
 			else { targetedActions[target] = actions + action; }
+		}
+
+		public void Register(TTarget target, System.Action<T1, T2> action) {
+			if (target == null || action == null || (target is UnityEngine.Object obj && obj == null)) { UnityEngine.Debug.LogError("trying to register null"); return; }
+			if (!freeTargetedActions.TryGetValue(target, out var actions)) { freeTargets.Add(target); freeTargetedActions.Add(target, action); }
+			else { freeTargetedActions[target] = actions + action; }
 		}
 
 		public void Register(System.Action<TTarget, T1, T2> action) {
@@ -293,7 +357,7 @@ namespace RatKing.Base {
 			generalActions += action;
 		}
 
-		public void Unregister(TTarget target, System.Action<T1, T2> action) {
+		public void Unregister(TTarget target, System.Action<TTarget, T1, T2> action) {
 			if (target == null || action == null || (target is UnityEngine.Object obj && obj == null)) { UnityEngine.Debug.LogError("trying to unregister null"); return; }
 			if (!targetedActions.TryGetValue(target, out var actions)) { return; }
 			actions -= action;
@@ -301,7 +365,26 @@ namespace RatKing.Base {
 			else { targets.Remove(target); targetedActions.Remove(target); }
 		}
 
+		public void Unregister(TTarget target, System.Action<T1, T2> action) {
+			if (target == null || action == null || (target is UnityEngine.Object obj && obj == null)) { UnityEngine.Debug.LogError("trying to unregister null"); return; }
+			if (!freeTargetedActions.TryGetValue(target, out var actions)) { return; }
+			actions -= action;
+			if (actions != null) { freeTargetedActions[target] = actions; }
+			else { freeTargets.Remove(target); freeTargetedActions.Remove(target); }
+		}
+
 		public void Unregister(System.Action<T1, T2> action) {
+			if (action == null) { UnityEngine.Debug.LogError("trying to unregister null"); return; }
+			foreach (var target in freeTargets) {
+				var actions = freeTargetedActions[target];
+				actions -= action;
+				if (actions != null) { freeTargetedActions[target] = actions; }
+				else { freeTargetedActions.Remove(target); }
+			}
+			freeTargets.RemoveWhere(t => !freeTargetedActions.ContainsKey(t));
+		}
+
+		public void Unregister(System.Action<TTarget, T1, T2> action) {
 			if (action == null) { UnityEngine.Debug.LogError("trying to unregister null"); return; }
 			foreach (var target in targets) {
 				var actions = targetedActions[target];
@@ -310,10 +393,6 @@ namespace RatKing.Base {
 				else { targetedActions.Remove(target); }
 			}
 			targets.RemoveWhere(t => !targetedActions.ContainsKey(t));
-		}
-
-		public void Unregister(System.Action<TTarget, T1, T2> action) {
-			if (action == null) { UnityEngine.Debug.LogError("trying to unregister null"); return; }
 			generalActions -= action;
 		}
 
@@ -321,18 +400,23 @@ namespace RatKing.Base {
 			if (target == null || (target is UnityEngine.Object obj && obj == null)) { UnityEngine.Debug.LogError("trying to unregister null"); return; }
 			targets.Remove(target);
 			targetedActions.Remove(target);
+			freeTargets.Remove(target);
+			freeTargetedActions.Remove(target);
 		}
 		
 		public void UnregisterAll() {
 			targets.Clear();
 			targetedActions.Clear();
+			freeTargets.Clear();
+			freeTargetedActions.Clear();
 			generalActions = null;
 		}
 
 		public void Broadcast(TTarget target, T1 value1, T2 value2, SignalCallee callee = SignalCallee.Both) {
 			if (target == null || (callee & SignalCallee.Both) == 0 || (target is UnityEngine.Object obj && obj == null)) { UnityEngine.Debug.LogError("trying to broadcast null"); return; }
-			if ((callee & SignalCallee.TargetOnly) != 0 && targetedActions.TryGetValue(target, out var actions)) {
-				actions(value1, value2);
+			if ((callee & SignalCallee.TargetOnly) != 0) {
+				if (freeTargetedActions.TryGetValue(target, out var freeActions)) { freeActions(value1, value2); }
+				if (targetedActions.TryGetValue(target, out var actions)) { actions(target, value1, value2); }
 			}
 			if ((callee & SignalCallee.GeneralOnly) != 0 && generalActions != null) {
 				generalActions(target, value1, value2);
@@ -343,15 +427,23 @@ namespace RatKing.Base {
 	// three parameters
 	public class TargetedSignal<TTarget, T1, T2, T3> : ISignal {
 		HashSet<TTarget> targets = new HashSet<TTarget>();
-		Dictionary<TTarget, System.Action<T1, T2, T3>> targetedActions = new Dictionary<TTarget, System.Action<T1, T2, T3>>();
+		Dictionary<TTarget, System.Action<TTarget, T1, T2, T3>> targetedActions = new Dictionary<TTarget, System.Action<TTarget, T1, T2, T3>>();
+		HashSet<TTarget> freeTargets = new HashSet<TTarget>();
+		Dictionary<TTarget, System.Action<T1, T2, T3>> freeTargetedActions = new Dictionary<TTarget, System.Action<T1, T2, T3>>();
 		System.Action<TTarget, T1, T2, T3> generalActions;
 
 		//
 
-		public void Register(TTarget target, System.Action<T1, T2, T3> action) {
+		public void Register(TTarget target, System.Action<TTarget, T1, T2, T3> action) {
 			if (target == null || action == null || (target is UnityEngine.Object obj && obj == null)) { UnityEngine.Debug.LogError("trying to register null"); return; }
 			if (!targetedActions.TryGetValue(target, out var actions)) { targets.Add(target); targetedActions.Add(target, action); }
 			else { targetedActions[target] = actions + action; }
+		}
+
+		public void Register(TTarget target, System.Action<T1, T2, T3> action) {
+			if (target == null || action == null || (target is UnityEngine.Object obj && obj == null)) { UnityEngine.Debug.LogError("trying to register null"); return; }
+			if (!freeTargetedActions.TryGetValue(target, out var actions)) { freeTargets.Add(target); freeTargetedActions.Add(target, action); }
+			else { freeTargetedActions[target] = actions + action; }
 		}
 
 		public void Register(System.Action<TTarget, T1, T2, T3> action) {
@@ -359,7 +451,7 @@ namespace RatKing.Base {
 			generalActions += action;
 		}
 
-		public void Unregister(TTarget target, System.Action<T1, T2, T3> action) {
+		public void Unregister(TTarget target, System.Action<TTarget, T1, T2, T3> action) {
 			if (target == null || action == null || (target is UnityEngine.Object obj && obj == null)) { UnityEngine.Debug.LogError("trying to unregister null"); return; }
 			if (!targetedActions.TryGetValue(target, out var actions)) { return; }
 			actions -= action;
@@ -367,7 +459,26 @@ namespace RatKing.Base {
 			else { targets.Remove(target); targetedActions.Remove(target); }
 		}
 
+		public void Unregister(TTarget target, System.Action<T1, T2, T3> action) {
+			if (target == null || action == null || (target is UnityEngine.Object obj && obj == null)) { UnityEngine.Debug.LogError("trying to unregister null"); return; }
+			if (!freeTargetedActions.TryGetValue(target, out var actions)) { return; }
+			actions -= action;
+			if (actions != null) { freeTargetedActions[target] = actions; }
+			else { freeTargets.Remove(target); freeTargetedActions.Remove(target); }
+		}
+
 		public void Unregister(System.Action<T1, T2, T3> action) {
+			if (action == null) { UnityEngine.Debug.LogError("trying to unregister null"); return; }
+			foreach (var target in freeTargets) {
+				var actions = freeTargetedActions[target];
+				actions -= action;
+				if (actions != null) { freeTargetedActions[target] = actions; }
+				else { freeTargetedActions.Remove(target); }
+			}
+			freeTargets.RemoveWhere(t => !freeTargetedActions.ContainsKey(t));
+		}
+
+		public void Unregister(System.Action<TTarget, T1, T2, T3> action) {
 			if (action == null) { UnityEngine.Debug.LogError("trying to unregister null"); return; }
 			foreach (var target in targets) {
 				var actions = targetedActions[target];
@@ -376,10 +487,6 @@ namespace RatKing.Base {
 				else { targetedActions.Remove(target); }
 			}
 			targets.RemoveWhere(t => !targetedActions.ContainsKey(t));
-		}
-
-		public void Unregister(System.Action<TTarget, T1, T2, T3> action) {
-			if (action == null) { UnityEngine.Debug.LogError("trying to unregister null"); return; }
 			generalActions -= action;
 		}
 
@@ -387,18 +494,23 @@ namespace RatKing.Base {
 			if (target == null || (target is UnityEngine.Object obj && obj == null)) { UnityEngine.Debug.LogError("trying to unregister null"); return; }
 			targets.Remove(target);
 			targetedActions.Remove(target);
+			freeTargets.Remove(target);
+			freeTargetedActions.Remove(target);
 		}
 		
 		public void UnregisterAll() {
 			targets.Clear();
 			targetedActions.Clear();
+			freeTargets.Clear();
+			freeTargetedActions.Clear();
 			generalActions = null;
 		}
 
 		public void Broadcast(TTarget target, T1 value1, T2 value2, T3 value3, SignalCallee callee = SignalCallee.Both) {
 			if (target == null || (callee & SignalCallee.Both) == 0 || (target is UnityEngine.Object obj && obj == null)) { UnityEngine.Debug.LogError("trying to broadcast null"); return; }
-			if ((callee & SignalCallee.TargetOnly) != 0 && targetedActions.TryGetValue(target, out var actions)) {
-				actions(value1, value2, value3);
+			if ((callee & SignalCallee.TargetOnly) != 0) {
+				if (freeTargetedActions.TryGetValue(target, out var freeActions)) { freeActions(value1, value2, value3); }
+				if (targetedActions.TryGetValue(target, out var actions)) { actions(target, value1, value2, value3); }
 			}
 			if ((callee & SignalCallee.GeneralOnly) != 0 && generalActions != null) {
 				generalActions(target, value1, value2, value3);
@@ -409,15 +521,23 @@ namespace RatKing.Base {
 	// four parameters
 	public class TargetedSignal<TTarget, T1, T2, T3, T4> : ISignal {
 		HashSet<TTarget> targets = new HashSet<TTarget>();
-		Dictionary<TTarget, System.Action<T1, T2, T3, T4>> targetedActions = new Dictionary<TTarget, System.Action<T1, T2, T3, T4>>();
+		Dictionary<TTarget, System.Action<TTarget, T1, T2, T3, T4>> targetedActions = new Dictionary<TTarget, System.Action<TTarget, T1, T2, T3, T4>>();
+		HashSet<TTarget> freeTargets = new HashSet<TTarget>();
+		Dictionary<TTarget, System.Action<T1, T2, T3, T4>> freeTargetedActions = new Dictionary<TTarget, System.Action<T1, T2, T3, T4>>();
 		System.Action<TTarget, T1, T2, T3, T4> generalActions;
 
 		//
 
-		public void Register(TTarget target, System.Action<T1, T2, T3, T4> action) {
+		public void Register(TTarget target, System.Action<TTarget, T1, T2, T3, T4> action) {
 			if (target == null || action == null || (target is UnityEngine.Object obj && obj == null)) { UnityEngine.Debug.LogError("trying to register null"); return; }
 			if (!targetedActions.TryGetValue(target, out var actions)) { targets.Add(target); targetedActions.Add(target, action); }
 			else { targetedActions[target] = actions + action; }
+		}
+
+		public void Register(TTarget target, System.Action<T1, T2, T3, T4> action) {
+			if (target == null || action == null || (target is UnityEngine.Object obj && obj == null)) { UnityEngine.Debug.LogError("trying to register null"); return; }
+			if (!freeTargetedActions.TryGetValue(target, out var actions)) { freeTargets.Add(target); freeTargetedActions.Add(target, action); }
+			else { freeTargetedActions[target] = actions + action; }
 		}
 
 		public void Register(System.Action<TTarget, T1, T2, T3, T4> action) {
@@ -425,7 +545,7 @@ namespace RatKing.Base {
 			generalActions += action;
 		}
 
-		public void Unregister(TTarget target, System.Action<T1, T2, T3, T4> action) {
+		public void Unregister(TTarget target, System.Action<TTarget, T1, T2, T3, T4> action) {
 			if (target == null || action == null || (target is UnityEngine.Object obj && obj == null)) { UnityEngine.Debug.LogError("trying to unregister null"); return; }
 			if (!targetedActions.TryGetValue(target, out var actions)) { return; }
 			actions -= action;
@@ -433,7 +553,26 @@ namespace RatKing.Base {
 			else { targets.Remove(target); targetedActions.Remove(target); }
 		}
 
+		public void Unregister(TTarget target, System.Action<T1, T2, T3, T4> action) {
+			if (target == null || action == null || (target is UnityEngine.Object obj && obj == null)) { UnityEngine.Debug.LogError("trying to unregister null"); return; }
+			if (!freeTargetedActions.TryGetValue(target, out var actions)) { return; }
+			actions -= action;
+			if (actions != null) { freeTargetedActions[target] = actions; }
+			else { freeTargets.Remove(target); freeTargetedActions.Remove(target); }
+		}
+
 		public void Unregister(System.Action<T1, T2, T3, T4> action) {
+			if (action == null) { UnityEngine.Debug.LogError("trying to unregister null"); return; }
+			foreach (var target in freeTargets) {
+				var actions = freeTargetedActions[target];
+				actions -= action;
+				if (actions != null) { freeTargetedActions[target] = actions; }
+				else { freeTargetedActions.Remove(target); }
+			}
+			freeTargets.RemoveWhere(t => !freeTargetedActions.ContainsKey(t));
+		}
+
+		public void Unregister(System.Action<TTarget, T1, T2, T3, T4> action) {
 			if (action == null) { UnityEngine.Debug.LogError("trying to unregister null"); return; }
 			foreach (var target in targets) {
 				var actions = targetedActions[target];
@@ -442,10 +581,6 @@ namespace RatKing.Base {
 				else { targetedActions.Remove(target); }
 			}
 			targets.RemoveWhere(t => !targetedActions.ContainsKey(t));
-		}
-
-		public void Unregister(System.Action<TTarget, T1, T2, T3, T4> action) {
-			if (action == null) { UnityEngine.Debug.LogError("trying to unregister null"); return; }
 			generalActions -= action;
 		}
 
@@ -453,18 +588,23 @@ namespace RatKing.Base {
 			if (target == null || (target is UnityEngine.Object obj && obj == null)) { UnityEngine.Debug.LogError("trying to unregister null"); return; }
 			targets.Remove(target);
 			targetedActions.Remove(target);
+			freeTargets.Remove(target);
+			freeTargetedActions.Remove(target);
 		}
 		
 		public void UnregisterAll() {
 			targets.Clear();
 			targetedActions.Clear();
+			freeTargets.Clear();
+			freeTargetedActions.Clear();
 			generalActions = null;
 		}
 
 		public void Broadcast(TTarget target, T1 value1, T2 value2, T3 value3, T4 value4, SignalCallee callee = SignalCallee.Both) {
 			if (target == null || (callee & SignalCallee.Both) == 0 || (target is UnityEngine.Object obj && obj == null)) { UnityEngine.Debug.LogError("trying to broadcast null"); return; }
-			if ((callee & SignalCallee.TargetOnly) != 0 && targetedActions.TryGetValue(target, out var actions)) {
-				actions(value1, value2, value3, value4);
+			if ((callee & SignalCallee.TargetOnly) != 0) {
+				if (freeTargetedActions.TryGetValue(target, out var freeActions)) { freeActions(value1, value2, value3, value4); }
+				if (targetedActions.TryGetValue(target, out var actions)) { actions(target, value1, value2, value3, value4); }
 			}
 			if ((callee & SignalCallee.GeneralOnly) != 0 && generalActions != null) {
 				generalActions(target, value1, value2, value3, value4);
