@@ -171,7 +171,7 @@ namespace RatKing.Base {
 				go = null;
 				cancelWithGO = false;
 				factor = 0f;
-				this.speed = seconds != 0f ? (1f / seconds) : float.MaxValue;
+				this.speed = Mathf.Abs(seconds != 0f ? (1f / seconds) : float.MaxValue);
 				this.start = start;
 				this.end = end;
 				easeFunc = Tweens.Ease.Linear;
@@ -243,6 +243,7 @@ namespace RatKing.Base {
 
 		static Stack<Tween> poolTweens = new Stack<Tween>();
 		static void PoolPushTween(Tween t) {
+			if (t == null) { Debug.LogError("Trying to push null tween."); return; }
 			poolTweens.Push(t);
 			curTweens.Remove(t);
 		}
@@ -265,15 +266,13 @@ namespace RatKing.Base {
 		//
 
 		void Update() {
+#if UNITY_EDITOR
+			name = "<TWEENS> Count:" + curTweens.Count + (newTweens.Count > 0 ? " + New: " + newTweens.Count : "");
+#endif
 			curTweens.AddRange(newTweens);
 			newTweens.Clear();
 			updTweens.Clear();
 			updTweens.AddRange(curTweens);
-#if UNITY_EDITOR
-			name = "<TWEENS> Count:" + curTweens.Count;
-#endif
-			//for (int i = updTweens.Count - 1; i >= 0; --i) {
-			//	var t = updTweens[i];
 			foreach (var t in updTweens) {
 				if (t.cancelWithGO && t.go == null) { // missing gameobject
 					PoolPushTween(t);
