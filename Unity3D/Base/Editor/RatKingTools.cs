@@ -32,6 +32,10 @@ namespace RatKing {
 			var btnH = GUILayout.Height(40f);
 			scrollPos = GUILayout.BeginScrollView(scrollPos);
 
+			if (GUILayout.Button("Select Main Camera", btnH)) { if (Camera.main != null) { Selection.activeGameObject = Camera.main.gameObject; } }
+
+			GUILayout.Space(6);
+
 			GUILayout.BeginHorizontal();
 			snapSetting = EditorGUILayout.FloatField("Snap", snapSetting);
 			if (GUILayout.Button("Snap!", btnW, btnH)) { Snap(); }
