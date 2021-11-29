@@ -61,6 +61,14 @@ namespace RatKing.Base {
 		public float InverseLerp(float value) {
 			return (value - min) / (max - min);
 		}
+
+		public float LerpClamped(float factor) {
+			return min + (max - min) * Mathf.Clamp01(factor);
+		}
+
+		public float InverseLerpClamped(float value) {
+			return Mathf.Clamp01((value - min) / (max - min));
+		}
 		
 		public float Clamp(float value) {
 			return value > max ? max : value < min ? min : value;
