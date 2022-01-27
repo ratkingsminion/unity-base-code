@@ -237,6 +237,11 @@ namespace RatKing.Base {
 				this.ignoreTimeScale = ignoreTimeScale;
 				return this;
 			}
+
+			public Tween Initialise() {
+				if (updateFunc != null) { updateFunc(0f); }
+				return this;
+			}
 		}
 
 		//
