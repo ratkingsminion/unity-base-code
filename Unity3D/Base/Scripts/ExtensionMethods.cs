@@ -116,6 +116,9 @@ namespace RatKing {
 		public static T GetOrAddComponent<T>(this GameObject go) where T : Component { var ac = go.GetComponent<T>(); if (ac == null) { ac = go.AddComponent<T>(); } return ac; }
 		public static T AddComponent<T>(this Component c) where T : Component { return c.gameObject.AddComponent<T>(); }
 		public static T GetOrAddComponent<T>(this Component c) where T : Component { var ac = c.gameObject.GetComponent<T>(); if (ac == null) { ac = c.gameObject.AddComponent<T>(); } return ac; }
+
+		public static bool TryGetComponentInChildren<T>(this GameObject go, out T component) where T : Component { component = go.GetComponentInChildren<T>(); if (component != null) { return true; } return false; }
+		public static bool TryGetComponentInChildren<T>(this Component c, out T component) where T : Component { component = c.gameObject.GetComponentInChildren<T>(); if (component != null) { return true; } return false; }
 	}
 
 }
