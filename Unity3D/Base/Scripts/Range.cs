@@ -74,6 +74,22 @@ namespace RatKing.Base {
 			return value > max ? max : value < min ? min : value;
 		}
 
+		public float RemapTo(float min, float max, float value) {
+			return ((max - min) * (value - this.min) / (this.max - this.min)) + min;
+		}
+
+		public float RemapTo(RangeFloat range, float value) {
+			return ((range.max - range.min) * (value - this.min) / (this.max - this.min)) + range.min;
+		}
+
+		public float RemapClampedTo(float min, float max, float value) {
+			return ((max - min) * Mathf.Clamp01((value - this.min) / (this.max - this.min))) + min;
+		}
+
+		public float RemapClampedTo(RangeFloat range, float value) {
+			return ((range.max - range.min) * Mathf.Clamp01((value - this.min) / (this.max - this.min))) + range.min;
+		}
+
 		public float Difference { get { return Mathf.Abs(max - min); } }
 		
 		//
