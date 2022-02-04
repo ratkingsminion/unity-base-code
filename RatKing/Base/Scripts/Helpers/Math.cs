@@ -177,15 +177,12 @@ namespace RatKing.Base {
 			float min = 0f;
 			float max = 360f;
 			float half = Mathf.Abs((max - min) / 2f);//half the distance between min and max
-			float diff = 0f;
 
 			if ((end - start) < -half) {
-				diff = ((max - start) + end) * value;
-				return start + diff;
+				return start + ((max - start) + end) * value;
 			}
 			else if ((end - start) > half) {
-				diff = -((max - end) + start) * value;
-				return start + diff;
+				return start - ((max - end) + start) * value;
 			}
 			return start + (end - start) * value;
 		}

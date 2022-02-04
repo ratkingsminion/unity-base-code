@@ -41,6 +41,8 @@ namespace RatKing.Base {
 	public struct RangeFloat {
 		public float min;
 		public float max;
+		public float SqrMin => min * min;
+		public float SqrMax => max * max;
 
 		public RangeFloat(float min, float max) {
 			this.min = min;
@@ -58,12 +60,12 @@ namespace RatKing.Base {
 			return min + (max - min) * factor;
 		}
 
-		public float InverseLerp(float value) {
-			return (value - min) / (max - min);
-		}
-
 		public float LerpClamped(float factor) {
 			return min + (max - min) * Mathf.Clamp01(factor);
+		}
+
+		public float InverseLerp(float value) {
+			return (value - min) / (max - min);
 		}
 
 		public float InverseLerpClamped(float value) {
