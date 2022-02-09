@@ -102,6 +102,24 @@ namespace RatKing.Base {
 			}
 		}
 
+		public static void Add(System.Func<bool> function, bool late = false) {
+			if (function == null) { return; }
+			if (late) {
+				if (updaterLate == null) {
+					if (gameObject == null) { gameObject = new GameObject("<UPDATER>"); }
+					updaterLate = gameObject.AddComponent<UpdaterLate>();
+				}
+				updaterLate.Add(gameObject, function);
+			}
+			else {
+				if (updaterNormal == null) {
+					if (gameObject == null) { gameObject = new GameObject("<UPDATER>"); }
+					updaterNormal = gameObject.AddComponent<UpdaterNormal>();
+				}
+				updaterNormal.Add(gameObject, function);
+			}
+		}
+
 		public static void Remove(GameObject target, bool late = false) {
 			if (late) {
 				if (updaterLate == null) { return; }
