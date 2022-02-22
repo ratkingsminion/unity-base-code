@@ -38,22 +38,19 @@ namespace RatKing.Base {
 			return type != null ? type.Play(position, tag) : null;
 		}
 
-		public static Sound Play(SoundType type, Vector3 position, Quaternion rotation, string tag = null) {
-			return type != null ? type.Play(position, rotation, tag) : null;
-		}
-
 		public static Sound Play(SoundType type, string tag = null) {
-			return type != null ? type.Play( tag) : null;
+			return type != null ? type.Play(tag) : null;
 		}
 
 		//
 
-		public void PlayType(SoundType type, int clipIndex = -1) {
+		public void PlayType(SoundType type, int clipIndex = -1, Vector3 pos = default) {
 			Tag = null;
 			InUse = true;
 			IsPaused = false;
 			Type = type;
 			var src = source = GetComponent<AudioSource>();
+			src.transform.position = pos;
 			src.clip = clipIndex < 0 ? DataStructures.GetRandomElement(type.Clips) : type.Clips[clipIndex];
 			src.volume = (volume = type.Volume.Random()) * Sounds.GlobalVolume;
 			src.pitch = type.Pitch.Random();

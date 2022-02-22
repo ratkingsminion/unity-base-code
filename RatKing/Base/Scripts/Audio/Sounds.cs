@@ -99,7 +99,7 @@ namespace RatKing.Base {
 
 		//
 
-		public Sound Play(SoundType type) {
+		public Sound Play(SoundType type, Vector3 pos = default) {
 			if (type == null) { return null; }
 			//
 			var mightBeWaiting = type.WaitSeconds.min > 0f;
@@ -129,7 +129,7 @@ namespace RatKing.Base {
 					? Random.Range(1, clipsCount)
 					: (props.lastRandomIndex + Random.Range(1, clipsCount)) % clipsCount;
 			}
-			sound.PlayType(type, clipIndex);
+			sound.PlayType(type, clipIndex, pos);
 			playingSounds.Add(sound);
 			if (runningCoroutine <= Time.unscaledTime) { StartCoroutine(CheckPlayingSoundsCR()); }
 			if (mightBeWaiting) { props.waiting = Time.unscaledTime + type.WaitSeconds.Random(); }

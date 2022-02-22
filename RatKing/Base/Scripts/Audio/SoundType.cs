@@ -37,27 +37,15 @@ namespace RatKing.Base {
 		//
 
 		public Sound Play(Transform start, string tag = null) {
-			var sound = Sounds.GetOrCreateInstance().Play(this);
+			var sound = Sounds.GetOrCreateInstance().Play(this, start.position);
 			if (sound == null) { return null; }
-			sound.transform.position = start.position;
-			sound.transform.rotation = start.rotation;
 			sound.Tag = tag;
 			return sound;
 		}
 
 		public Sound Play(Vector3 position, string tag = null) {
-			var sound = Sounds.GetOrCreateInstance().Play(this);
+			var sound = Sounds.GetOrCreateInstance().Play(this, position);
 			if (sound == null) { return null; }
-			sound.transform.position = position;
-			sound.Tag = tag;
-			return sound;
-		}
-
-		public Sound Play(Vector3 position, Quaternion rotation, string tag = null) {
-			var sound = Sounds.GetOrCreateInstance().Play(this);
-			if (sound == null) { return null; }
-			sound.transform.position = position;
-			sound.transform.rotation = rotation;
 			sound.Tag = tag;
 			return sound;
 		}
