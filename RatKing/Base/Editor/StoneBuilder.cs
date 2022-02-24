@@ -225,8 +225,13 @@ namespace RatKing.Base {
 			EditorGUILayout.PropertyField(settingsObj.FindProperty("gameShortName"), new GUIContent("App Name"));
 			EditorGUILayout.PropertyField(settingsObj.FindProperty("subfolderName"), new GUIContent("Folder Name"));
 			EditorGUILayout.PropertyField(settingsObj.FindProperty("useBundleVersion"), new GUIContent("Use Bundle Version"));
-			if (settings.useBundleVersion) { PlayerSettings.bundleVersion = EditorGUILayout.TextField("Version", PlayerSettings.bundleVersion); }
-			else { EditorGUILayout.PropertyField(settingsObj.FindProperty("version"), new GUIContent("Version")); }
+			if (settings.useBundleVersion) {
+				var bv = EditorGUILayout.TextField("Version", PlayerSettings.bundleVersion);
+				if (bv != PlayerSettings.bundleVersion) { PlayerSettings.bundleVersion = bv; }
+			}
+			else {
+				EditorGUILayout.PropertyField(settingsObj.FindProperty("version"), new GUIContent("Version"));
+			}
 			if (EditorGUI.EndChangeCheck()) {
 				settingsObj.ApplyModifiedProperties();
 			}
@@ -266,18 +271,19 @@ namespace RatKing.Base {
 			settingsObj.Update();
 			SerializedProperty levelsProp = settingsObj.FindProperty("levels");
 			EditorGUI.BeginChangeCheck();
-			var levelAssets = AssetDatabase.FindAssets("t:scene");
-			EditorGUILayout.PropertyField(levelsProp, new GUIContent("Included levels (" + (settings.levels != null ? settings.levels.Count : 0) + "/" + levelAssets.Length + "):", "Levels that will be included in the builds. To add a file, drag it onto this label!"), true, null);
+			//var levelAssets = AssetDatabase.FindAssets("t:scene");
+			//EditorGUILayout.PropertyField(levelsProp, new GUIContent("Included levels (" + (settings.levels != null ? settings.levels.Count : 0) + "/" + levelAssets.Length + "):", "Levels that will be included in the builds. To add a file, drag it onto this label!"), true, null);
+			EditorGUILayout.PropertyField(levelsProp, new GUIContent("Included levels (" + (settings.levels != null ? settings.levels.Count : 0) + "):", "Levels that will be included in the builds. To add a file, drag it onto this label!"), true, null);
 			if (EditorGUI.EndChangeCheck()) {
-				settingsObj.ApplyModifiedProperties();
 				// settings.levels.RemoveAll(o => o == null || !AssetDatabase.GetAssetPath(o).EndsWith(".unity"));
-				if (settings.levels.RemoveAll(o => o == null) > 0) {
-					// UnityEngine.Debug.Log("Add scenes by dragging them onto the label!");
-				}
+				//if (settings.levels.RemoveAll(o => o == null) > 0) {
+				//	// UnityEngine.Debug.Log("Add scenes by dragging them onto the label!");
+				//}
 				if (settings.levels.RemoveAll(o => !AssetDatabase.GetAssetPath(o).EndsWith(".unity")) > 0) {
 					UnityEngine.Debug.LogWarning("Only add Unity scenes to Included levels!");
 				}
 				settings.levels = new List<Object>(new HashSet<Object>(settings.levels));
+				settingsObj.ApplyModifiedProperties();
 			}
 			//EditorGUIUtility.LookLikeControls();
 
@@ -317,15 +323,14 @@ namespace RatKing.Base {
 
 			SerializedProperty filesProp = settingsObj.FindProperty("includedFiles");
 			EditorGUI.BeginChangeCheck();
-			EditorGUILayout.PropertyField(filesProp, new GUIContent("Additional files to root (" + (settings.includedFiles != null ? settings.includedFiles.Length : 0) + "):", "Files or dirs that will be added to the root folder after build, e.g. a readme.txt. To add a file or dir, drag it onto this label!"), true, null);
+			EditorGUILayout.PropertyField(filesProp, new GUIContent("Additional files to root (" + (settings.includedFiles != null ? settings.includedFiles.Length : 0) + "):", "Files or dirs that will be added to the root folder after build, e.g. a readme.txt."), true, null);
 			if (EditorGUI.EndChangeCheck()) {
-				settingsObj.ApplyModifiedProperties();
 				var newFiles = new List<Object>(settings.includedFiles);
-				if (newFiles.RemoveAll(o => o == null) > 0) {
-					//UnityEngine.Debug.Log("Add files by dragging them onto the label!");
-				}
+				//if (newFiles.RemoveAll(o => o == null) > 0) {
+				//	//UnityEngine.Debug.Log("Add files by dragging them onto the label!");
+				//}
 				settings.includedFiles = new List<Object>(new HashSet<Object>(newFiles)).ToArray();
-				
+				settingsObj.ApplyModifiedProperties();
 				//var assetPath = AssetDatabase.GetAssetPath(settings.includedFiles[1]);
 				//UnityEngine.Debug.Log(assetPath);
 				//UnityEngine.Debug.Log(Application.dataPath);
@@ -333,12 +338,12 @@ namespace RatKing.Base {
 
 			SerializedProperty filesWDSProp = settingsObj.FindProperty("includedFilesWithDirStruct");
 			EditorGUI.BeginChangeCheck();
-			EditorGUILayout.PropertyField(filesWDSProp, new GUIContent("Additional files to original folder (" + (settings.includedFilesWithDirStruct != null ? settings.includedFilesWithDirStruct.Length : 0) + "):", "Files or dirs that will be added to their original folder after build. To add a file or dir, drag it onto this label!"), true, null);
+			EditorGUILayout.PropertyField(filesWDSProp, new GUIContent("Additional files to original folder (" + (settings.includedFilesWithDirStruct != null ? settings.includedFilesWithDirStruct.Length : 0) + "):", "Files or dirs that will be added to their original folder after build."), true, null);
 			if (EditorGUI.EndChangeCheck()) {
-				settingsObj.ApplyModifiedProperties();
 				var newFiles = new List<Object>(settings.includedFilesWithDirStruct);
-				newFiles.RemoveAll(o => o == null);
+				//newFiles.RemoveAll(o => o == null);
 				settings.includedFilesWithDirStruct = new List<Object>(new HashSet<Object>(newFiles)).ToArray();
+				settingsObj.ApplyModifiedProperties();
 			}
 			
 			EditorGUILayout.Space();
