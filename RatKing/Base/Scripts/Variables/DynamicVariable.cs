@@ -13,7 +13,6 @@ namespace RatKing.Base {
 #if UNITY_EDITOR
 		string Unity3DGetButtonName();
 		bool Unity3DSetValue(Rect r);
-		bool Unity3DSetValue();
 #endif
 	}
 
@@ -32,7 +31,6 @@ namespace RatKing.Base {
 #if UNITY_EDITOR
 		public abstract string Unity3DGetButtonName();
 		public abstract bool Unity3DSetValue(Rect r);
-		public abstract bool Unity3DSetValue();
 #endif
 	}
 	
@@ -49,7 +47,6 @@ namespace RatKing.Base {
 		public const string Unity3DButtonName = "Int";
 		public override string Unity3DGetButtonName() => Unity3DButtonName;
 		public override bool Unity3DSetValue(Rect r) { EditorGUI.BeginChangeCheck(); value = EditorGUI.IntField(r, value); return EditorGUI.EndChangeCheck(); }
-		public override bool Unity3DSetValue() { EditorGUI.BeginChangeCheck(); value = EditorGUILayout.IntField(value); return EditorGUI.EndChangeCheck(); }
 #endif
 	}
 	
@@ -66,7 +63,6 @@ namespace RatKing.Base {
 		public const string Unity3DButtonName = "Flt";
 		public override string Unity3DGetButtonName() => Unity3DButtonName;
 		public override bool Unity3DSetValue(Rect r) { EditorGUI.BeginChangeCheck(); value = EditorGUI.FloatField(r, value); return EditorGUI.EndChangeCheck(); }
-		public override bool Unity3DSetValue() { EditorGUI.BeginChangeCheck(); value = EditorGUILayout.FloatField(value); return EditorGUI.EndChangeCheck(); }
 #endif
 	}
 	
@@ -82,7 +78,6 @@ namespace RatKing.Base {
 		public const string Unity3DButtonName = "Str";
 		public override string Unity3DGetButtonName() => Unity3DButtonName;
 		public override bool Unity3DSetValue(Rect r) { EditorGUI.BeginChangeCheck(); value = EditorGUI.TextField(r, value); return EditorGUI.EndChangeCheck(); }
-		public override bool Unity3DSetValue() { EditorGUI.BeginChangeCheck(); value = EditorGUILayout.TextField(value); return EditorGUI.EndChangeCheck(); }
 #endif
 	}
 	
@@ -99,7 +94,6 @@ namespace RatKing.Base {
 		public const string Unity3DButtonName = "Y/N";
 		public override string Unity3DGetButtonName() => Unity3DButtonName;
 		public override bool Unity3DSetValue(Rect r) { EditorGUI.BeginChangeCheck(); value = EditorGUI.Toggle(r, value); return EditorGUI.EndChangeCheck(); }
-		public override bool Unity3DSetValue() { EditorGUI.BeginChangeCheck(); value = EditorGUILayout.Toggle(value); return EditorGUI.EndChangeCheck(); }
 #endif
 	}
 	
@@ -115,7 +109,6 @@ namespace RatKing.Base {
 		public const string Unity3DButtonName = "Obj";
 		public override string Unity3DGetButtonName() => Unity3DButtonName;
 		public override bool Unity3DSetValue(Rect r) { var oldVal = value; value = EditorGUI.ObjectField(r, value, typeof(Object), true); return oldVal != value; }
-		public override bool Unity3DSetValue() { EditorGUI.BeginChangeCheck(); value = EditorGUILayout.ObjectField(value, typeof(Object), true); return EditorGUI.EndChangeCheck(); }
 #endif
 	}
 
