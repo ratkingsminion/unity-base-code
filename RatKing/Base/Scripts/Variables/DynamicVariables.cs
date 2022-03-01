@@ -1,114 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace RatKing.Base {
-
-	public interface IDynamicVar {
-		string ID { get; set; }
-		IDynamicVar GetCopy();
-		string TypeIdentifier { get; }
-		string ToString();
-#if UNITY_EDITOR
-		string Unity3DGetButtonName();
-		bool Unity3DSetValue(Rect r);
-#endif
-	}
-
-	[System.Serializable]
-	public abstract class DynamicVar<T> : IDynamicVar {
-		[SerializeField] protected T value = default;
-		[SerializeField] protected string id = "";
-		public DynamicVar() { }
-		public DynamicVar(string id, T value) { this.id = id; }
-		public DynamicVar(string id, string value) { this.id = id; }
-		public string ID { get => id; set => id = value; }
-		public abstract T Value { get; set; }
-		public abstract IDynamicVar GetCopy();
-		public abstract string TypeIdentifier { get; }
-		public override string ToString() { return ""; }
-#if UNITY_EDITOR
-		public string Unity3DGetButtonName() => TypeIdentifier.ToUpper();
-		public abstract bool Unity3DSetValue(Rect r);
-#endif
-	}
-	
-	[System.Serializable]
-	public class DynamicVarInt : DynamicVar<int> {
-		public DynamicVarInt() { }
-		public DynamicVarInt(string id, int value) : base(id, value) { this.value = value; }
-		public DynamicVarInt(string id, string value) : base(id, value) { this.value = int.Parse(value); }
-		public override int Value { get => value; set => this.value = value; }
-		public override IDynamicVar GetCopy() { return new DynamicVarInt(id, value); }
-		public override string TypeIdentifier => "int";
-		public override string ToString() => value.ToString();
-#if UNITY_EDITOR
-		public override bool Unity3DSetValue(Rect r) { EditorGUI.BeginChangeCheck(); value = EditorGUI.IntField(r, value); return EditorGUI.EndChangeCheck(); }
-#endif
-	}
-	
-	[System.Serializable]
-	public class DynamicVarFloat : DynamicVar<float> {
-		public DynamicVarFloat() { }
-		public DynamicVarFloat(string id, float value) : base(id, value) { this.value = value; }
-		public DynamicVarFloat(string id, string value) : base(id, value) { this.value = float.Parse(value, System.Globalization.CultureInfo.InvariantCulture); }
-		public override float Value { get => value; set => this.value = value; }
-		public override IDynamicVar GetCopy() { return new DynamicVarFloat(id, value); }
-		public override string TypeIdentifier => "flt";
-		public override string ToString() => value.ToString(System.Globalization.CultureInfo.InvariantCulture);
-#if UNITY_EDITOR
-		public override bool Unity3DSetValue(Rect r) { EditorGUI.BeginChangeCheck(); value = EditorGUI.FloatField(r, value); return EditorGUI.EndChangeCheck(); }
-#endif
-	}
-	
-	[System.Serializable]
-	public class DynamicVarString : DynamicVar<string> {
-		public DynamicVarString() { }
-		public DynamicVarString(string id, string value) : base(id, value) { this.value = value; }
-		public override string Value { get => value; set => this.value = value; }
-		public override IDynamicVar GetCopy() { return new DynamicVarString(id, value); }
-		public override string TypeIdentifier => "str";
-		public override string ToString() => (value ?? "").ToString();
-#if UNITY_EDITOR
-		public override bool Unity3DSetValue(Rect r) { EditorGUI.BeginChangeCheck(); value = EditorGUI.TextField(r, value); return EditorGUI.EndChangeCheck(); }
-#endif
-	}
-	
-	[System.Serializable]
-	public class DynamicVarBool : DynamicVar<bool> {
-		public DynamicVarBool() { }
-		public DynamicVarBool(string id, bool value) : base(id, value) { this.value = value; }
-		public DynamicVarBool(string id, string value) : base(id, value) { this.value = bool.Parse(value); }
-		public override bool Value { get => value; set => this.value = value; }
-		public override IDynamicVar GetCopy() { return new DynamicVarBool(id, value); }
-		public override string TypeIdentifier => "y/n";
-		public override string ToString() => value.ToString();
-#if UNITY_EDITOR
-		public override bool Unity3DSetValue(Rect r) { EditorGUI.BeginChangeCheck(); value = EditorGUI.Toggle(r, value); return EditorGUI.EndChangeCheck(); }
-#endif
-	}
-	
-	[System.Serializable]
-	public class DynamicVarObject : DynamicVar<Object> {
-		public DynamicVarObject() { }
-		public DynamicVarObject(string id, Object value) : base(id, value) { this.value = value; }
-		public override Object Value { get => value; set => this.value = value; }
-		public override IDynamicVar GetCopy() { return new DynamicVarObject(id, value); }
-		public override string TypeIdentifier => "obj";
-		public override string ToString() => value != null ? value.ToString() : "(null)";
-#if UNITY_EDITOR
-		public override bool Unity3DSetValue(Rect r) { var oldVal = value; value = EditorGUI.ObjectField(r, value, typeof(Object), true); return oldVal != value; }
-#endif
-	}
 
 	[System.Serializable]
 	public class DynamicVariables : ISerializationCallbackReceiver {
 		[SerializeField] List<Object> objects = default;
 		[SerializeField] List<string> serialized = default;
-		public List<IDynamicVar> Variables { get; private set; } = new List<IDynamicVar>();
+		public readonly List<IDynamicVar> Variables = new List<IDynamicVar>();
 		public int Count => Variables.Count;
 
 		//
@@ -119,7 +19,7 @@ namespace RatKing.Base {
 			Variables.Clear();
 		}
 			
-		public void Set<T>(string id, T value) {
+		public void Set<T>(string id, T value = default) {
 			foreach (var v in Variables) {
 				if (v.ID == id && v is DynamicVar<T> dv) {
 					// Debug.Log("over write " + dv.Value + " to " + value);
@@ -127,13 +27,12 @@ namespace RatKing.Base {
 					return;
 				}
 			}
-			switch(value) {
-				case int i: Variables.Add(new DynamicVarInt(id, i)); break;
-				case float f: Variables.Add(new DynamicVarFloat(id, f)); break;
-				case string s: Variables.Add(new DynamicVarString(id, s)); break;
-				case bool b: Variables.Add(new DynamicVarBool(id, b)); break;
-				case Object o: Variables.Add(new DynamicVarObject(id, o)); break;
-			}
+				 if (typeof(T) == typeof(float) && value is float f) { Variables.Add(new DynamicVarFloat(id, f)); }
+			else if (typeof(T) == typeof(int) && value is int i) { Variables.Add(new DynamicVarInt(id, i)); }
+			else if (typeof(T) == typeof(string)) { Variables.Add(new DynamicVarString("set", value is string s ? s : "")); }
+			else if (typeof(T) == typeof(bool) && value is bool b) { Variables.Add(new DynamicVarBool(id, b)); }
+			else if (typeof(T) == typeof(Object)) { Variables.Add(new DynamicVarObject(id, value as Object)); }
+			else { Debug.LogWarning("Dynamic variable " + id + " could not be set to this type"); }
 		}
 
 		public T Get<T>(string id, T standard = default) {
@@ -283,7 +182,7 @@ namespace RatKing.Base {
 			if (serialized == null) { serialized = new List<string>(Variables.Count * 2); }
 			else { serialized.Clear(); }
 			foreach (var v in Variables) {
-				serialized.Add(v.TypeIdentifier[0] + v.ID);
+				serialized.Add(v.TypeIdentifier + v.ID);
 				if (v is DynamicVarObject o) {
 					var idx = objects.IndexOf(o.Value);
 					if (idx < 0) { idx = objects.Count; objects.Add(o.Value); }
@@ -307,6 +206,7 @@ namespace RatKing.Base {
 					case 's': Variables.Add(new DynamicVarString(id, value)); break;
 					case 'b': Variables.Add(new DynamicVarBool(id, value)); break;
 					case 'o': Variables.Add(new DynamicVarObject(id, objects[int.Parse(value)])); break;
+					default: Debug.LogWarning("Dynamic variable type for " + id + " could not be serialized"); break;
 				}
 			}
 		}

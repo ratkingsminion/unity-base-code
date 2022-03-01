@@ -7,9 +7,9 @@ namespace RatKing.Base {
 	
 	[CustomPropertyDrawer(typeof(DynamicVariables))]
 	public class DynamicVariablesDrawer : PropertyDrawer {
-		static readonly float labelsHeight = 18f;
-		static readonly float buttonsHeight = 20f;
-		static readonly float entriesHeight = 20f;
+		const float labelsHeight = 18f;
+		const float buttonsHeight = 20f;
+		const float entriesHeight = 20f;
 
 		static GUIStyle headerStyle;
 
@@ -61,8 +61,8 @@ namespace RatKing.Base {
 		//
 
 		public override float GetPropertyHeight(SerializedProperty property, GUIContent label) {
-			var dynamicDict = GetTargetObjectOfProperty(property) as DynamicVariables;
-			var variables = dynamicDict.Variables;
+			var dVariable = GetTargetObjectOfProperty(property) as DynamicVariables;
+			var variables = dVariable.Variables;
 			var h = labelsHeight + buttonsHeight * 2;
 			if (variables != null && variables.Count > 0) { h += variables.Count * entriesHeight + labelsHeight; }
 			return h;
@@ -72,8 +72,8 @@ namespace RatKing.Base {
 			var headerStyle = GetHeaderStyle();
 			
 			var serializedObject = property.serializedObject;
-			var dynamicDict = GetTargetObjectOfProperty(property) as DynamicVariables;
-			var variables = dynamicDict.Variables;
+			var dVariable = GetTargetObjectOfProperty(property) as DynamicVariables;
+			var variables = dVariable.Variables;
 			var variablesCount = variables != null ? variables.Count : 0;
 			
 			var r = new Rect();
@@ -100,7 +100,7 @@ namespace RatKing.Base {
 				foreach (var v in variables) {
 					r.Set(0f, r.y + r.height, w - 50f, entriesHeight);
 					if (v != null) {
-						var rw = r.width; r.width = typeWidth; GUI.Label(r, v.Unity3DGetButtonName());
+						var rw = r.width; r.width = typeWidth; GUI.Label(r, v.Unity3DGetButtonName().ToUpper());
 						r.x += r.width; r.width = idWidth; var oldID = v.ID; v.ID = GUI.TextField(r, v.ID ?? ""); isDirty = isDirty || (v.ID != oldID);
 						r.x += r.width; r.width = rw - (idWidth + typeWidth); if (v.Unity3DSetValue(r)) { isDirty = true; }
 					}
@@ -110,26 +110,28 @@ namespace RatKing.Base {
 						// delete a variable
 						variables.Remove(v);
 						if (variables.Count == 0) { variables = null; }
-						isDirty = true;
+						SetDirty(serializedObject);
+						serializedObject.ApplyModifiedProperties();
 						return;
 					}
 					// sorting the variables:
 					r.x += r.width; r.width = 20f;
 					if (i++ != 0 && GUI.Button(r, "^")) {
 						variables.Remove(v);
-						variables.Insert(i - 1, v);
-						isDirty = true;
+						variables.Insert(i - 2, v);
+						SetDirty(serializedObject);
+						serializedObject.ApplyModifiedProperties();
 						return;
 					}
 				}
 			}
 
 			r.Set(0f, r.y + r.height, w / 5f, buttonsHeight);
-							if (GUI.Button(r, "+Str")) { AddVariable<DynamicVarString>(property, ref variables); }
-			r.x += r.width;	if (GUI.Button(r, "+Int")) { AddVariable<DynamicVarInt>(property, ref variables); }
-			r.x += r.width;	if (GUI.Button(r, "+Flt")) { AddVariable<DynamicVarFloat>(property, ref variables); }
-			r.x += r.width;	if (GUI.Button(r, "+Y/N")) { AddVariable<DynamicVarBool>(property, ref variables); }
-			r.x += r.width;	if (GUI.Button(r, "+Obj")) { AddVariable<DynamicVarObject>(property, ref variables); }
+							if (GUI.Button(r, "+" + DynamicVarString.Unity3DButtonName)) { AddVariable<DynamicVarString>(property, ref variables); }
+			r.x += r.width;	if (GUI.Button(r, "+" + DynamicVarInt.Unity3DButtonName)   ) { AddVariable<DynamicVarInt>(property, ref variables); }
+			r.x += r.width;	if (GUI.Button(r, "+" + DynamicVarFloat.Unity3DButtonName) ) { AddVariable<DynamicVarFloat>(property, ref variables); }
+			r.x += r.width;	if (GUI.Button(r, "+" + DynamicVarBool.Unity3DButtonName)  ) { AddVariable<DynamicVarBool>(property, ref variables); }
+			r.x += r.width;	if (GUI.Button(r, "+" + DynamicVarObject.Unity3DButtonName)) { AddVariable<DynamicVarObject>(property, ref variables); }
 			// can add more types here
 
 			r.Set(0f, r.y + r.height, w, buttonsHeight);
