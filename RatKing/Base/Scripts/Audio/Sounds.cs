@@ -36,7 +36,6 @@ namespace RatKing.Base {
 		void Awake() {
 			DontDestroyOnLoad(gameObject);
 			Inst = this;
-			globalVolume = 1f;
 			parentPool = new GameObject("POOL").transform;
 			parentPool.SetParent(transform);
 			parentPool.gameObject.SetActive(false);
