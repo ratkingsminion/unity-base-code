@@ -54,6 +54,10 @@ namespace RatKing.Base {
 			src.clip = clipIndex < 0 ? DataStructures.GetRandomElement(type.Clips) : type.Clips[clipIndex];
 			src.volume = (volume = type.Volume.Random()) * Sounds.GlobalVolume;
 			src.pitch = type.Pitch.Random();
+			if (type.SpatialBlend > 0f) {
+				src.minDistance = type.Distance3D.min;
+				src.maxDistance = type.Distance3D.max;
+			}
 			src.Play();
 		}
 
