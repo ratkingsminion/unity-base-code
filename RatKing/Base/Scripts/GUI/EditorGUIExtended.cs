@@ -103,8 +103,10 @@ namespace RatKing.Base {
 		}
 
 		public static bool IsRectInsideScreen(Rect rect) {
-			var min = GUIUtility.GUIToScreenPoint(new Vector2(rect.xMin, rect.yMin));
-			var max = GUIUtility.GUIToScreenPoint(new Vector2(rect.xMax, rect.yMax));
+			var min = GUI.matrix.MultiplyPoint(rect.min);
+			var max = GUI.matrix.MultiplyPoint(rect.max);
+			//var min = GUIUtility.GUIToScreenPoint(new Vector2(rect.xMin, rect.yMin));
+			//var max = GUIUtility.GUIToScreenPoint(new Vector2(rect.xMax, rect.yMax));
 			return min.x > -rect.width && max.x < (Screen.width + rect.width) && min.y > -rect.height && max.y < (Screen.height + rect.height);
 		}
 
@@ -118,8 +120,10 @@ namespace RatKing.Base {
 				if (points[i].y < min.y) { min.y = points[i].y; }
 				if (points[i].y > max.y) { max.y = points[i].y; }
 			}
-			min = GUIUtility.GUIToScreenPoint(min);
-			max = GUIUtility.GUIToScreenPoint(max);
+			//min = GUIUtility.GUIToScreenPoint(min);
+			//max = GUIUtility.GUIToScreenPoint(max);
+			min = GUI.matrix.MultiplyPoint(min);
+			max = GUI.matrix.MultiplyPoint(max);
 			var width = max.x - min.x;
 			var height = max.y - min.y;
 			return min.x > -width && max.x < (Screen.width + width) && min.y > -height && max.y < (Screen.height + height);
