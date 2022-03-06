@@ -109,7 +109,7 @@ namespace RatKing.Base {
 		/// <summary>
 		/// Get file contents
 		/// </summary>
-		public string GetFile(string typeID, string subfolder, string filename) {
+		public string GetFileText(string typeID, string subfolder, string filename) {
 			var f = GetTextFile(typeID, subfolder, filename);
 			if (f == null) { Debug.LogWarning("Could not get script for " + typeID); return null; }
 			var content = f.ReadToEnd();
@@ -120,7 +120,7 @@ namespace RatKing.Base {
 		/// <summary>
 		/// Get file contents from subfolder, with fallback standard folder
 		/// </summary>
-		public string GetFile(string typeID, string subfolder, string standard, string filename) {
+		public string GetFileText(string typeID, string subfolder, string standard, string filename) {
 			var f = GetTextFile(typeID, subfolder, filename);
 			if (f == null) {
 				f = GetTextFile(typeID, standard, filename);
