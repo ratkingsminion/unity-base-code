@@ -155,7 +155,7 @@ namespace RatKing.Base {
 
 		public class Tween {
 			public string name = null;
-			public int id = -1;
+			public int id = int.MinValue;
 			public Object uo = null;
 			public bool cancelWithObject = false;
 			public float factor = 0f;
