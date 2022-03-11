@@ -171,6 +171,7 @@ namespace RatKing.Base {
 
 			public Tween Reset(float start, float end, float seconds) {
 				name = null;
+				id = GetNewID();
 				uo = null;
 				cancelWithObject = false;
 				factor = 0f;
@@ -186,6 +187,7 @@ namespace RatKing.Base {
 			}
 
 			public Tween(float start, float end, float seconds) {
+				id = GetNewID();
 				this.speed = seconds != 0f ? (1f / seconds) : float.MaxValue;
 				this.start = start;
 				this.end = end;
@@ -214,11 +216,6 @@ namespace RatKing.Base {
 
 			public Tween Initialise() {
 				if (updateFunc != null) { updateFunc(0f); }
-				return this;
-			}
-
-			public Tween ID(int id) {
-				this.id = id;
 				return this;
 			}
 
@@ -275,7 +272,7 @@ namespace RatKing.Base {
 			name = "<TWEENS> Count:" + curTweens.Count + (newTweens.Count > 0 ? " + New: " + newTweens.Count : "");
 #endif
 			if (newTweens.Count > 0) {
-				foreach (var t in newTweens) { if (t.id == int.MinValue) { t.id = GetNewID(); } }
+				// foreach (var t in newTweens) { if (t.id == int.MinValue) { t.id = GetNewID(); } }
 				curTweens.AddRange(newTweens);
 				newTweens.Clear();
 			}
