@@ -156,8 +156,8 @@ namespace RatKing.Base {
 		public class Tween {
 			public string name = null;
 			public int id = -1;
-			public GameObject go = null;
-			public bool cancelWithGO = false;
+			public Object uo = null;
+			public bool cancelWithObject = false;
 			public float factor = 0f;
 			public float speed = 0f;
 			public float start;
@@ -171,8 +171,8 @@ namespace RatKing.Base {
 
 			public Tween Reset(float start, float end, float seconds) {
 				name = null;
-				go = null;
-				cancelWithGO = false;
+				uo = null;
+				cancelWithObject = false;
 				factor = 0f;
 				this.speed = Mathf.Abs(seconds != 0f ? (1f / seconds) : float.MaxValue);
 				this.start = start;
@@ -181,7 +181,6 @@ namespace RatKing.Base {
 				updateFunc = null;
 				completeFunc = null;
 				delay = -1f;
-				id = GetNewID();
 				ignoreTimeScale = false;
 				return this;
 			}
@@ -191,7 +190,6 @@ namespace RatKing.Base {
 				this.start = start;
 				this.end = end;
 				easeFunc = Tweens.Ease.Linear;
-				id = GetNewID();
 			}
 
 			public Tween Ease(AnimationCurve curve) {
@@ -229,9 +227,9 @@ namespace RatKing.Base {
 				return this;
 			}
 
-			public Tween GameObject(GameObject go, bool cancelWith = true) {
-				this.go = go;
-				this.cancelWithGO = cancelWith && go != null;
+			public Tween UnityObject(Object uo, bool cancelWith = true) {
+				this.uo = uo;
+				this.cancelWithObject = cancelWith && uo != null;
 				return this;
 			}
 
@@ -276,12 +274,15 @@ namespace RatKing.Base {
 #if UNITY_EDITOR
 			name = "<TWEENS> Count:" + curTweens.Count + (newTweens.Count > 0 ? " + New: " + newTweens.Count : "");
 #endif
-			curTweens.AddRange(newTweens);
-			newTweens.Clear();
+			if (newTweens.Count > 0) {
+				foreach (var t in newTweens) { if (t.id == int.MinValue) { t.id = GetNewID(); } }
+				curTweens.AddRange(newTweens);
+				newTweens.Clear();
+			}
 			updTweens.Clear();
 			updTweens.AddRange(curTweens);
 			foreach (var t in updTweens) {
-				if (t.cancelWithGO && t.go == null) { // missing gameobject
+				if (t.cancelWithObject && t.uo == null) {
 					PoolPushTween(t);
 					continue;
 				}
@@ -304,7 +305,6 @@ namespace RatKing.Base {
 		public static Tween NextFrame(System.Action completeFunc) {
 			if (inst == null) { CreateInstance(); }
 			var tween = PoolPopTween(0f, 0f, 0f);
-			//tween.delay = 0f;
 			tween.completeFunc = completeFunc;
 			tween.ignoreTimeScale = true;
 			return tween;
@@ -368,12 +368,12 @@ namespace RatKing.Base {
 			return removed;
 		}
 
-		public static bool Stop(GameObject go, bool withComplete = false) {
+		public static bool Stop(Object uo, bool withComplete = false) {
 			if (inst == null) { return false; }
 			var removed = false;
 			for (int i = curTweens.Count - 1; i >= 0; --i) {
 				var t = curTweens[i];
-				if (t.go != go) { continue; }
+				if (t.uo != uo) { continue; }
 				if (withComplete && t.completeFunc != null) { t.completeFunc(); }
 				PoolPushTween(t);
 				removed = true;
@@ -381,12 +381,12 @@ namespace RatKing.Base {
 			return removed;
 		}
 
-		public static bool Stop(GameObject go, string name, bool withComplete = false) {
+		public static bool Stop(Object uo, string name, bool withComplete = false) {
 			if (inst == null) { return false; }
 			var removed = false;
 			for (int i = curTweens.Count - 1; i >= 0; --i) {
 				var t = curTweens[i];
-				if (t.go != go || t.name != name) { continue; }
+				if (t.uo != uo || t.name != name) { continue; }
 				if (withComplete && t.completeFunc != null) { t.completeFunc(); }
 				PoolPushTween(t);
 				removed = true;
@@ -410,10 +410,10 @@ namespace RatKing.Base {
 			return false;
 		}
 
-		public static bool IsTweening(GameObject go) {
+		public static bool IsTweening(Object uo) {
 			if (inst == null) { return false; }
 			for (int i = curTweens.Count - 1; i >= 0; --i) {
-				if (curTweens[i].go == go) { return true; }
+				if (curTweens[i].uo == uo) { return true; }
 			}
 			return false;
 		}
