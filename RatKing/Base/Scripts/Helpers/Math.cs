@@ -255,10 +255,16 @@ namespace RatKing.Base {
 		}
 
 		// from https://answers.unity.com/questions/390291/is-there-a-way-to-smoothdamp-a-lookat.html?childToView=1486611#answer-1486611
-		public static Quaternion SmoothDamp(Quaternion a, Quaternion b, ref float curVel, float smoothTime) {
+		public static Quaternion SmoothDamp(Quaternion a, Quaternion b, ref float curVel, float smoothTime, float maxSpeed = float.MaxValue) {
 			float delta = Quaternion.Angle(a, b);
 			if (delta == 0f) { return a; }
-		    float t = Mathf.SmoothDampAngle(delta, 0.0f, ref curVel, smoothTime);
+		    float t = Mathf.SmoothDampAngle(delta, 0.0f, ref curVel, smoothTime, maxSpeed);
+		    return Quaternion.Slerp(a, b, 1.0f - (t / delta));
+		}
+		public static Quaternion SmoothDamp(Quaternion a, Quaternion b, ref float curVel, float smoothTime, float maxSpeed, float deltaTime) {
+			float delta = Quaternion.Angle(a, b);
+			if (delta == 0f) { return a; }
+		    float t = Mathf.SmoothDampAngle(delta, 0.0f, ref curVel, smoothTime, maxSpeed, deltaTime);
 		    return Quaternion.Slerp(a, b, 1.0f - (t / delta));
 		}
 		
