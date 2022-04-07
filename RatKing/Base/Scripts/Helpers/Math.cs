@@ -201,8 +201,24 @@ namespace RatKing.Base {
 			t = Mathf.Pow(1f - t, Time.unscaledDeltaTime * hertz);
 			return t * a + (1f - t) * b;
 		}
+		public static float FrinLerp(float a, float b, float t, float hertz, float dt) {
+			t = Mathf.Pow(1f - t, dt * hertz);
+			return t * a + (1f - t) * b;
+		}
+		public static float FrinLerpClamped(float a, float b, float t, float hertz = 60f) {
+			t = Mathf.Pow(1f - t, Time.unscaledDeltaTime * hertz);
+			return Mathf.Clamp(t * a + (1f - t) * b, a, b);
+		}
 		public static Vector3 FrinLerp(Vector3 a, Vector3 b, float t, float hertz = 60f) {
 			t = Mathf.Pow(1f - t, Time.unscaledDeltaTime * hertz);
+			return new Vector3(
+				t * a.x + (1f - t) * b.x,
+				t * a.y + (1f - t) * b.y,
+				t * a.z + (1f - t) * b.z
+				);
+		}
+		public static Vector3 FrinLerp(float dt, Vector3 a, Vector3 b, float t, float hertz = 60f) {
+			t = Mathf.Pow(1f - t, dt * hertz);
 			return new Vector3(
 				t * a.x + (1f - t) * b.x,
 				t * a.y + (1f - t) * b.y,
@@ -212,8 +228,14 @@ namespace RatKing.Base {
 		public static Quaternion FrinSlerp(Quaternion a, Quaternion b, float t, float hertz = 60f) {
 			return Quaternion.Slerp(a, b, 1f - Mathf.Pow(1f - t, Time.unscaledDeltaTime * hertz));
 		}
+		public static Quaternion FrinSlerp(float dt, Quaternion a, Quaternion b, float t, float hertz = 60f) {
+			return Quaternion.Slerp(a, b, 1f - Mathf.Pow(1f - t, dt * hertz));
+		}
 		public static Quaternion FrinSlerpAdd(Quaternion a, Quaternion b, float t, float hertz = 60f) {
 			return Quaternion.Slerp(a, b * a, 1f - Mathf.Pow(1f - t, Time.unscaledDeltaTime * hertz));
+		}
+		public static Quaternion FrinSlerpAdd(float dt, Quaternion a, Quaternion b, float t, float hertz = 60f) {
+			return Quaternion.Slerp(a, b * a, 1f - Mathf.Pow(1f - t, dt * hertz));
 		}
 		//
 		public static bool Approx(this float f1, float f2, float epsilon = 0.01f) {
@@ -230,6 +252,14 @@ namespace RatKing.Base {
 		}
 		public static float RemapClamped(this float value, float oldMin, float oldMax, float newMin, float newMax) {
 			return ((newMax - newMin) * Mathf.Clamp01((value - oldMin) / (oldMax - oldMin))) + newMin;
+		}
+
+		// from https://answers.unity.com/questions/390291/is-there-a-way-to-smoothdamp-a-lookat.html?childToView=1486611#answer-1486611
+		public static Quaternion SmoothDamp(Quaternion a, Quaternion b, ref float curVel, float smoothTime) {
+			float delta = Quaternion.Angle(a, b);
+			if (delta == 0f) { return a; }
+		    float t = Mathf.SmoothDampAngle(delta, 0.0f, ref curVel, smoothTime);
+		    return Quaternion.Slerp(a, b, 1.0f - (t / delta));
 		}
 		
 		//
