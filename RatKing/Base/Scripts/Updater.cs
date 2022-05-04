@@ -6,9 +6,16 @@ namespace RatKing.Base {
 	
 	public class Updater {
 
+		public enum Type {
+			Normal,
+			Late,
+			Fixed
+		}
+
 		static GameObject gameObject = null;
 		static UpdaterLate updaterLate = null;
 		static UpdaterNormal updaterNormal = null;
+		static UpdaterFixed updaterFixed = null;
 #if UNITY_EDITOR
 		static int functionsCount = 0;
 #endif
@@ -94,6 +101,13 @@ namespace RatKing.Base {
 			}
 		}
 
+		[DefaultExecutionOrder(-10000)]
+		public class UpdaterFixed : UpdaterBehaviour {
+			void FixedUpdate() {
+				Iteration();
+			}
+		}
+
 		//
 
 		/// <summary>
@@ -102,22 +116,29 @@ namespace RatKing.Base {
 		/// <param name="target">If this gameObject ceases to exist, the function stops getting called.</param>
 		/// <param name="function">The function to call every frame; return false to stop</param>
 		/// <param name="callThisFrame">Is this function already executed in the current frame?</param>
-		/// <param name="lateUpdate">Use LateUpdate()?</param>
-		public static void Add(GameObject target, System.Func<bool> function, bool callThisFrame = true, bool lateUpdate = false) {
+		/// <param name="type">The Updater Type to add</param>
+		public static void Add(GameObject target, System.Func<bool> function, bool callThisFrame = true, Type type = Type.Normal) {
 			if (target == null || function == null) { return; }
-			if (lateUpdate) {
+			if (type == Type.Normal) {
+				if (updaterNormal == null) {
+					if (gameObject == null) { gameObject = new GameObject("<UPDATER NORMAL>"); }
+					updaterNormal = gameObject.AddComponent<UpdaterNormal>();
+				}
+				updaterNormal.Add(target, function, callThisFrame);
+			}
+			else if (type == Type.Late) {
 				if (updaterLate == null) {
-					if (gameObject == null) { gameObject = new GameObject("<UPDATER>"); }
+					if (gameObject == null) { gameObject = new GameObject("<UPDATER LATE>"); }
 					updaterLate = gameObject.AddComponent<UpdaterLate>();
 				}
 				updaterLate.Add(target, function, callThisFrame);
 			}
-			else {
-				if (updaterNormal == null) {
-					if (gameObject == null) { gameObject = new GameObject("<UPDATER>"); }
-					updaterNormal = gameObject.AddComponent<UpdaterNormal>();
+			else { // if (type == Type.Fixed) {
+				if (updaterFixed == null) {
+					if (gameObject == null) { gameObject = new GameObject("<UPDATER FIXED>"); }
+					updaterFixed = gameObject.AddComponent<UpdaterFixed>();
 				}
-				updaterNormal.Add(target, function, callThisFrame);
+				updaterFixed.Add(target, function, callThisFrame);
 			}
 		}
 		
@@ -126,22 +147,29 @@ namespace RatKing.Base {
 		/// </summary>
 		/// <param name="function">The function to call every frame; return false to stop</param>
 		/// <param name="callThisFrame">Is this function already executed in the current frame?</param>
-		/// <param name="lateUpdate">Use LateUpdate()?</param>
-		public static void Add(System.Func<bool> function, bool callThisFrame = true, bool lateUpdate = false) {
+		/// <param name="type">The Updater Type to add</param>
+		public static void Add(System.Func<bool> function, bool callThisFrame = true, Type type = Type.Normal) {
 			if (function == null) { return; }
-			if (lateUpdate) {
+			if (type == Type.Normal) {
+				if (updaterNormal == null) {
+					if (gameObject == null) { gameObject = new GameObject("<UPDATER NORMAL>"); }
+					updaterNormal = gameObject.AddComponent<UpdaterNormal>();
+				}
+				updaterNormal.Add(gameObject, function, callThisFrame);
+			}
+			else if (type == Type.Late) {
 				if (updaterLate == null) {
-					if (gameObject == null) { gameObject = new GameObject("<UPDATER>"); }
+					if (gameObject == null) { gameObject = new GameObject("<UPDATER LATE>"); }
 					updaterLate = gameObject.AddComponent<UpdaterLate>();
 				}
 				updaterLate.Add(gameObject, function, callThisFrame);
 			}
-			else {
-				if (updaterNormal == null) {
-					if (gameObject == null) { gameObject = new GameObject("<UPDATER>"); }
-					updaterNormal = gameObject.AddComponent<UpdaterNormal>();
+			else { // if (type == Type.Fixed) {
+				if (updaterFixed == null) {
+					if (gameObject == null) { gameObject = new GameObject("<UPDATER FIXED>"); }
+					updaterFixed = gameObject.AddComponent<UpdaterFixed>();
 				}
-				updaterNormal.Add(gameObject, function, callThisFrame);
+				updaterFixed.Add(gameObject, function, callThisFrame);
 			}
 		}
 
@@ -149,10 +177,13 @@ namespace RatKing.Base {
 		/// Stop calling functions associated with this target
 		/// </summary>
 		/// <param name="target">The gameObject that was set as target when Add() was called</param>
-		/// <param name="lateUpdate">If true only removes functions from LateUpdate(), if false only functions from Update() are removed</param>
-		public static void Remove(GameObject target, bool lateUpdate) {
-			if (lateUpdate && updaterLate != null) { updaterLate.Remove(target); }
-			else if (!lateUpdate && updaterNormal == null) { updaterNormal.Remove(target); }
+		/// <param name="type">The Updater Type to remove</param>
+		public static void Remove(GameObject target, Type type) {
+			switch (type) {
+				case Type.Normal: if (updaterNormal != null) { updaterNormal.Remove(target); } break;
+				case Type.Late: if (updaterLate != null) { updaterLate.Remove(target); } break;
+				case Type.Fixed: if (updaterFixed != null) { updaterFixed.Remove(target); } break;
+			}
 		}
 		
 		/// <summary>
@@ -160,8 +191,9 @@ namespace RatKing.Base {
 		/// </summary>
 		/// <param name="target">The gameObject that was set as target when Add() was called</param>
 		public static void Remove(GameObject target) {
-			if (updaterLate != null) { updaterLate.Remove(target); }
 			if (updaterNormal != null) { updaterNormal.Remove(target); }
+			if (updaterLate != null) { updaterLate.Remove(target); }
+			if (updaterFixed != null) { updaterFixed.Remove(target); }
 		}
 		
 		/// <summary>
@@ -169,10 +201,13 @@ namespace RatKing.Base {
 		/// </summary>
 		/// <param name="target">The gameObject that was set as target when Add() was called</param>
 		/// <param name="function">The function to be removed</param>
-		/// <param name="lateUpdate">If true only removes the function from LateUpdate(), if false only from Update()</param>
-		public static void Remove(System.Func<bool> function, bool lateUpdate) {
-			if (lateUpdate && updaterLate != null) { updaterLate.Remove(function); }
-			else if (!lateUpdate && updaterNormal == null) { updaterNormal.Remove(function); }
+		/// <param name="type">The Updater Type to remove</param>
+		public static void Remove(System.Func<bool> function, Type type) {
+			switch (type) {
+				case Type.Normal: if (updaterNormal != null) { updaterNormal.Remove(function); } break;
+				case Type.Late: if (updaterLate != null) { updaterLate.Remove(function); } break;
+				case Type.Fixed: if (updaterFixed != null) { updaterFixed.Remove(function); } break;
+			}
 		}
 		
 		/// <summary>
@@ -180,8 +215,9 @@ namespace RatKing.Base {
 		/// </summary>
 		/// <param name="function">The function to be removed</param>
 		public static void Remove(System.Func<bool> function) {
-			if (updaterLate != null) { updaterLate.Remove(function); }
 			if (updaterNormal != null) { updaterNormal.Remove(function); }
+			if (updaterLate != null) { updaterLate.Remove(function); }
+			if (updaterFixed != null) { updaterFixed.Remove(function); }
 		}
 		
 		/// <summary>
@@ -189,10 +225,13 @@ namespace RatKing.Base {
 		/// </summary>
 		/// <param name="function">The function to be removed</param>
 		/// <param name="target">The gameObject that was set as target when Add() was called</param>
-		/// <param name="lateUpdate">If true only removes the function from LateUpdate(), if false only from Update()</param>
-		public static void Remove(GameObject target, System.Func<bool> function, bool lateUpdate) {
-			if (lateUpdate && updaterLate != null) { updaterLate.Remove(target, function); }
-			else if (!lateUpdate && updaterNormal == null) { updaterNormal.Remove(target, function); }
+		/// <param name="type">The Updater Type to remove</param>
+		public static void Remove(GameObject target, System.Func<bool> function, Type type) {
+			switch (type) {
+				case Type.Normal: if (updaterNormal != null) { updaterNormal.Remove(target, function); } break;
+				case Type.Late: if (updaterLate != null) { updaterLate.Remove(target, function); } break;
+				case Type.Fixed: if (updaterFixed != null) { updaterFixed.Remove(target, function); } break;
+			}
 		}
 		
 		/// <summary>
@@ -201,8 +240,9 @@ namespace RatKing.Base {
 		/// <param name="target">The gameObject that was set as target when Add() was called</param>
 		/// <param name="function">The function to be removed</param>
 		public static void Remove(GameObject target, System.Func<bool> function) {
-			if (updaterLate != null) { updaterLate.Remove(target, function); }
-			if (updaterNormal != null) { updaterNormal.Remove(target, function); }
+				if (updaterNormal != null) { updaterNormal.Remove(target, function); }
+				if (updaterLate != null) { updaterLate.Remove(target, function); }
+				if (updaterFixed != null) { updaterFixed.Remove(target, function); }
 		}
 	}
 
