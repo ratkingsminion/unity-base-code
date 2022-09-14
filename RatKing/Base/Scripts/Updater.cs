@@ -174,6 +174,35 @@ namespace RatKing.Base {
 		}
 
 		/// <summary>
+		/// Helper method to call something in UpdateLate() our from anywhere
+		/// </summary>
+		/// <param name="target">If this gameObject ceases to exist, the function will not be called.</param>
+		/// <param name="function">The function to call every frame; return false to stop</param>
+		/// <param name="callThisFrame">Is this function already executed in the current frame?</param>
+		public static void CallLateOnce(GameObject target, System.Action function, bool callThisFrame = true) {
+			if (target == null || function == null) { return; }
+			if (updaterLate == null) {
+				if (gameObject == null) { gameObject = new GameObject("<UPDATER LATE>"); }
+				updaterLate = gameObject.AddComponent<UpdaterLate>();
+			}
+			updaterLate.Add(target, () => { function(); return false; }, callThisFrame);
+		}
+		
+		/// <summary>
+		/// Helper method to call something in UpdateLate() our from anywhere
+		/// </summary>
+		/// <param name="function">The function to call every frame; return false to stop</param>
+		/// <param name="callThisFrame">Is this function already executed in the current frame?</param>
+		public static void CallLateOnce(System.Action function, bool callThisFrame = true) {
+			if (function == null) { return; }
+			if (updaterLate == null) {
+				if (gameObject == null) { gameObject = new GameObject("<UPDATER LATE>"); }
+				updaterLate = gameObject.AddComponent<UpdaterLate>();
+			}
+			updaterLate.Add(gameObject, () => { function(); return false; }, callThisFrame);
+		}
+
+		/// <summary>
 		/// Stop calling functions associated with this target
 		/// </summary>
 		/// <param name="target">The gameObject that was set as target when Add() was called</param>
