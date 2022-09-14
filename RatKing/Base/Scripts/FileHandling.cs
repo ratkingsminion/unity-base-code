@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 
 namespace RatKing.Base {
 
@@ -26,10 +27,11 @@ namespace RatKing.Base {
 
 		public static FileHandling Inst { get; private set; }
 
-		[SerializeField] string folderDataFiles = "Data_Files";
 		[SerializeField] List<FolderInfo> infos = null;
 		//
-		Dictionary<string, FolderInfo> infosByType = new Dictionary<string, FolderInfo>();
+		readonly Dictionary<string, FolderInfo> infosByType = new Dictionary<string, FolderInfo>();
+		public ConfigFile ConfigFile { get; private set; }
+		string backupsPath = null;
 
 		//
 
@@ -37,16 +39,22 @@ namespace RatKing.Base {
 			if (Inst != null) { Debug.LogError("There should be only one FileHandling instance!"); Destroy(this); return; }
 			Inst = this;
 			//
+			ConfigFile = new Base.ConfigFile(); // TODO:
+
+			if (ConfigFile.HasString("backups")) {
+				backupsPath = ConfigFile.GetString("backups");
+				if (!Path.IsPathRooted(backupsPath)) { backupsPath = DataPath + "/" + backupsPath; }
+			}
+
+			//Debug.Log(DataPath);
 			foreach (var fi in infos) {
-				fi.fullPath = DataPath + "/" + folderDataFiles + "/" + fi.subfolder;
+				fi.subfolder = ConfigFile.GetString(fi.typeID, fi.subfolder);
+				//Debug.Log(fi.subfolder + " ... " + Path.IsPathRooted(fi.subfolder));
+				if (Path.IsPathRooted(fi.subfolder)) { fi.fullPath = fi.subfolder; }
+				else { fi.fullPath = DataPath + "/" + fi.subfolder; }
+				//Debug.Log(fi.typeID + ": " + fi.fullPath);
 				infosByType[fi.typeID.ToLower()] = fi;
 			}
-			//
-			//mainPath = new[] {
-			//	Main.DataPath + "/" + folderDataFiles,
-			//	Main.DataPath + "/" + folderDataFiles + "/" + subFolderLocalisationFiles,
-			//	Main.DataPath + "/" + folderDataFiles + "/" + subFolderTemporary
-			//};
 		}
 
 		public string FullPath(string typeID) {
@@ -54,7 +62,7 @@ namespace RatKing.Base {
 #if UNITY_EDITOR
 			if (!infosByType.ContainsKey(typeID)) {
 				Debug.LogWarning("Info for type " + typeID + " does not exist");
-				return DataPath + "/" + Inst.folderDataFiles;
+				return DataPath;
 			}
 #endif
 			return infosByType[typeID].fullPath; // mainPath[(int)type];
@@ -89,11 +97,15 @@ namespace RatKing.Base {
 			return true;
 		}
 
+		public System.IO.StreamReader GetTextFile(string typeID, string filename) {
+			return GetTextFile(typeID, "", filename);
+		}
+
 		public System.IO.StreamReader GetTextFile(string typeID, string subfolder, string filename) {
 			typeID = typeID.ToLower();
 			if (!infosByType.TryGetValue(typeID, out var info)) { return null; }
 			var path = info.fullPath + "/" + subfolder;
-			if (!System.IO.Directory.Exists(path)) { return null; }
+			if (!System.IO.Directory.Exists(path)) { Debug.LogWarning("Directory \"" + path + "\" does not exist!"); return null; }
 			//
 			foreach (var file in System.IO.Directory.GetFiles(path)) {
 				if (file.EndsWith(info.suffix)) { // System.IO.Path.GetExtension(file) == info.suffix) {
@@ -109,26 +121,16 @@ namespace RatKing.Base {
 		/// <summary>
 		/// Get file contents
 		/// </summary>
-		public string GetFileText(string typeID, string subfolder, string filename) {
-			var f = GetTextFile(typeID, subfolder, filename);
-			if (f == null) { Debug.LogWarning("Could not get script for " + typeID); return null; }
+		public string GetFileText(string typeID, string filename) {
+			var f = GetTextFile(typeID, filename);
+			if (f == null) { Debug.LogWarning("Could not get script for " + typeID + " ... " + filename); return null; }
 			var content = f.ReadToEnd();
 			f.Close();
 			return content;
 		}
-
-		/// <summary>
-		/// Get file contents from subfolder, with fallback standard folder
-		/// </summary>
-		public string GetFileText(string typeID, string subfolder, string standard, string filename) {
+		public string GetFileText(string typeID, string subfolder, string filename) {
 			var f = GetTextFile(typeID, subfolder, filename);
-			if (f == null) {
-				f = GetTextFile(typeID, standard, filename);
-				if (f == null) {
-					Debug.LogWarning("Could not get script for " + typeID);
-					return null;
-				}
-			}
+			if (f == null) { Debug.LogWarning("Could not get script for " + typeID + " ... " + subfolder + " ... " + filename); return null; }
 			var content = f.ReadToEnd();
 			f.Close();
 			return content;
@@ -137,6 +139,9 @@ namespace RatKing.Base {
 		/// <summary>
 		/// Back up and remove a file
 		/// </summary>
+		public bool BackupAndRemoveFile(string typeID, string filename, int maxBackups = 3) {
+			return BackupAndRemoveFile(typeID, "", filename, maxBackups);
+		}
 		public bool BackupAndRemoveFile(string typeID, string subfolder, string filename, int maxBackups = 3) {
 			if (filename.Contains("\\") || filename.Contains("/")) {
 				Debug.LogError("No subfolders in filename!");
@@ -145,19 +150,23 @@ namespace RatKing.Base {
 			typeID = typeID.ToLower();
 			if (!infosByType.TryGetValue(typeID, out var info)) { return false; }
 			var path = info.fullPath + "/" + subfolder;
+			var backupPath = !string.IsNullOrWhiteSpace(backupsPath) ? backupsPath : (info.fullPath + "/" + subfolder);
 			var filepath = path + "/" + filename + info.suffix;
 			if (System.IO.File.Exists(filepath)) {
+				if (maxBackups > 0 && !Directory.Exists(backupPath)) {
+					Directory.CreateDirectory(backupPath);
+				}
 				// do a backup
 				for (int i = maxBackups; i >= 1; --i) {
-					var backuppathN = path + "/" + filename + ".bak" + i;
+					var backuppathN = backupPath + "/" + filename + ".bak" + i;
 					if (System.IO.File.Exists(backuppathN)) { System.IO.File.Delete(backuppathN); }
 					if (i > 1) {
-						var backuppathO = path + "/" + filename + ".bak" + (i - 1);
+						var backuppathO = backupPath + "/" + filename + ".bak" + (i - 1);
 						if (System.IO.File.Exists(backuppathO)) { System.IO.File.Move(backuppathO, backuppathN); }
 					}
 				}
 				if (maxBackups > 0) {
-					var backuppath1 = path + "/" + filename + ".bak1";
+					var backuppath1 = backupPath + "/" + filename + ".bak1";
 					System.IO.File.Move(filepath, backuppath1);
 				}
 				// remove the file
@@ -172,6 +181,9 @@ namespace RatKing.Base {
 		/// </summary>
 		/// <param name="subfolder"></param>
 		/// <param name="filename"></param>
+		public bool RemoveFile(string typeID, string filename) {
+			return RemoveFile(typeID, "", filename);
+		}
 		public bool RemoveFile(string typeID, string subfolder, string filename) {
 			typeID = typeID.ToLower();
 			if (!infosByType.TryGetValue(typeID, out var info)) { return false; }
@@ -190,6 +202,9 @@ namespace RatKing.Base {
 			return deleted;
 		}
 
+		public bool WriteFile(string typeID, string filename, ref string contents) {
+			return WriteFile(typeID, "", filename, ref contents);
+		}
 		public bool WriteFile(string typeID, string subfolder, string filename, ref string contents) {
 			if (filename.Contains("\\") || filename.Contains("/")) {
 				Debug.LogError("No subfolders in filename!");
@@ -206,20 +221,6 @@ namespace RatKing.Base {
 				return false;
 			}
 			System.IO.File.WriteAllText(filepath, contents, System.Text.Encoding.UTF8);
-			return true;
-		}
-
-		public bool CopyFile(string typeID, string subfolderA, string subfolderB, string filename) {
-			if (filename.Contains("\\") || filename.Contains("/")) {
-				Debug.LogError("No subfolders in filename!");
-				return false;
-			}
-			typeID = typeID.ToLower();
-			if (!infosByType.TryGetValue(typeID, out var info)) { return false; }
-			var filepathA = info.fullPath + "/" + subfolderA + "/" + filename + info.suffix;
-			var filepathB = info.fullPath + "/" + subfolderB + "/" + filename + info.suffix;
-			if (!System.IO.File.Exists(filepathA)) { return false; }
-			System.IO.File.Copy(filepathA, filepathB, true);
 			return true;
 		}
 	}

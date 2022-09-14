@@ -13,18 +13,18 @@ namespace RatKing.Base {
 	// bool is true/false and on/off
 
 	public class ConfigFile {
-		static HashSet<string> valuesDefine = new HashSet<string>();
-		static Dictionary<string, string> valuesString = new Dictionary<string, string>();
-		static Dictionary<string, bool> valuesBool = new Dictionary<string, bool>();
-		static Dictionary<string, float> valuesNumber = new Dictionary<string, float>();
+		static readonly HashSet<string> valuesDefine = new HashSet<string>();
+		static readonly Dictionary<string, string> valuesString = new Dictionary<string, string>();
+		static readonly Dictionary<string, bool> valuesBool = new Dictionary<string, bool>();
+		static readonly Dictionary<string, float> valuesNumber = new Dictionary<string, float>();
 
 		//
 
-		public ConfigFile(string filename = "config.txt") : this(filename, '#', new[] { ":" }) {
+		public ConfigFile(string filename = "config.txt") : this(filename, '#', ":") {
 		}
 
 
-		public ConfigFile(string filename, char comment, string[] separator) {
+		public ConfigFile(string filename, char comment, string separator) {
 #if UNITY_EDITOR
 			var path = Application.dataPath + "/config.txt";
 #else
@@ -39,7 +39,7 @@ namespace RatKing.Base {
 				for (int l = 0; l < lines.Length; ++l) {
 					var trimmedLine = lines[l].Trim();
 					if (trimmedLine.Length == 0 || trimmedLine[0] == comment) { continue; }
-					var line = trimmedLine.Split(separator, System.StringSplitOptions.RemoveEmptyEntries);
+					var line = trimmedLine.Split(new[] { separator }, System.StringSplitOptions.RemoveEmptyEntries);
 					if (line.Length == 0 || line[0].Trim().Length == 0) {
 						continue;
 					}
@@ -48,7 +48,7 @@ namespace RatKing.Base {
 					}
 					else {
 						var key = line[0].Trim().ToLower();
-						var value = line[1].Trim().ToLower();
+						var value = trimmedLine.Substring(line[0].Length + separator.Length).Trim().ToLower();
 						if (value == "on" || value == "true") {
 							valuesBool[key] = true;
 						}
@@ -59,7 +59,7 @@ namespace RatKing.Base {
 							valuesNumber[key] = valueNumber;
 						}
 						else { // is string
-							valuesString[key] = line[1].Trim();
+							valuesString[key] = trimmedLine.Substring(line[0].Length + separator.Length);
 						}
 					}
 				}
