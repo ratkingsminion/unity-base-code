@@ -146,23 +146,37 @@ namespace RatKing.Base {
 		public static float NearestPointDistance(Ray ray, Vector3 point) {
 			return Vector3.Dot((point - ray.origin), ray.direction) / Vector3.Dot(ray.direction, ray.direction);
 		}
+		public static float NearestPointDistance(Vector2 lineStart, Vector2 lineDirection, Vector2 point) {
+			return Vector2.Dot((point - lineStart), lineDirection) / Vector2.Dot(lineDirection, lineDirection);
+		}
 		public static float NearestPointDistance(Vector3 lineStart, Vector3 lineDirection, Vector3 point) {
 			return Vector3.Dot((point - lineStart), lineDirection) / Vector3.Dot(lineDirection, lineDirection);
 		}
 		public static Vector3 NearestPoint(Ray ray, Vector3 point) {
-			float closestPoint = Vector3.Dot((point - ray.origin), ray.direction);
+			var closestPoint = Vector3.Dot((point - ray.origin), ray.direction);
 			return ray.origin + (closestPoint * ray.direction);
 		}
-		public static Vector3 NearestPoint(Vector3 lineStart, Vector3 lineEnd, Vector3 point) {
-			Vector3 lineDirection = Vector3.Normalize(lineEnd - lineStart);
-			float closestPoint = Vector3.Dot((point - lineStart), lineDirection); // Vector3.Dot(lineDirection,lineDirection);
+		public static Vector2 NearestPoint(Vector2 lineStart, Vector2 lineEnd, Vector2 point) {
+			var lineDirection = (lineEnd - lineStart).normalized;
+			var closestPoint = Vector3.Dot((point - lineStart), lineDirection);
 			return lineStart + (closestPoint * lineDirection);
 		}
+		public static Vector3 NearestPoint(Vector3 lineStart, Vector3 lineEnd, Vector3 point) {
+			var lineDirection = (lineEnd - lineStart).normalized;
+			var closestPoint = Vector3.Dot((point - lineStart), lineDirection);
+			return lineStart + (closestPoint * lineDirection);
+		}
+		public static Vector2 NearestPointStrict(Vector2 lineStart, Vector2 lineEnd, Vector2 point) {
+			var fullDirection = lineEnd - lineStart;
+			var lineDirection = fullDirection.normalized;
+			var closestPoint = Vector2.Dot((point - lineStart), lineDirection) / lineDirection.sqrMagnitude;
+			return lineStart + Mathf.Clamp(closestPoint, 0f, fullDirection.magnitude) * lineDirection;
+		}
 		public static Vector3 NearestPointStrict(Vector3 lineStart, Vector3 lineEnd, Vector3 point) {
-			Vector3 fullDirection = lineEnd - lineStart;
-			Vector3 lineDirection = Vector3.Normalize(fullDirection);
-			float closestPoint = Vector3.Dot((point - lineStart), lineDirection) / lineDirection.sqrMagnitude; //Vector3.Dot(lineDirection,lineDirection);
-			return lineStart + (Mathf.Clamp(closestPoint, 0f, Vector3.Magnitude(fullDirection)) * lineDirection);
+			var fullDirection = lineEnd - lineStart;
+			var lineDirection = fullDirection.normalized;
+			var closestPoint = Vector3.Dot((point - lineStart), lineDirection) / lineDirection.sqrMagnitude;
+			return lineStart + Mathf.Clamp(closestPoint, 0f, fullDirection.magnitude) * lineDirection;
 		}
 		public static float Bounce(float x) {
 			return Mathf.Abs(Mathf.Sin(6.28f * (x + 1f) * (x + 1f)) * (1f - x));
