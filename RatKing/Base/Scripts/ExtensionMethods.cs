@@ -3,8 +3,10 @@
 namespace RatKing {
 
 	public static class ExtensionMethods {
-		public static Vector2 ToVec2(this Vector3 v) { return new Vector2(v.x, v.y); }
-		public static Vector3 ToVec3(this Vector2 v, float z = 0f) { return new Vector3(v.x, v.y, z); }
+		public static Vector2 XY(this Vector3 v) { return new Vector2(v.x, v.y); }
+		public static Vector2 XZ(this Vector3 v) { return new Vector2(v.x, v.z); }
+		public static Vector3 XY_(this Vector2 v, float z = 0f) { return new Vector3(v.x, v.y, z); }
+		public static Vector3 X_Y(this Vector2 v, float y = 0f) { return new Vector3(v.x, y, v.y); }
 		
 		public static Vector2 ToVec2f(this Vector2Int v, float scale = 1f) { return new Vector2(v.x * scale, v.y * scale); }
 		public static Vector3 ToVec3f(this Vector3Int v, float scale = 1f) { return new Vector3(v.x * scale, v.y * scale, v.z * scale); }
@@ -119,6 +121,33 @@ namespace RatKing {
 
 		public static bool TryGetComponentInChildren<T>(this GameObject go, out T component) where T : Component { component = go.GetComponentInChildren<T>(); if (component != null) { return true; } return false; }
 		public static bool TryGetComponentInChildren<T>(this Component c, out T component) where T : Component { component = c.gameObject.GetComponentInChildren<T>(); if (component != null) { return true; } return false; }
+		
+		// for use in OnValidate()
+		
+		public static void SetComponent<T, S>(this T validator, ref S component, bool onlyIfNull = true) where T : Component where S : Component {
+			if (validator == null) { return; }
+			if (!onlyIfNull || component == null) { component = validator.GetComponent<S>(); }
+		}
+		public static void SetComponentInChildren<T, S>(this T validator, ref S component, bool onlyIfNull = true) where T : Component where S : Component {
+			if (validator == null) { return; }
+			if (!onlyIfNull || component == null) { component = validator.GetComponentInChildren<S>(); }
+		}
+		public static void SetComponent<T>(this T validator, ref Transform transform, bool onlyIfNull = true) where T : Component {
+			if (validator == null) { return; }
+			if (!onlyIfNull || transform == null) { transform = validator.transform; }
+		}
+		public static void SetComponentInChildren<T>(this T validator, ref Transform transform, bool onlyIfNull = true) where T : Component {
+			if (validator == null) { return; }
+			if (!onlyIfNull || transform == null) { transform = validator.transform; }
+		}
+		public static void SetComponent<T>(this T validator, ref GameObject gameObject, bool onlyIfNull = true) where T : Component {
+			if (validator == null) { return; }
+			if (!onlyIfNull || gameObject == null) { gameObject = validator.gameObject; }
+		}
+		public static void SetComponentInChildren<T>(this T validator, ref GameObject gameObject, bool onlyIfNull = true) where T : Component {
+			if (validator == null) { return; }
+			if (!onlyIfNull || gameObject == null) { gameObject = validator.gameObject; }
+		}
 	}
 
 }
