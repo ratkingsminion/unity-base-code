@@ -31,14 +31,23 @@ namespace RatKing.Base {
 			else if (typeof(T) == typeof(int) && value is int i) { Variables.Add(new DynamicVarInt(id, i)); }
 			else if (typeof(T) == typeof(string)) { Variables.Add(new DynamicVarString("set", value is string s ? s : "")); }
 			else if (typeof(T) == typeof(bool) && value is bool b) { Variables.Add(new DynamicVarBool(id, b)); }
-			else if (typeof(T) == typeof(Object)) { Variables.Add(new DynamicVarObject(id, value as Object)); }
+			else if (value is Object) { Variables.Add(new DynamicVarObject(id, value as Object)); }
 			else { Debug.LogWarning("Dynamic variable " + id + " could not be set to this type"); }
 		}
 
 		public T Get<T>(string id, T standard = default) {
-			foreach (var v in Variables) {
-				if (v.ID == id && v is DynamicVar<T> dv) {
-					return dv.Value;
+			if (standard is Object) {
+				foreach (var v in Variables) {
+					if (v.ID == id && v is DynamicVar<Object> dv && dv.Value is T value) {
+						return value;
+					}
+				}
+			}
+			else {
+				foreach (var v in Variables) {
+					if (v.ID == id && v is DynamicVar<T> dv) {
+						return dv.Value;
+					}
 				}
 			}
 			return standard;
@@ -55,10 +64,20 @@ namespace RatKing.Base {
 		}
 
 		public bool TryGet<T>(string id, out T result) {
-			foreach (var v in Variables) {
-				if (v.ID == id && v is DynamicVar<T> dv) {
-					result = dv.Value;
-					return true;
+			if ((T)default is Object) {
+				foreach (var v in Variables) {
+					if (v.ID == id && v is DynamicVar<Object> dv && dv.Value is T value) {
+						result = value;
+						return true;
+					}
+				}
+			}
+			else {
+				foreach (var v in Variables) {
+					if (v.ID == id && v is DynamicVar<T> dv) {
+						result = dv.Value;
+						return true;
+					}
 				}
 			}
 			result = default;
@@ -86,9 +105,18 @@ namespace RatKing.Base {
 		}
 
 		public bool Has<T>(string id) {
-			foreach (var v in Variables) {
-				if (v.ID == id && v is DynamicVar<T>) {
-					return true;
+			if ((T)default is Object) {
+				foreach (var v in Variables) {
+					if (v.ID == id && v is DynamicVar<Object> dv && dv.Value is T) {
+						return true;
+					}
+				}
+			}
+			else {
+				foreach (var v in Variables) {
+					if (v.ID == id && v is DynamicVar<T>) {
+						return true;
+					}
 				}
 			}
 			return false;
@@ -104,9 +132,28 @@ namespace RatKing.Base {
 		}
 
 		public void Remove<T>(string id) {
+			if ((T)default is Object) {
+				for (int i = Variables.Count - 1; i >= 0; --i) {
+					var v = Variables[i];
+					if (v.ID == id && v is DynamicVar<Object> dv && dv.Value is T) {
+						Variables.RemoveAt(i);
+					}
+				}
+			}
+			else {
+				for (int i = Variables.Count - 1; i >= 0; --i) {
+					var v = Variables[i];
+					if (v.ID == id && v is DynamicVar<T>) {
+						Variables.RemoveAt(i);
+					}
+				}
+			}
+		}
+
+		public void Remove(string id) {
 			for (int i = Variables.Count - 1; i >= 0; --i) {
 				var v = Variables[i];
-				if (v.ID == id && v is DynamicVar<T>) {
+				if (v.ID == id) {
 					Variables.RemoveAt(i);
 				}
 			}

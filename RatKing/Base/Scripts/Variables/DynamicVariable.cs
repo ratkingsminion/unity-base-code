@@ -128,7 +128,7 @@ namespace RatKing.Base {
 		}
 
 		public override string ToString() {
-			return Variable.ToString();
+			return Variable?.ToString();
 		}
 
 		public void Set<T>(T value = default) {
@@ -137,12 +137,14 @@ namespace RatKing.Base {
 			else if (typeof(T) == typeof(int) && value is int i) { Variable = new DynamicVarInt("set", i); }
 			else if (typeof(T) == typeof(string)) { Variable = new DynamicVarString("set", value is string s ? s : ""); }
 			else if (typeof(T) == typeof(bool) && value is bool b) { Variable = new DynamicVarBool("set", b); }
-			else if (typeof(T) == typeof(Object)) { Variable = new DynamicVarObject("set", value as Object); }
+			else if (value is Object o) { Variable = new DynamicVarObject("set", o); }
+			else if (value is null) { Variable = new DynamicVarObject("set", null); }
 			else { Debug.LogWarning("Dynamic variable could not be set to this type"); }
 		}
 
 		public T Get<T>(T standard = default) {
-			if (Variable is DynamicVar<T> dv) { return dv.Value; }
+			if (standard is Object && Variable is DynamicVar<Object> dv && dv.Value is T value) { return value; }
+			else if (Variable is DynamicVar<T> dvt) { return dvt.Value; }
 			return standard;
 		}
 
@@ -153,8 +155,12 @@ namespace RatKing.Base {
 		}
 
 		public bool TryGet<T>(out T result) {
-			if (Variable is DynamicVar<T> dv) {
-				result = dv.Value;
+			if ((T)default is Object && Variable is DynamicVar<Object> dv && dv.Value is T value) {
+				result = value;
+				return true;
+			}
+			else if (Variable is DynamicVar<T> dvt) {
+				result = dvt.Value;
 				return true;
 			}
 			result = default;
