@@ -201,11 +201,12 @@ namespace RatKing.Base {
 			source.spatialBlend = type.SpatialBlend;
 			if (type.SpatialBlend > 0f) {
 				source.spread = type.Spread3D;
+				source.dopplerLevel = type.DopplerLevel;
 				source.rolloffMode = AudioRolloffMode.Linear;
 				source.minDistance = type.Distance3D.min;
 				source.maxDistance = type.Distance3D.max;
 			}
-			// TODO more specific things of sound prefab - linear and so on
+			// TODO: more specific things of sound prefab - linear and so on
 			typedPrefabs.Add(type, prefab);
 			for (int i = 0; i < type.PoolStartCount; ++i) { InstantiateTypedPrefabInPool(type, prefab, pool); }
 			return prefab;

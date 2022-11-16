@@ -18,6 +18,7 @@ namespace RatKing.Base {
 		SerializedProperty pan;
 		SerializedProperty spatialBlend;
 		SerializedProperty spread3D;
+		SerializedProperty dopplerLevel;
 		SerializedProperty distance3D;
 		SerializedProperty startCount;
 		SerializedProperty addCount;
@@ -34,6 +35,7 @@ namespace RatKing.Base {
 			pan = serializedObject.FindProperty("pan");
 			spatialBlend = serializedObject.FindProperty("spatialBlend");
 			spread3D = serializedObject.FindProperty("spread3D");
+			dopplerLevel = serializedObject.FindProperty("dopplerLevel");
 			distance3D = serializedObject.FindProperty("distance3D");
 			startCount = serializedObject.FindProperty("startCount");
 			addCount = serializedObject.FindProperty("addCount");
@@ -74,6 +76,7 @@ namespace RatKing.Base {
 			EditorGUILayout.PropertyField(spatialBlend);
 			if (spatialBlend.floatValue > 0f) {
 				EditorGUILayout.PropertyField(spread3D);
+				EditorGUILayout.PropertyField(dopplerLevel);
 				EditorGUILayout.PropertyField(distance3D);
 			}
 
