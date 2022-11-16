@@ -42,6 +42,21 @@ namespace RatKing.Base {
 			return type != null ? type.Play(tag) : null;
 		}
 
+		public static bool TryPlay(out Sound sound, SoundType type, Transform start, string tag = null) {
+			sound = type != null ? type.Play(start, tag) : null;
+			return sound != null;
+		}
+
+		public static bool TryPlay(out Sound sound, SoundType type, Vector3 position, string tag = null) {
+			sound = type != null ? type.Play(position, tag) : null;
+			return sound != null;
+		}
+
+		public static bool TryPlay(out Sound sound, SoundType type, string tag = null) {
+			sound = type != null ? type.Play(tag) : null;
+			return sound != null;
+		}
+
 		//
 
 		public void PlayType(SoundType type, int clipIndex = -1, Vector3 pos = default) {
