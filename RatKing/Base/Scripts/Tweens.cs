@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Sirenix.Utilities;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -20,12 +21,12 @@ namespace RatKing.Base {
 
 			// easings from: https://github.com/ai/eaMathf.Sings.net/blob/master/src/eaMathf.Sings/eaMathf.SingsFunctions.ts
 
-			static readonly float PI = Mathf.PI;
-			static readonly float c1 = 1.70158f;
-			static readonly float c2 = c1 * 1.525f;
-			static readonly float c3 = c1 + 1f;
-			static readonly float c4 = (2f * PI) / 3f;
-			static readonly float c5 = (2f * PI) / 4.5f;
+			const float PI = Mathf.PI;
+			const float c1 = 1.70158f;
+			const float c2 = c1 * 1.525f;
+			const float c3 = c1 + 1f;
+			const float c4 = (2f * PI) / 3f;
+			const float c5 = (2f * PI) / 4.5f;
 
 			static float BounceOut(float t) {
 				float n1 = 7.5625f;
@@ -244,7 +245,7 @@ namespace RatKing.Base {
 
 		//
 
-		static Stack<Tween> poolTweens = new Stack<Tween>(64);
+		static readonly Stack<Tween> poolTweens = new Stack<Tween>(64);
 		static void PoolPushTween(Tween t) {
 			t.id = int.MinValue;
 			if (curTweens.Remove(t)) { poolTweens.Push(t); }
@@ -254,9 +255,9 @@ namespace RatKing.Base {
 			newTweens.Add(t);
 			return t;
 		}
-		static List<Tween> newTweens = new List<Tween>(64);
-		static List<Tween> curTweens = new List<Tween>(64);
-		static List<Tween> updTweens = new List<Tween>(64);
+		static readonly List<Tween> newTweens = new List<Tween>(64);
+		static readonly List<Tween> curTweens = new List<Tween>(64);
+		static readonly List<Tween> updTweens = new List<Tween>(64);
 		static Tweens inst = null;
 		
 		static void CreateInstance() {
@@ -366,7 +367,7 @@ namespace RatKing.Base {
 		}
 
 		public static bool Stop(Object uo, bool withComplete = false) {
-			if (inst == null) { return false; }
+			if (inst == null || uo.IsGone()) { return false; }
 			var removed = false;
 			for (int i = curTweens.Count - 1; i >= 0; --i) {
 				var t = curTweens[i];
@@ -379,7 +380,7 @@ namespace RatKing.Base {
 		}
 
 		public static bool Stop(Object uo, string name, bool withComplete = false) {
-			if (inst == null) { return false; }
+			if (inst == null || uo.IsGone()) { return false; }
 			var removed = false;
 			for (int i = curTweens.Count - 1; i >= 0; --i) {
 				var t = curTweens[i];

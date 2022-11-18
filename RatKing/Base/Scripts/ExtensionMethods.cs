@@ -150,6 +150,8 @@ namespace RatKing {
 			if (validator == null) { return; }
 			if (!onlyIfNull || gameObject == null) { gameObject = validator.gameObject; }
 		}
+		
+		public static bool IsGone(this object Object) { return Object == null || Object.Equals(null); }
 	}
 
 }
