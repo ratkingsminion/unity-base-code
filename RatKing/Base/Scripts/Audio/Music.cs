@@ -104,7 +104,7 @@ namespace RatKing.Base {
 
 		public static void Play(AudioClip clip, float volume = 0.3f, float fadeTime = 5f, int priority = 0, string layer = "") {
 			if (layer == null) { return; }
-			if (Inst == null) { Init(); }
+			if (Inst == null) { if (clip == null || volume <= 0f) { return; } Init(); }
 			if (clip == null) { Stop(fadeTime, priority, layer); return; }
 
 			// already playing?
