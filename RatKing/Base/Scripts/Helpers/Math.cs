@@ -260,6 +260,12 @@ namespace RatKing.Base {
 					v1.y < v2.y + epsilon && v1.y > v2.y - epsilon &&
 					v1.z < v2.z + epsilon && v1.z > v2.z - epsilon;
 		}
+		public static bool Approx(this Vector4 v1, Vector4 v2, float epsilon = 0.01f) {
+			return v1.x < v2.x + epsilon && v1.x > v2.x - epsilon &&
+					v1.y < v2.y + epsilon && v1.y > v2.y - epsilon &&
+					v1.z < v2.z + epsilon && v1.z > v2.z - epsilon &&
+					v1.w < v2.w + epsilon && v1.w > v2.w - epsilon;
+		}
 		// remapping, from https://stackoverflow.com/questions/5294955/how-to-scale-down-a-range-of-numbers-with-a-known-min-and-max-value
 		public static float Remap(this float value, float oldMin, float oldMax, float newMin, float newMax) {
 			return ((newMax - newMin) * (value - oldMin) / (oldMax - oldMin)) + newMin;
