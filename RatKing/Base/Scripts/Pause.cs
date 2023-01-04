@@ -21,6 +21,14 @@ namespace RatKing.Base {
 		List<Pausing> pausings = new List<Pausing>();
 
 		//
+			
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		static void OnRuntimeInitializeOnLoad() {
+			inst = null;
+			Base.Events.UnregisterAll(EVENT);
+		}
+
+		//
 
 		void Update() {
 			var target = 1f;

@@ -16,10 +16,19 @@ namespace RatKing.Base {
 		}
 
 		public static float globalVolume = 1f;
-		//
+
 		static GameObject go;
-		static Dictionary<string, List<MusicSource>> sources = new Dictionary<string, List<MusicSource>>();
+		static readonly Dictionary<string, List<MusicSource>> sources = new Dictionary<string, List<MusicSource>>();
 		static Music Inst;
+
+		//
+
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		static void OnRuntimeInitializeOnLoad() {
+			Inst = null;
+			globalVolume = 1f;
+			sources.Clear();
+		}
 
 		//
 

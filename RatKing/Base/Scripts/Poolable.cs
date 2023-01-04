@@ -7,12 +7,12 @@ namespace RatKing.Base {
 
 	public class Poolable : MonoBehaviour {
 		static Transform _poolParent;
-		static Dictionary<Poolable, Stack<Poolable>> _stackByPrefab = new Dictionary<Poolable, Stack<Poolable>>();
-		//
+		static readonly Dictionary<Poolable, Stack<Poolable>> _stackByPrefab = new Dictionary<Poolable, Stack<Poolable>>();
+
 		protected virtual string PoolParentName { get { return "Standard"; } }
 		protected virtual Transform PoolParent { get { return _poolParent; } set { _poolParent = value; } }
 		protected virtual Dictionary<Poolable, Stack<Poolable>> StackByPrefab { get { return _stackByPrefab; } set { } }
-		//
+
 		[SerializeField] int startCount = 10;
 		[SerializeField] int addCount = 1;
 		public enum Parenting {
@@ -23,11 +23,18 @@ namespace RatKing.Base {
 		[SerializeField] Parenting parenting = Parenting.UsePoolParent;
 		[SerializeField] UnityEvent onPop = null;
 		[SerializeField] UnityEvent onPush = null;
-		//
+
 		Poolable original;
 		bool isOriginal = true;
-		//
+
 		ParticleSystem ps;
+
+		//
+
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		static void OnRuntimeInitializeOnLoad() {
+			_stackByPrefab.Clear();
+		}
 
 		//
 
@@ -139,8 +146,7 @@ namespace RatKing.Base {
 					p.gameObject.SetActive(true);
 					break;
 			}
-			t.position = pos;
-			t.rotation = rot;
+			t.SetPositionAndRotation(pos, rot);
 			t.localScale = original.transform.localScale;
 
 			if (p.ps != null)

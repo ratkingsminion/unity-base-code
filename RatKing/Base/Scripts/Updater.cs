@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace RatKing.Base {
-	
+
 	public class Updater {
 
 		public enum Type {
@@ -19,6 +19,21 @@ namespace RatKing.Base {
 #if UNITY_EDITOR
 		static int functionsCount = 0;
 #endif
+
+		//
+
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		static void OnRuntimeInitializeOnLoad() {
+			gameObject = null;
+			updaterLate = null;
+			updaterNormal = null;
+			updaterFixed = null;
+#if UNITY_EDITOR
+			functionsCount = 0;
+#endif
+		}
+
+		//
 
 		[DefaultExecutionOrder(-10000)]
 		public class UpdaterBehaviour : MonoBehaviour {
@@ -87,6 +102,8 @@ namespace RatKing.Base {
 			}
 		}
 
+		//
+
 		[DefaultExecutionOrder(-10000)]
 		public class UpdaterNormal : UpdaterBehaviour {
 			void Update() {
@@ -141,7 +158,7 @@ namespace RatKing.Base {
 				updaterFixed.Add(target, function, callThisFrame);
 			}
 		}
-		
+
 		/// <summary>
 		/// Call a function every frame in Update() or LateUpdate().
 		/// </summary>
@@ -187,7 +204,7 @@ namespace RatKing.Base {
 			}
 			updaterLate.Add(target, () => { function(); return false; }, callThisFrame);
 		}
-		
+
 		/// <summary>
 		/// Helper method to call something in UpdateLate() our from anywhere
 		/// </summary>
@@ -214,7 +231,7 @@ namespace RatKing.Base {
 				case Type.Fixed: if (updaterFixed != null) { updaterFixed.Remove(target); } break;
 			}
 		}
-		
+
 		/// <summary>
 		/// Stop calling functions associated with this target in both Update() and LateUpdate()
 		/// </summary>
@@ -224,7 +241,7 @@ namespace RatKing.Base {
 			if (updaterLate != null) { updaterLate.Remove(target); }
 			if (updaterFixed != null) { updaterFixed.Remove(target); }
 		}
-		
+
 		/// <summary>
 		/// Stop calling a certain function
 		/// </summary>
@@ -238,7 +255,7 @@ namespace RatKing.Base {
 				case Type.Fixed: if (updaterFixed != null) { updaterFixed.Remove(function); } break;
 			}
 		}
-		
+
 		/// <summary>
 		/// Stop calling a certain function in both Update() and LateUpdate()
 		/// </summary>
@@ -248,7 +265,7 @@ namespace RatKing.Base {
 			if (updaterLate != null) { updaterLate.Remove(function); }
 			if (updaterFixed != null) { updaterFixed.Remove(function); }
 		}
-		
+
 		/// <summary>
 		/// Stop calling a certain function
 		/// </summary>
@@ -262,16 +279,16 @@ namespace RatKing.Base {
 				case Type.Fixed: if (updaterFixed != null) { updaterFixed.Remove(target, function); } break;
 			}
 		}
-		
+
 		/// <summary>
 		/// Stop calling a certain function in both Update() and LateUpdate()
 		/// </summary>
 		/// <param name="target">The gameObject that was set as target when Add() was called</param>
 		/// <param name="function">The function to be removed</param>
 		public static void Remove(GameObject target, System.Func<bool> function) {
-				if (updaterNormal != null) { updaterNormal.Remove(target, function); }
-				if (updaterLate != null) { updaterLate.Remove(target, function); }
-				if (updaterFixed != null) { updaterFixed.Remove(target, function); }
+			if (updaterNormal != null) { updaterNormal.Remove(target, function); }
+			if (updaterLate != null) { updaterLate.Remove(target, function); }
+			if (updaterFixed != null) { updaterFixed.Remove(target, function); }
 		}
 	}
 

@@ -13,16 +13,27 @@ namespace RatKing.Base {
 
 		public static Sounds Inst { get; private set; }
 		static float globalVolume = 1f;
-		//
+
 		Transform parentPool;
 		Transform parentPlay;
-		Dictionary<SoundType, Stack<Sound>> curPooled = new Dictionary<SoundType, Stack<Sound>>();
+		readonly Dictionary<SoundType, Stack<Sound>> curPooled = new Dictionary<SoundType, Stack<Sound>>();
 		Sound globalPrefab;
-		Dictionary<SoundType, Sound> typedPrefabs = new Dictionary<SoundType, Sound>();
-		float runningCoroutine = -1f;
-		List<Sound> playingSounds = new List<Sound>();
-		Dictionary<SoundType, SoundProperties> soundsProperties = new Dictionary<SoundType, SoundProperties>();
-		HashSet<Sound> globallyPausedSounds = new HashSet<Sound>();
+		readonly Dictionary<SoundType, Sound> typedPrefabs = new Dictionary<SoundType, Sound>();
+		readonly List<Sound> playingSounds = new List<Sound>();
+		readonly Dictionary<SoundType, SoundProperties> soundsProperties = new Dictionary<SoundType, SoundProperties>();
+		readonly HashSet<Sound> globallyPausedSounds = new HashSet<Sound>();
+		
+#if UNITY_EDITOR
+		int prevCount = -1;
+#endif
+
+		//
+
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		static void OnRuntimeInitializeOnLoad() {
+			Inst = null;
+			globalVolume = 1f;
+		}
 
 		//
 
@@ -41,6 +52,29 @@ namespace RatKing.Base {
 			parentPool.gameObject.SetActive(false);
 			parentPlay = new GameObject("PLAY").transform;
 			parentPlay.SetParent(transform);
+		}
+
+		void Update() {
+			var count = playingSounds.Count;
+#if UNITY_EDITOR
+			if (prevCount != count) { name = "<SOUNDS> Types:" + typedPrefabs.Count + " Playing:" + count; prevCount = count; }
+#endif
+			for (int i = count - 1; i >= 0; --i) {
+				var sound = playingSounds[i];
+				if (sound == null) {
+					playingSounds.RemoveAt(i);
+					continue;
+				}
+				if (globallyPausedSounds.Contains(sound)) {
+					continue;
+				}
+				if (!sound.InUse || (!sound.IsPaused && !sound.IsPlaying)) {
+					playingSounds.RemoveAt(i);
+					globallyPausedSounds.Remove(sound);
+					curPooled[sound.Type].Push(sound);
+					sound.transform.SetParent(parentPool);
+				} 
+			}
 		}
 
 		//
@@ -130,7 +164,6 @@ namespace RatKing.Base {
 			}
 			sound.PlayType(type, clipIndex, pos);
 			playingSounds.Add(sound);
-			if (runningCoroutine <= Time.unscaledTime) { StartCoroutine(CheckPlayingSoundsCR()); }
 			if (mightBeWaiting) { props.waiting = Time.unscaledTime + type.WaitSeconds.Random(); }
 			return sound;
 		}
@@ -144,34 +177,6 @@ namespace RatKing.Base {
 		}
 
 		//
-
-		IEnumerator CheckPlayingSoundsCR() {
-			do {
-				yield return null;
-				var count = playingSounds.Count;
-#if UNITY_EDITOR
-				name = "<SOUNDS> Types:" + typedPrefabs.Count + " Playing:" + count;
-#endif
-				if (count == 0) { continue; }
-				runningCoroutine = Time.unscaledTime + 5f;
-				for (int i = count - 1; i >= 0; --i) {
-					var sound = playingSounds[i];
-					if (sound == null) {
-						playingSounds.RemoveAt(i);
-						continue;
-					}
-					if (globallyPausedSounds.Contains(sound)) {
-						continue;
-					}
-					if (!sound.InUse || (!sound.IsPaused && !sound.IsPlaying)) {
-						playingSounds.RemoveAt(i);
-						globallyPausedSounds.Remove(sound);
-						curPooled[sound.Type].Push(sound);
-						sound.transform.SetParent(parentPool);
-					} 
-				}
-			} while (runningCoroutine > Time.unscaledTime);
-		}
 
 		void CreateGlobalPrefab() {
 			var pgo = new GameObject("<Global Prefab Sound>");
