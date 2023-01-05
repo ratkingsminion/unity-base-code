@@ -15,6 +15,14 @@ namespace RatKing.Base {
 
 		static WobbleAnimations Inst;
 		static List<WobbleAnimation> animations = new List<WobbleAnimation>();
+		
+		//
+
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		static void OnRuntimeInitializeOnLoad() {
+			Inst = null;
+			animations = null;
+		}
 
 		//
 
