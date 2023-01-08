@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace RatKing {
 
@@ -134,11 +135,11 @@ namespace RatKing {
 			if (validator == null) { return; }
 			if (!onlyIfNull || component == null) { component = validator.GetComponentInChildren<S>(); }
 		}
-		public static void SetComponent<T>(this T validator, ref Transform transform, bool onlyIfNull = true) where T : Component {
+		public static void SetComponentInParent<T, S>(this T validator, ref S component, bool onlyIfNull = true) where T : Component where S : Component {
 			if (validator == null) { return; }
-			if (!onlyIfNull || transform == null) { transform = validator.transform; }
+			if (!onlyIfNull || component == null) { component = validator.GetComponentInParent<S>(); }
 		}
-		public static void SetComponentInChildren<T>(this T validator, ref Transform transform, bool onlyIfNull = true) where T : Component {
+		public static void SetComponent<T>(this T validator, ref Transform transform, bool onlyIfNull = true) where T : Component {
 			if (validator == null) { return; }
 			if (!onlyIfNull || transform == null) { transform = validator.transform; }
 		}
@@ -146,12 +147,36 @@ namespace RatKing {
 			if (validator == null) { return; }
 			if (!onlyIfNull || gameObject == null) { gameObject = validator.gameObject; }
 		}
-		public static void SetComponentInChildren<T>(this T validator, ref GameObject gameObject, bool onlyIfNull = true) where T : Component {
-			if (validator == null) { return; }
-			if (!onlyIfNull || gameObject == null) { gameObject = validator.gameObject; }
-		}
 		
+		//
+
 		public static bool IsGone(this object Object) { return Object == null || Object.Equals(null); }
+
+		// particles
+
+		public static void EnableEmission(this ParticleSystem ps, bool enable) {
+			if (ps == null) { return; }
+			var module = ps.emission;
+			module.enabled = enable;
+		}
+
+		public static void EnableEmission(this ParticleSystem ps, bool enable, out ParticleSystem.EmissionModule module) {
+			if (ps == null) { Debug.LogWarning("Trying to enable emission without particles"); return; }
+			module = ps.emission;
+			module.enabled = enable;
+		}
+
+		// colored strings
+
+		public static string InRed(this string text) { return $"<color=#f00>{text}</color>"; }
+		public static string InGreen(this string text) { return $"<color=#0f0>{text}</color>"; }
+		public static string InBlue(this string text) { return $"<color=#00f>{text}</color>"; }
+		public static string InYellow(this string text) { return $"<color=#ff0>{text}</color>"; }
+		public static string InMagenta(this string text) { return $"<color=#f0f>{text}</color>"; }
+		public static string InCyan(this string text) { return $"<color=#0ff>{text}</color>"; }
+		public static string InBlack(this string text) { return $"<color=#000>{text}</color>"; }
+		public static string InColHex(this string text, string colorHex) { return $"<color=#{colorHex}>{text}</color>"; }
+		public static string InCol(this string text, Color color) { return $"<color=#{ColorUtility.ToHtmlStringRGBA(color)}>{text}</color>"; }
 	}
 
 }
