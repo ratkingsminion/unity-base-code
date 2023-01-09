@@ -4,7 +4,19 @@ using System.Collections.Generic;
 namespace RatKing.Base {
 
 	public class QuickGizmos : MonoBehaviour {
+		
+		static Material CreateTransparentMaterial() {
+			if (UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset == null) {
+				colorName = "_Color";
+				return new Material(Shader.Find("Legacy Shaders/Transparent/Diffuse"));
+			}
+			else {
+				colorName = "_BaseColor";
+				return Material.Instantiate(UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset.defaultMaterial);
+			}
+		}
 
+		static string colorName = "_Color";
 		public enum GizmoType { Sphere, Box, WiredSphere, WiredBox }
 		struct QuickGizmo {
 			public GizmoType type;
@@ -23,9 +35,19 @@ namespace RatKing.Base {
 		static QuickGizmos inst;
 		static Mesh boxMesh, sphereMesh;
 		static Material material;
-		static List<QuickGizmo> gizmos = new List<QuickGizmo>();
-		static List<float> gizmoTime = new List<float>();
-		static MaterialPropertyBlock matProperties = new MaterialPropertyBlock();
+		readonly static List<QuickGizmo> gizmos = new List<QuickGizmo>();
+		readonly static List<float> gizmoTime = new List<float>();
+		readonly static MaterialPropertyBlock matProperties = new MaterialPropertyBlock();
+		
+		//
+
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		static void OnRuntimeInitializeOnLoad() {
+			inst = null;
+			gizmos.Clear();
+			gizmoTime.Clear();
+			matProperties.Clear();
+		}
 
 		//
 
@@ -35,11 +57,11 @@ namespace RatKing.Base {
 			inst = go.AddComponent<QuickGizmos>();
 			var boxGO = GameObject.CreatePrimitive(PrimitiveType.Cube);
 			boxMesh = boxGO.GetComponent<MeshFilter>().mesh;
-			Destroy(boxGO);
+			DestroyImmediate(boxGO);
 			var sphereGO = GameObject.CreatePrimitive(PrimitiveType.Sphere);
 			sphereMesh = sphereGO.GetComponent<MeshFilter>().mesh;
-			Destroy(sphereGO);
-			material = new Material(Shader.Find("Legacy Shaders/Transparent/Diffuse"));
+			DestroyImmediate(sphereGO);
+			material = CreateTransparentMaterial();
 		}
 
 		//
@@ -112,11 +134,11 @@ namespace RatKing.Base {
 				if (!g.renderInGame) { continue; }
 				switch (g.type) {
 					case GizmoType.Box:
-						matProperties.SetColor("_Color", g.color);
+						matProperties.SetColor(colorName, g.color);
 						Graphics.DrawMesh(boxMesh, g.matrix, material, 0, Camera.main, 0, matProperties, false, false);
 						break;
 					case GizmoType.Sphere:
-						matProperties.SetColor("_Color", g.color);
+						matProperties.SetColor(colorName, g.color);
 						Graphics.DrawMesh(sphereMesh, g.matrix, material, 0, Camera.main, 0, matProperties, false, false);
 						break;
 				}

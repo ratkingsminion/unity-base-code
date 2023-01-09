@@ -9,11 +9,22 @@ namespace RatKing.Base {
 		static QuickIMGUI inst;
 		static event System.Action OnDraw;
 		static event System.Action OnDrawOnce;
-		static Dictionary<string, System.Action> byIDs;
+		public static readonly Dictionary<string, System.Action> ByIDs = new();
 		static int onDrawOnceCounter;
 		//
 		public static Texture2D texWhite;
 		public static Texture2D texWhiteTransparent;
+
+		//
+
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		static void OnRuntimeInitializeOnLoad() {
+			inst = null;
+			OnDraw = null;
+			OnDrawOnce = null;
+			onDrawOnceCounter = 0;
+			ByIDs.Clear();
+		}
 
 		//
 
@@ -22,8 +33,6 @@ namespace RatKing.Base {
 			var go = new GameObject("<Quick IM GUI>");
 			DontDestroyOnLoad(go);
 			inst = go.AddComponent<QuickIMGUI>();
-			//
-			byIDs = new Dictionary<string, System.Action>();
 			//
 			texWhite = new Texture2D(1, 1); texWhite.SetPixel(0, 0, Color.white);
 			texWhite.Apply();
@@ -55,18 +64,18 @@ namespace RatKing.Base {
 		public static void Add(string ID, System.Action onDraw) {
 			if (string.IsNullOrEmpty(ID) || onDraw == null) { return; }
 			CreateInstance();
-			if (byIDs.ContainsKey(ID)) { Debug.LogError("Trying to add ID twice"); return; }
+			if (ByIDs.ContainsKey(ID)) { Debug.LogError("Trying to add ID twice"); return; }
 			if (OnDrawOnce == null && OnDraw == null) { inst.gameObject.SetActive(true); }
 			OnDraw += onDraw;
-			byIDs[ID] = onDraw;
+			ByIDs[ID] = onDraw;
 		}
 
 		public static void Remove(string ID) {
 			if (inst == null || string.IsNullOrEmpty(ID)) { return; }
 			System.Action onDraw;
-			if (byIDs.TryGetValue(ID, out onDraw)) {
+			if (ByIDs.TryGetValue(ID, out onDraw)) {
 				OnDraw -= onDraw;
-				byIDs.Remove(ID);
+				ByIDs.Remove(ID);
 				if (OnDrawOnce == null && OnDraw == null) { inst.gameObject.SetActive(false); }
 			}
 		}
