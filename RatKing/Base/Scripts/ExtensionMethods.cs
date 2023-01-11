@@ -127,25 +127,20 @@ namespace RatKing {
 	
 		// for use in OnValidate()
 		
-		public static void SetComponent<T, S>(this T validator, ref S component, bool onlyIfNull = true) where T : Component where S : Component {
-			if (validator == null) { return; }
+		public static bool SetComponent<T, S>(this T validator, ref S component, bool onlyIfNull = true) where T : Component where S : Component {
+			if (validator == null) { return false; }
 			if (!onlyIfNull || component == null) { component = validator.GetComponent<S>(); }
+			return !component.IsGone();
 		}
-		public static void SetComponentInChildren<T, S>(this T validator, ref S component, bool onlyIfNull = true) where T : Component where S : Component {
-			if (validator == null) { return; }
+		public static bool SetComponentInChildren<T, S>(this T validator, ref S component, bool onlyIfNull = true) where T : Component where S : Component {
+			if (validator == null) { return false; }
 			if (!onlyIfNull || component == null) { component = validator.GetComponentInChildren<S>(); }
+			return !component.IsGone();
 		}
-		public static void SetComponentInParent<T, S>(this T validator, ref S component, bool onlyIfNull = true) where T : Component where S : Component {
-			if (validator == null) { return; }
+		public static bool SetComponentInParent<T, S>(this T validator, ref S component, bool onlyIfNull = true) where T : Component where S : Component {
+			if (validator == null) { return false; }
 			if (!onlyIfNull || component == null) { component = validator.GetComponentInParent<S>(); }
-		}
-		public static void SetComponent<T>(this T validator, ref Transform transform, bool onlyIfNull = true) where T : Component {
-			if (validator == null) { return; }
-			if (!onlyIfNull || transform == null) { transform = validator.transform; }
-		}
-		public static void SetComponent<T>(this T validator, ref GameObject gameObject, bool onlyIfNull = true) where T : Component {
-			if (validator == null) { return; }
-			if (!onlyIfNull || gameObject == null) { gameObject = validator.gameObject; }
+			return !component.IsGone();
 		}
 		
 		//

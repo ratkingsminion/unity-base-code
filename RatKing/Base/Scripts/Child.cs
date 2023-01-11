@@ -8,6 +8,10 @@ namespace RatKing.Base {
 		[SerializeField] Transform root = null;
 		public Transform Root { get { return root; } }
 
+		void OnValidate() {
+			if (root == null) { root = transform.parent; }
+		}
+
 		//
 
 		public T GetRootComponent<T>() where T : Component {
