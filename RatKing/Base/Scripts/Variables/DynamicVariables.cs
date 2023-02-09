@@ -34,7 +34,7 @@ namespace RatKing.Base {
 			}
 				 if (typeof(T) == typeof(float) && value is float f) { Variables.Add(new DynamicVarFloat(id, f)); }
 			else if (typeof(T) == typeof(int) && value is int i) { Variables.Add(new DynamicVarInt(id, i)); }
-			else if (typeof(T) == typeof(string)) { Variables.Add(new DynamicVarString("set", value is string s ? s : "")); }
+			else if (typeof(T) == typeof(string)) { Variables.Add(new DynamicVarString(id, value is string s ? s : "")); }
 			else if (typeof(T) == typeof(bool) && value is bool b) { Variables.Add(new DynamicVarBool(id, b)); }
 			else if (value is null) { Variables.Add(new DynamicVarObject(id, null)); }
 			else if (value is Object) { Variables.Add(new DynamicVarObject(id, value as Object)); }
