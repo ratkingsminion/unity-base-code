@@ -13,6 +13,10 @@ namespace RatKing.Base {
 			this.min = min;
 			this.max = max;
 		}
+		
+		public void Validate() {
+			if (max < min) { var tmp = min; min = max; max = tmp; }
+		}
 
 		public int Random(System.Random generator = null) {
 			int a = min, b = max;
@@ -49,6 +53,10 @@ namespace RatKing.Base {
 			this.max = max;
 		}
 
+		public void Validate() {
+			if (max < min) { var tmp = min; min = max; max = tmp; }
+		}
+
 		public float Random(System.Random generator = null) {
 			float a = min, b = max;
 			if (a > b) { a = b; b = min; }
@@ -58,6 +66,12 @@ namespace RatKing.Base {
 
 		public float Lerp(float factor) {
 			return min + (max - min) * factor;
+		}
+
+		public static RangeFloat Lerp(Base.RangeFloat a, Base.RangeFloat b, float factor) {
+			var min = a.min + (b.min - a.min) * factor;
+			var max = a.max + (b.max - a.max) * factor;
+			return new RangeFloat(min, max);
 		}
 
 		public float LerpClamped(float factor) {
