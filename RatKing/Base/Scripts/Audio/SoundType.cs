@@ -1,11 +1,13 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.Audio;
 
 namespace RatKing.Base {
 	
 	[CreateAssetMenu(fileName = "SND", menuName = "Rat King/New Sound Type")]
 	public class SoundType : ScriptableObject {
+		[SerializeField] AudioMixerGroup mixerGroup = null;
 		[SerializeField] AudioClip[] clips = null;
 		[SerializeField] RangeFloat volume = new RangeFloat(0.5f, 0.6f);
 		[SerializeField] RangeFloat pitch = new RangeFloat(1f, 1f);
@@ -22,6 +24,7 @@ namespace RatKing.Base {
 		[SerializeField] int startCount = 3;
 		[SerializeField] int addCount = 1;
 
+		public AudioMixerGroup MixerGroup { get { return mixerGroup; } }
 		public AudioClip[] Clips { get { return clips; } }
 		public RangeFloat Volume { get { return volume; } }
 		public RangeFloat Pitch { get { return pitch; } }
