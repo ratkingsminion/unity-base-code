@@ -9,6 +9,7 @@ namespace RatKing.Base {
 	public class SoundType : ScriptableObject {
 		[SerializeField] AudioMixerGroup mixerGroup = null;
 		[SerializeField] AudioClip[] clips = null;
+		[SerializeField] bool randomOrder = true;
 		[SerializeField] RangeFloat volume = new RangeFloat(0.5f, 0.6f);
 		[SerializeField] RangeFloat pitch = new RangeFloat(1f, 1f);
 		[SerializeField, Range(0f, 1f)] float priority = 0.5f;
@@ -26,6 +27,7 @@ namespace RatKing.Base {
 
 		public AudioMixerGroup MixerGroup { get { return mixerGroup; } }
 		public AudioClip[] Clips { get { return clips; } }
+		public bool RandomOrder { get { return randomOrder; } }
 		public RangeFloat Volume { get { return volume; } }
 		public RangeFloat Pitch { get { return pitch; } }
 		public float Priority { get { return priority; } }
@@ -39,6 +41,8 @@ namespace RatKing.Base {
 		public int PoolStartCount { get { return startCount; } }
 		public int PoolAddCount { get { return addCount; } }
 		
+		public int CurPlayIndex { get; set; } = -1;
+
 		//
 
 		public Sound Play(Transform start, string tag = null) {
