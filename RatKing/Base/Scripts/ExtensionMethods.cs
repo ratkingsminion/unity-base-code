@@ -125,6 +125,13 @@ namespace RatKing {
 		public static bool TryGetComponentInParent<T>(this GameObject go, out T component, bool includeInactive = false) where T : Component { component = go.gameObject.GetComponentInParent<T>(includeInactive); if (component != null) { return true; } return false; }
 		public static bool TryGetComponentInParent<T>(this Component c, out T component, bool includeInactive = false) where T : Component { component = c.gameObject.GetComponentInParent<T>(includeInactive); if (component != null) { return true; } return false; }
 	
+		public static bool HasComponent<T>(this GameObject go) where T : Component { return go.GetComponent<T>() != null; }
+		public static bool HasComponent<T>(this Component c) where T : Component { return c.GetComponent<T>() != null; }
+		public static bool HasComponentInChildren<T>(this GameObject go, bool includeInactive = false) where T : Component { return go.GetComponentInChildren<T>(includeInactive) != null; }
+		public static bool HasComponentInChildren<T>(this Component c, bool includeInactive = false) where T : Component { return c.GetComponentInChildren<T>(includeInactive) != null; }
+		public static bool HasComponentGetComponentInParent<T>(this GameObject go, bool includeInactive = false) where T : Component { return go.GetComponentInParent<T>(includeInactive) != null; }
+		public static bool HasComponentGetComponentInParent<T>(this Component c, bool includeInactive = false) where T : Component { return c.GetComponentInParent<T>(includeInactive) != null; }
+
 		// for use in OnValidate()
 		
 		public static bool SetComponent<T, S>(this T validator, ref S component, bool onlyIfNull = true) where T : Component where S : Component {
