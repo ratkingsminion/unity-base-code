@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.Audio;
 
 namespace RatKing.Base {
 
@@ -15,8 +16,9 @@ namespace RatKing.Base {
 			public int priority;
 		}
 
-		public static float globalVolume = 1f;
+		public static float GlobalVolume = 1f;
 
+		static AudioMixerGroup curMixerGroup;
 		static GameObject go;
 		static readonly Dictionary<string, List<MusicSource>> sources = new Dictionary<string, List<MusicSource>>();
 		static Music Inst;
@@ -26,7 +28,8 @@ namespace RatKing.Base {
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
 		static void OnRuntimeInitializeOnLoad() {
 			Inst = null;
-			globalVolume = 1f;
+			GlobalVolume = 1f;
+			curMixerGroup = null;
 			sources.Clear();
 		}
 
@@ -61,11 +64,11 @@ namespace RatKing.Base {
 					var targetVolume = (i == mainIndex) ? s.targetVolume : 0f;
 					if (!Mathf.Approximately(s.curVolume, targetVolume)) {
 						s.curVolume = Mathf.MoveTowards(s.curVolume, targetVolume, s.fadeSpeed * Time.unscaledDeltaTime);
-						s.source.volume = s.curVolume * globalVolume;
+						s.source.volume = s.curVolume * GlobalVolume;
 						if (s.curVolume <= 0f && i == mainIndex) { s.unused = true; s.source.Stop(); }
 					}
 					else {
-						s.source.volume = targetVolume * globalVolume;
+						s.source.volume = targetVolume * GlobalVolume;
 					}
 				}
 			}
@@ -111,6 +114,17 @@ namespace RatKing.Base {
 			}
 		}
 
+		public static void SetAudioMixerGroup(AudioMixerGroup group) {
+			if (sources != null && sources.Count > 0) {
+				foreach (var s in sources) {
+					foreach (var m in s.Value) {
+						m.source.outputAudioMixerGroup = group;
+					}
+				}
+			}
+			curMixerGroup = group;
+		}
+
 		public static void Play(AudioClip clip, float volume = 0.3f, float fadeTime = 5f, int priority = 0, string layer = "") {
 			if (layer == null) { return; }
 			if (Inst == null) { if (clip == null || volume <= 0f) { return; } Init(); }
@@ -139,6 +153,7 @@ namespace RatKing.Base {
 				}
 			}
 			if (useSource == null) { useSource = CreateSource(layer); }
+			useSource.source.outputAudioMixerGroup = curMixerGroup;
 			useSource.source.clip = clip;
 			SetTargetVolume(useSource, volume, fadeTime);
 			useSource.unused = false;

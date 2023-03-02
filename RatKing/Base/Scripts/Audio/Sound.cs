@@ -8,7 +8,7 @@ namespace RatKing.Base {
 		public bool InUse { get; private set; }
 		public string Tag { get; set; }
 		public AudioSource Source { get { return source; } }
-		//
+		
 		AudioSource source;
 
 		//
@@ -66,9 +66,14 @@ namespace RatKing.Base {
 			Type = type;
 			var src = source = GetComponent<AudioSource>();
 			src.transform.position = pos;
-			src.clip = clipIndex < 0 ? DataStructures.GetRandomElement(type.Clips) : type.Clips[clipIndex];
+			if (clipIndex >= 0) { type.CurPlayIndex = clipIndex % Type.Clips.Length; }
+			else if (type.Clips.Length == 1) { type.CurPlayIndex = 0; }
+			else if (type.RandomOrder) { type.CurPlayIndex = (type.CurPlayIndex < 0) ? Random.Range(0, type.Clips.Length) : (type.CurPlayIndex + Random.Range(0, type.Clips.Length - 1)) % type.Clips.Length; }
+			else { type.CurPlayIndex = (type.CurPlayIndex + 1) % type.Clips.Length; }
+			src.clip = type.Clips[type.CurPlayIndex];
 			src.volume = (volume = type.Volume.Random()) * Sounds.GlobalVolume;
 			src.pitch = type.Pitch.Random();
+			src.outputAudioMixerGroup = type.MixerGroup;
 			if (type.SpatialBlend > 0f) {
 				src.minDistance = type.Distance3D.min;
 				src.maxDistance = type.Distance3D.max;
