@@ -86,6 +86,42 @@ namespace RatKing.Base {
 #endif
 		}
 
+		public static void DrawBox(Vector3 pos, Quaternion rot, float extents, Color color, float seconds = 0f, bool renderInGame = true) {
+#if UNITY_EDITOR
+			DrawBox(pos, Quaternion.identity, Vector3.one * extents, color, seconds, renderInGame);
+#endif
+		}
+
+		public static void DrawWiredBox(Vector3 pos, Quaternion rot, float extents, Color color, float seconds = 0f) {
+#if UNITY_EDITOR
+			DrawWiredBox(pos, Quaternion.identity, Vector3.one * extents, color, seconds);
+#endif
+		}
+
+		public static void DrawBox(Vector3 pos, Vector3 extents, Color color, float seconds = 0f, bool renderInGame = true) {
+#if UNITY_EDITOR
+			DrawBox(pos, Quaternion.identity, extents, color, seconds, renderInGame);
+#endif
+		}
+
+		public static void DrawWiredBox(Vector3 pos, Vector3 extents, Color color, float seconds = 0f) {
+#if UNITY_EDITOR
+			DrawWiredBox(pos, Quaternion.identity, extents, color, seconds);
+#endif
+		}
+
+		public static void DrawBox(Vector3 pos, float extents, Color color, float seconds = 0f, bool renderInGame = true) {
+#if UNITY_EDITOR
+			DrawBox(pos, Quaternion.identity, Vector3.one * extents, color, seconds, renderInGame);
+#endif
+		}
+
+		public static void DrawWiredBox(Vector3 pos, float extents, Color color, float seconds = 0f) {
+#if UNITY_EDITOR
+			DrawWiredBox(pos, Quaternion.identity, Vector3.one * extents, color, seconds);
+#endif
+		}
+
 		public static void DrawSphere(Vector3 pos, float radius, Color color, float seconds = 0f, bool renderInGame = true) {
 #if UNITY_EDITOR
 			if (seconds < 0f || color.a <= 0f) { return; }
