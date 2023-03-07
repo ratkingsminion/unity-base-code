@@ -45,9 +45,11 @@ namespace RatKing.Base {
 
 		//
 
-		public Sound Play(Transform start, string tag = null) {
-			var sound = Sounds.GetOrCreateInstance().Play(this, start.position);
+		public Sound Play(Transform follow, string tag = null) {
+			if (follow == null) { return null; }
+			var sound = Sounds.GetOrCreateInstance().Play(this, follow.position);
 			if (sound == null) { return null; }
+			sound.Follow = follow;
 			sound.Tag = tag;
 			return sound;
 		}

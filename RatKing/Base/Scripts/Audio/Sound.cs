@@ -6,6 +6,7 @@ namespace RatKing.Base {
 		public SoundType Type { get; private set; }
 		public bool IsPaused { get; private set; }
 		public bool InUse { get; private set; }
+		public Transform Follow { get; set; }
 		public string Tag { get; set; }
 		public AudioSource Source { get { return source; } }
 		
@@ -30,8 +31,8 @@ namespace RatKing.Base {
 
 		//
 
-		public static Sound Play(SoundType type, Transform start, string tag = null) {
-			return type != null ? type.Play(start, tag) : null;
+		public static Sound Play(SoundType type, Transform follow, string tag = null) {
+			return type != null ? type.Play(follow, tag) : null;
 		}
 
 		public static Sound Play(SoundType type, Vector3 position, string tag = null) {
@@ -42,8 +43,8 @@ namespace RatKing.Base {
 			return type != null ? type.Play(tag) : null;
 		}
 
-		public static bool TryPlay(out Sound sound, SoundType type, Transform start, string tag = null) {
-			sound = type != null ? type.Play(start, tag) : null;
+		public static bool TryPlay(out Sound sound, SoundType type, Transform follow, string tag = null) {
+			sound = type != null ? type.Play(follow, tag) : null;
 			return sound != null;
 		}
 
@@ -57,10 +58,24 @@ namespace RatKing.Base {
 			return sound != null;
 		}
 
+		public static bool Stop(Sound sound) {
+			if (sound == null) { return false; }
+			sound.Stop();
+			return true;
+		}
+
+		public static bool StopAndSetNull(ref Sound sound) {
+			if (sound == null) { return false; }
+			sound.Stop();
+			sound = null;
+			return true;
+		}
+
 		//
 
 		public void PlayType(SoundType type, int clipIndex = -1, Vector3 pos = default) {
 			Tag = null;
+			Follow = null;
 			InUse = true;
 			IsPaused = false;
 			Type = type;

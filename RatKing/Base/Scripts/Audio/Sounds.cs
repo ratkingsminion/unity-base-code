@@ -73,7 +73,11 @@ namespace RatKing.Base {
 					globallyPausedSounds.Remove(sound);
 					curPooled[sound.Type].Push(sound);
 					sound.transform.SetParent(parentPool);
+					continue;
 				} 
+				if (sound.Follow != null) {
+					sound.transform.position = sound.Follow.position;
+				}
 			}
 		}
 
@@ -146,8 +150,7 @@ namespace RatKing.Base {
 			//
 			if (mightBeWaiting && props.waiting > Time.unscaledTime) { return null; }
 			//
-			Stack<Sound> pool;
-			if (!curPooled.TryGetValue(type, out pool)) { curPooled.Add(type, pool = new Stack<Sound>()); }
+			if (!curPooled.TryGetValue(type, out Stack<Sound> pool)) { curPooled.Add(type, pool = new Stack<Sound>()); }
 			if (pool.Count == 0) {
 				var prefab = GetOrCreateTypedPrefab(type, pool);
 				while (pool.Count < type.PoolAddCount) { InstantiateTypedPrefabInPool(type, prefab, pool); }
@@ -171,8 +174,7 @@ namespace RatKing.Base {
 		//
 
 		public float GetWaitTimeOf(SoundType type) {
-			SoundProperties props;
-			if (!soundsProperties.TryGetValue(type, out props)) { return 0f; }
+			if (!soundsProperties.TryGetValue(type, out SoundProperties props)) { return 0f; }
 			return Mathf.Max(0f, props.waiting - Time.unscaledTime);
 		}
 
@@ -191,8 +193,7 @@ namespace RatKing.Base {
 
 		Sound GetOrCreateTypedPrefab(SoundType type, Stack<Sound> pool) {
 			if (type == null) { return null; }
-			Sound prefab;
-			if (typedPrefabs.TryGetValue(type, out prefab)) { return prefab; }
+			if (typedPrefabs.TryGetValue(type, out Sound prefab)) { return prefab; }
 			if (globalPrefab == null) { CreateGlobalPrefab(); }
 			prefab = Instantiate(globalPrefab);
 #if UNITY_EDITOR
