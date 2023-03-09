@@ -14,8 +14,8 @@ namespace RatKing.Base {
 		//
 
 		public void Clear() {
-			objects.Clear();
-			serialized.Clear();
+			objects?.Clear();
+			serialized?.Clear();
 			Variables.Clear();
 		}
 		
