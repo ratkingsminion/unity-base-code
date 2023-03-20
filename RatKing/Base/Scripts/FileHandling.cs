@@ -43,14 +43,14 @@ namespace RatKing.Base {
 
 			if (ConfigFile.HasString("backups")) {
 				backupsPath = ConfigFile.GetString("backups");
-				if (!Path.IsPathRooted(backupsPath)) { backupsPath = DataPath + "/" + backupsPath; }
+				if (!Path.IsPathFullyQualified(backupsPath)) { backupsPath = DataPath + "/" + backupsPath; }
 			}
 
 			//Debug.Log(DataPath);
 			foreach (var fi in infos) {
 				fi.subfolder = ConfigFile.GetString(fi.typeID, fi.subfolder);
-				//Debug.Log(fi.subfolder + " ... " + Path.IsPathRooted(fi.subfolder));
-				if (Path.IsPathRooted(fi.subfolder)) { fi.fullPath = fi.subfolder; }
+				//Debug.Log(fi.subfolder + " ... " + Path.IsPathFullyQualified(fi.subfolder));
+				if (Path.IsPathFullyQualified(fi.subfolder)) { fi.fullPath = fi.subfolder; }
 				else { fi.fullPath = DataPath + "/" + fi.subfolder; }
 				//Debug.Log(fi.typeID + ": " + fi.fullPath);
 				infosByType[fi.typeID.ToLower()] = fi;
