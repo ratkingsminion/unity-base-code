@@ -59,23 +59,23 @@ namespace RatKing.Base {
 
 		public string FullPath(string typeID) {
 			typeID = typeID.ToLower();
-#if UNITY_EDITOR
 			if (!infosByType.ContainsKey(typeID)) {
+#if UNITY_EDITOR
 				Debug.LogWarning("Info for type " + typeID + " does not exist");
+#endif
 				return DataPath;
 			}
-#endif
 			return infosByType[typeID].fullPath; // mainPath[(int)type];
 		}
 
 		public string GetSuffix(string typeID) {
 			typeID = typeID.ToLower();
-#if UNITY_EDITOR
 			if (!infosByType.ContainsKey(typeID)) {
+#if UNITY_EDITOR
 				Debug.LogWarning("Info for type " + typeID + " does not exist");
+#endif
 				return "";
 			}
-#endif
 			return infosByType[typeID].suffix;
 		}
 
@@ -83,7 +83,10 @@ namespace RatKing.Base {
 
 		public bool TryGetFiles(string typeID, string subfolder, ref List<string> list) {
 			typeID = typeID.ToLower();
-			if (!infosByType.TryGetValue(typeID, out var info)) { return false; }
+			if (!infosByType.TryGetValue(typeID, out var info)) {
+				Debug.LogError("Type ID " + typeID + " not found!");
+				return false;
+			}
 			var path = info.fullPath + "/" + subfolder;
 			if (list == null) { list = new List<string>(); }
 			else { list.Clear(); }
@@ -103,7 +106,10 @@ namespace RatKing.Base {
 
 		public System.IO.StreamReader GetTextFile(string typeID, string subfolder, string filename) {
 			typeID = typeID.ToLower();
-			if (!infosByType.TryGetValue(typeID, out var info)) { return null; }
+			if (!infosByType.TryGetValue(typeID, out var info)) {
+				Debug.LogError("Type ID " + typeID + " not found!");
+				return null;
+			}
 			var path = info.fullPath + "/" + subfolder;
 			if (!System.IO.Directory.Exists(path)) { Debug.LogWarning("Directory \"" + path + "\" does not exist!"); return null; }
 			//
@@ -148,7 +154,10 @@ namespace RatKing.Base {
 				return false;
 			}
 			typeID = typeID.ToLower();
-			if (!infosByType.TryGetValue(typeID, out var info)) { return false; }
+			if (!infosByType.TryGetValue(typeID, out var info)) {
+				Debug.LogError("Type ID " + typeID + " not found!");
+				return false;
+			}
 			var path = info.fullPath + "/" + subfolder;
 			var backupPath = !string.IsNullOrWhiteSpace(backupsPath) ? backupsPath : (info.fullPath + "/" + subfolder);
 			var filepath = path + "/" + filename + info.suffix;
@@ -186,7 +195,10 @@ namespace RatKing.Base {
 		}
 		public bool RemoveFile(string typeID, string subfolder, string filename) {
 			typeID = typeID.ToLower();
-			if (!infosByType.TryGetValue(typeID, out var info)) { return false; }
+			if (!infosByType.TryGetValue(typeID, out var info)) {
+				Debug.LogError("Type ID " + typeID + " not found!");
+				return false;
+			}
 			var filepath = info.fullPath + "/" + subfolder + "/" + filename + info.suffix;
 			var deleted = false;
 			if (System.IO.File.Exists(filepath)) {
@@ -211,7 +223,10 @@ namespace RatKing.Base {
 				return false;
 			}
 			typeID = typeID.ToLower();
-			if (!infosByType.TryGetValue(typeID, out var info)) { return false; }
+			if (!infosByType.TryGetValue(typeID, out var info)) {
+				Debug.LogError("Type ID " + typeID + " not found!");
+				return false;
+			}
 			var path = info.fullPath + "/" + subfolder;
 			var filepath = path + "/" + filename + info.suffix;
 			if (!System.IO.Directory.Exists(path)) {
