@@ -81,6 +81,10 @@ namespace RatKing.Base {
 			float l = 1f / Mathf.Sqrt(q.w * q.w + q.x * q.x + q.y * q.y + q.z * q.z);
 			q.w *= l; q.x *= l; q.y *= l; q.z *= l;
 		}
+		public static Vector3 Slerp(Vector3 a, Vector3 b, float t) {
+			var qa = Quaternion.FromToRotation(a, b);
+			return Slerp(Quaternion.identity, qa, t) * a;
+		}
 		// from http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/
 		// has auto normalization
 		public static Quaternion Slerp(Quaternion qa, Quaternion qb, float t) {
@@ -143,41 +147,51 @@ namespace RatKing.Base {
 		public static float Lerp(float start, float end, float value) {
 			return ((1f - value) * start) + (value * end);
 		}
-		public static float NearestPointDistance(Ray ray, Vector3 point) {
-			return Vector3.Dot((point - ray.origin), ray.direction) / Vector3.Dot(ray.direction, ray.direction);
+		
+		// from https://stackoverflow.com/questions/64663170/how-to-find-nearest-point-in-segment-in-a-3d-space
+		public static float SegmentNearestPointDistance(Vector3 lineStart, Vector3 lineEnd, Vector3 point) {
+			var s = lineEnd - lineStart;
+			var w = point - lineStart;
+			var ps = Vector3.Dot(w, s);
+			if (ps <= 0f) { return w.magnitude; }
+			var l2 = Vector3.Dot(s, s);
+			var closest = ps >= l2 ? lineEnd : (lineStart + ps / l2 * s);
+			return Vector3.Distance(point, closest);
 		}
-		public static float NearestPointDistance(Vector2 lineStart, Vector2 lineDirection, Vector2 point) {
-			return Vector2.Dot((point - lineStart), lineDirection) / Vector2.Dot(lineDirection, lineDirection);
-		}
-		public static float NearestPointDistance(Vector3 lineStart, Vector3 lineDirection, Vector3 point) {
-			return Vector3.Dot((point - lineStart), lineDirection) / Vector3.Dot(lineDirection, lineDirection);
-		}
-		public static Vector3 NearestPoint(Ray ray, Vector3 point) {
-			var closestPoint = Vector3.Dot((point - ray.origin), ray.direction);
-			return ray.origin + (closestPoint * ray.direction);
-		}
-		public static Vector2 NearestPoint(Vector2 lineStart, Vector2 lineEnd, Vector2 point) {
-			var lineDirection = (lineEnd - lineStart).normalized;
-			var closestPoint = Vector3.Dot((point - lineStart), lineDirection);
-			return lineStart + (closestPoint * lineDirection);
-		}
-		public static Vector3 NearestPoint(Vector3 lineStart, Vector3 lineEnd, Vector3 point) {
-			var lineDirection = (lineEnd - lineStart).normalized;
-			var closestPoint = Vector3.Dot((point - lineStart), lineDirection);
-			return lineStart + (closestPoint * lineDirection);
-		}
-		public static Vector2 NearestPointStrict(Vector2 lineStart, Vector2 lineEnd, Vector2 point) {
+		public static Vector2 SegmentNearestPoint(Vector2 lineStart, Vector2 lineEnd, Vector2 point) {
 			var fullDirection = lineEnd - lineStart;
 			var lineDirection = fullDirection.normalized;
 			var closestPoint = Vector2.Dot((point - lineStart), lineDirection) / lineDirection.sqrMagnitude;
 			return lineStart + Mathf.Clamp(closestPoint, 0f, fullDirection.magnitude) * lineDirection;
 		}
-		public static Vector3 NearestPointStrict(Vector3 lineStart, Vector3 lineEnd, Vector3 point) {
+		public static Vector3 SegmentNearestPoint(Vector3 lineStart, Vector3 lineEnd, Vector3 point) {
 			var fullDirection = lineEnd - lineStart;
 			var lineDirection = fullDirection.normalized;
 			var closestPoint = Vector3.Dot((point - lineStart), lineDirection) / lineDirection.sqrMagnitude;
 			return lineStart + Mathf.Clamp(closestPoint, 0f, fullDirection.magnitude) * lineDirection;
 		}
+		
+		public static float LineNearestPointDistance(Ray ray, Vector3 point) {
+			return Vector3.Dot((point - ray.origin), ray.direction) / Vector3.Dot(ray.direction, ray.direction);
+		}
+		public static float LineNearestPointDistance(Vector2 lineStart, Vector2 lineDirection, Vector2 point) {
+			return Vector2.Dot((point - lineStart), lineDirection) / Vector2.Dot(lineDirection, lineDirection);
+		}
+		public static Vector3 LineNearestPoint(Ray ray, Vector3 point) {
+			var closestPoint = Vector3.Dot((point - ray.origin), ray.direction);
+			return ray.origin + (closestPoint * ray.direction);
+		}
+		public static Vector2 LineNearestPoint(Vector2 lineStart, Vector2 lineEnd, Vector2 point) {
+			var lineDirection = (lineEnd - lineStart).normalized;
+			var closestPoint = Vector3.Dot((point - lineStart), lineDirection);
+			return lineStart + (closestPoint * lineDirection);
+		}
+		public static Vector3 LineNearestPoint(Vector3 lineStart, Vector3 lineEnd, Vector3 point) {
+			var lineDirection = (lineEnd - lineStart).normalized;
+			var closestPoint = Vector3.Dot((point - lineStart), lineDirection);
+			return lineStart + (closestPoint * lineDirection);
+		}
+		
 		public static float Bounce(float x) {
 			return Mathf.Abs(Mathf.Sin(6.28f * (x + 1f) * (x + 1f)) * (1f - x));
 		}
@@ -231,7 +245,16 @@ namespace RatKing.Base {
 				t * a.z + (1f - t) * b.z
 				);
 		}
-		public static Vector3 FrinLerp(float dt, Vector3 a, Vector3 b, float t, float hertz = 60f) {
+		public static Vector4 FrinLerp(Vector4 a, Vector4 b, float t, float hertz = 60f) {
+			t = Mathf.Pow(1f - t, Time.unscaledDeltaTime * hertz);
+			return new Vector4(
+				t * a.x + (1f - t) * b.x,
+				t * a.y + (1f - t) * b.y,
+				t * a.z + (1f - t) * b.z,
+				t * a.w + (1f - t) * b.w
+				);
+		}
+		public static Vector3 FrinLerp(Vector3 a, Vector3 b, float t, float hertz, float dt) {
 			t = Mathf.Pow(1f - t, dt * hertz);
 			return new Vector3(
 				t * a.x + (1f - t) * b.x,
@@ -239,16 +262,22 @@ namespace RatKing.Base {
 				t * a.z + (1f - t) * b.z
 				);
 		}
+		public static Vector3 FrinSlerp(Vector3 a, Vector3 b, float t, float hertz = 60f) {
+			return Vector3.Slerp(a, b, 1f - Mathf.Pow(1f - t, Time.unscaledDeltaTime * hertz));
+		}
+		public static Vector3 FrinSlerp(Vector3 a, Vector3 b, float t, float hertz, float dt) {
+			return Vector3.Slerp(a, b, 1f - Mathf.Pow(1f - t, dt * hertz));
+		}
 		public static Quaternion FrinSlerp(Quaternion a, Quaternion b, float t, float hertz = 60f) {
 			return Quaternion.Slerp(a, b, 1f - Mathf.Pow(1f - t, Time.unscaledDeltaTime * hertz));
 		}
-		public static Quaternion FrinSlerp(float dt, Quaternion a, Quaternion b, float t, float hertz = 60f) {
+		public static Quaternion FrinSlerp(Quaternion a, Quaternion b, float t, float hertz, float dt) {
 			return Quaternion.Slerp(a, b, 1f - Mathf.Pow(1f - t, dt * hertz));
 		}
 		public static Quaternion FrinSlerpAdd(Quaternion a, Quaternion b, float t, float hertz = 60f) {
 			return Quaternion.Slerp(a, b * a, 1f - Mathf.Pow(1f - t, Time.unscaledDeltaTime * hertz));
 		}
-		public static Quaternion FrinSlerpAdd(float dt, Quaternion a, Quaternion b, float t, float hertz = 60f) {
+		public static Quaternion FrinSlerpAdd(Quaternion a, Quaternion b, float t, float hertz, float dt) {
 			return Quaternion.Slerp(a, b * a, 1f - Mathf.Pow(1f - t, dt * hertz));
 		}
 		//
