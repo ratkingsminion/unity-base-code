@@ -26,24 +26,23 @@ namespace RatKing.Base {
 		public GameObject soundJump;
 		public GameObject soundWalk;
 		public float walkTime = 0.6f;
-		//
+		
 		public float FactorX { get; set; }
 		public float FactorZ { get; set; }
 		[System.NonSerialized]
 		public float globalFactor = 1f;
-		//
+		
 		public bool OnFloor { get; private set; }
 		public Rigidbody Rbody { get; private set; }
 		public CapsuleCollider Capsule { get; private set; }
-		//
+		
 		float jumping = 0f;
 		bool mayJump;
 		float walkTimer = 0f;
-		//
+		
 		static int floorLayerMask = 1;
 
-		//
-
+#if UNITY_EDITOR
 		void OnValidate() {
 			if (speedWalk < 0f) speedWalk = 0f;
 			if (speedWalkSideways < 0f) speedWalkSideways = 0f;
@@ -57,6 +56,7 @@ namespace RatKing.Base {
 			if (innerCircleFactor < 0f) innerCircleFactor = 0f;
 			if (walkTime < 0f) walkTime = 0f;
 		}
+#endif
 
 		//
 

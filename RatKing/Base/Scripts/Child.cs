@@ -8,9 +8,11 @@ namespace RatKing.Base {
 		[SerializeField] Transform root = null;
 		public Transform Root { get { return root; } }
 
+#if UNITY_EDITOR
 		void OnValidate() {
 			if (root == null) { root = transform.parent; }
 		}
+#endif
 
 		//
 
