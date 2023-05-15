@@ -139,14 +139,14 @@ namespace RatKing {
 			if (!onlyIfNull || component == null) { component = validator.GetComponent<S>(); }
 			return !component.IsGone();
 		}
-		public static bool SetComponentInChildren<T, S>(this T validator, ref S component, bool onlyIfNull = true) where T : Component where S : Component {
+		public static bool SetComponentInChildren<T, S>(this T validator, ref S component, bool onlyIfNull = true, bool includeInactive = false) where T : Component where S : Component {
 			if (validator == null) { return false; }
-			if (!onlyIfNull || component == null) { component = validator.GetComponentInChildren<S>(); }
+			if (!onlyIfNull || component == null) { component = validator.GetComponentInChildren<S>(includeInactive); }
 			return !component.IsGone();
 		}
-		public static bool SetComponentInParent<T, S>(this T validator, ref S component, bool onlyIfNull = true) where T : Component where S : Component {
+		public static bool SetComponentInParent<T, S>(this T validator, ref S component, bool onlyIfNull = true, bool includeInactive = false) where T : Component where S : Component {
 			if (validator == null) { return false; }
-			if (!onlyIfNull || component == null) { component = validator.GetComponentInParent<S>(); }
+			if (!onlyIfNull || component == null) { component = validator.GetComponentInParent<S>(includeInactive); }
 			return !component.IsGone();
 		}
 		
@@ -156,16 +156,19 @@ namespace RatKing {
 
 		// particles
 
-		public static void EnableEmission(this ParticleSystem ps, bool enable) {
+		public static void SetEmission(this ParticleSystem ps, bool enable) {
 			if (ps == null) { return; }
-			var module = ps.emission;
-			module.enabled = enable;
+			if (enable) { ps.gameObject.SetActive(true); ps.Play(); }
+			else { ps.Stop(true, ParticleSystemStopBehavior.StopEmitting); }
+	
 		}
 
-		public static void EnableEmission(this ParticleSystem ps, bool enable, out ParticleSystem.EmissionModule module) {
-			if (ps == null) { Debug.LogWarning("Trying to enable emission without particles"); return; }
-			module = ps.emission;
-			module.enabled = enable;
+		public static void EnableEmission(this ParticleSystem ps) {
+			if (ps != null) { ps.gameObject.SetActive(true); ps.Play(); }
+		}
+
+		public static void DisableEmission(this ParticleSystem ps, bool clear = false) {
+			if (ps != null) { ps.Stop(true, clear ? ParticleSystemStopBehavior.StopEmittingAndClear : ParticleSystemStopBehavior.StopEmitting); }
 		}
 
 		// colored strings
