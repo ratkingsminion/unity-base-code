@@ -3,31 +3,32 @@ using System.Collections;
 
 namespace RatKing.Base {
 
+	[SelectionBase]
+	[RequireComponent(typeof(Creature))]
 	public class PlayerInput : MonoBehaviour {
 		[Header("Rotating")]
-		public float yawRotSpeed = 10f;
-		public float pitchRotSpeed = 10f;
-		public float pitchMax = 80f;
-		public float pitchMin = -80f;
-		public float mouseSensitivity = 1f;
-		public float smoothness = 1f;
-		public bool needRightPressed;
-		// public float interactDistance = 1f;
+		[SerializeField] float yawRotSpeed = 10f;
+		[SerializeField] float pitchRotSpeed = 10f;
+		[SerializeField] float pitchMax = 80f;
+		[SerializeField] float pitchMin = -80f;
+		[SerializeField] float mouseSensitivity = 1f;
+		[SerializeField] float smoothness = 1f;
 		[Header("Components")]
-		[SerializeField] Transform camTransform = null;
-		[SerializeField] Transform rotateTransform = null;
 		[SerializeField] Creature creature = null;
-		//
+		
 		float macMouseFactor = 1f;
-		float pitch = 0f;
-		Transform smoothCam;
-		//
+		float pitch = 0f, smoothedPitch = 0f, smoothPitchVel = 0f;
+		float yaw = 0f, smoothedYaw = 0f, smoothYawVel = 0f;
+		bool catchMouse = true;
+		Transform camDummy;
 
+		public Creature Creature { get { return creature; } }
+		public Transform RotTrans { get { return creature.RotateTransform; } }
+		bool moveAllowed = true;
 
 		//
 
 		void Start() {
-			rotateTransform = rotateTransform == null ? transform : rotateTransform;
 			creature = creature == null ? GetComponentInChildren<Creature>() : creature;
 #if UNITY_WEBPLAYER
 			if (Application.platform == RuntimePlatform.OSXWebPlayer) {
@@ -36,70 +37,86 @@ namespace RatKing.Base {
 #else
 			if (Application.platform == RuntimePlatform.OSXPlayer || Application.platform == RuntimePlatform.OSXDashboardPlayer)
 #endif
-				macMouseFactor = 0.18f;
-			//
-			if (camTransform != null) {
-				smoothCam = new GameObject("CAMDUMMY").transform;
-				smoothCam.position = camTransform.position; // + Vector3.up;
-				smoothCam.rotation = camTransform.rotation;
-				smoothCam.parent = camTransform.parent;
-				camTransform.parent = null;
-			}
+			macMouseFactor = 0.18f;
+
+			camDummy = new GameObject("CamDummy").transform;
+			camDummy.SetPositionAndRotation(RotTrans.position, RotTrans.rotation);
+			camDummy.SetParent(RotTrans.parent);
+			RotTrans.SetParent(null);
 		}
 
 		void Update() {
 			// move
 
-			creature.FactorX = Input.GetAxis("Horizontal");
-			creature.FactorZ = Input.GetAxis("Vertical");
+			if (moveAllowed) {
+				creature.FactorX = Input.GetAxis("Horizontal");
+				creature.FactorZ = Input.GetAxis("Vertical");
+			}
+			else {
+				creature.FactorX = creature.FactorZ = 0f;
+			}
 
 			// jump
 
-			if (Input.GetButtonDown("Jump"))
+			if (moveAllowed && Input.GetButtonDown("Jump"))
 				creature.Jump();
 
 			// look
 
-			if ((Application.isEditor || needRightPressed) && Input.GetMouseButton(1)) {
-#if UNITY_5_0 || UNITY_5_1 || UNITY_5_2 || UNITY_5_3 || UNITY_5_3_OR_NEWER
-				if (Cursor.visible) {
-					Cursor.visible = false;
-					Cursor.lockState = CursorLockMode.Locked;
-				}
-#else
-				Screen.lockCursor = true;
-#endif
-				rotateTransform.Rotate(rotateTransform.up, Input.GetAxis("Mouse X") * yawRotSpeed * macMouseFactor * mouseSensitivity, Space.World);
-
-				pitch += Input.GetAxis("Mouse Y") * -pitchRotSpeed * macMouseFactor * mouseSensitivity * 1.1f;
-				pitch = Mathf.Clamp(pitch, pitchMin, pitchMax);
-				if (smoothCam != null)
-					smoothCam.localEulerAngles = new Vector3(pitch, 0f, 0f);
-			}
-			else {
-#if UNITY_5_0 || UNITY_5_1 || UNITY_5_2 || UNITY_5_3 || UNITY_5_3_OR_NEWER
-				if (!Cursor.visible) {
+			if (moveAllowed && Input.GetKeyDown(KeyCode.Tab)) {
+				if (catchMouse) {
 					Cursor.visible = true;
 					Cursor.lockState = CursorLockMode.None;
 				}
-#else
-				Screen.lockCursor = false;
-#endif
+				catchMouse = !catchMouse;
 			}
 
-			if (camTransform != null) {
-				camTransform.position = smoothCam.position;
-				camTransform.rotation = Quaternion.Slerp(camTransform.rotation, smoothCam.rotation, smoothness);
+			if (catchMouse) {
+				Cursor.visible = false;
+				Cursor.lockState = CursorLockMode.Locked;
 			}
 		}
 
-		void OnDestroy() {
-#if UNITY_5_0 || UNITY_5_1 || UNITY_5_2 || UNITY_5_3 || UNITY_5_3_OR_NEWER
+		void LateUpdate() {
+			if (moveAllowed && catchMouse) {
+				yaw += Input.GetAxis("Mouse X") * yawRotSpeed * macMouseFactor * mouseSensitivity;
+				smoothedYaw = Mathf.SmoothDamp(smoothedYaw, yaw, ref smoothYawVel, smoothness);
+
+				pitch += Input.GetAxis("Mouse Y") * -pitchRotSpeed * macMouseFactor * mouseSensitivity * 1.1f;
+				pitch = Mathf.Clamp(pitch, pitchMin, pitchMax);
+				smoothedPitch = Mathf.SmoothDamp(smoothedPitch, pitch, ref smoothPitchVel, smoothness);
+
+				RotTrans.localEulerAngles = new Vector3(smoothedPitch, Mathf.Repeat(smoothedYaw + 180f, 360f) - 180f, 0f);
+			}
+
+			RotTrans.position = camDummy.position;
+		}
+
+		void OnDisable() {
 			Cursor.visible = true;
 			Cursor.lockState = CursorLockMode.None;
-#else
-			Screen.lockCursor = false;
-#endif
+		}
+
+		//
+
+		public void AllowMove(bool allow) {
+			if (!allow) {
+				creature.FactorX = creature.FactorZ = 0f;
+				Cursor.visible = true;
+				Cursor.lockState = CursorLockMode.None;
+				catchMouse = false;
+			}
+			else {
+				Cursor.visible = false;
+				Cursor.lockState = CursorLockMode.Locked;
+				catchMouse = true;
+			}
+			moveAllowed = allow;
+		}
+
+		public void Warped(float yaw) {
+			smoothedYaw = this.yaw = yaw;
+			RotTrans.localEulerAngles = new Vector3(smoothedPitch, Mathf.Repeat(smoothedYaw + 180f, 360f) - 180f, 0f);
 		}
 	}
 

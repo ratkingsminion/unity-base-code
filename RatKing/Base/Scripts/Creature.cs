@@ -8,29 +8,30 @@ namespace RatKing.Base {
 	[RequireComponent(typeof(CapsuleCollider))]
 	public class Creature : MonoBehaviour {
 		[Header("Movement")]
-		public float speedWalk = 3.5f;
-		public float speedWalkSideways = 2.5f;
-		public float speedWalkBackwards = 1.5f;
-		public float jumpForce = 300f;
-		public float moveInAirForceFactor = 1.0f;
-		public float slopeMax = 60f;
+		[SerializeField] float speedWalk = 3.5f;
+		[SerializeField] float speedWalkSideways = 2.5f;
+		[SerializeField] float speedWalkBackwards = 1.5f;
+		[SerializeField] float jumpForce = 300f;
+		[SerializeField] float moveInAirForceFactor = 1.0f;
+		[SerializeField] float slopeMax = 60f;
+		[SerializeField] Transform rotateTransform = null;
 		[Header("RayCasts")]
-		public int numRays = 64;
-		public float legHeight = 0.08f;
-		public float floorDepth = 0.08f;
-		public float innerCircleFactor = 1f;
-		[SerializeField]
-		string floorLayerName = "Default";
-		public ParticleSystem floorDust;
+		[SerializeField] int numRays = 64;
+		[SerializeField] float legHeight = 0.08f;
+		[SerializeField] float floorDepth = 0.08f;
+		[SerializeField] float innerCircleFactor = 1f;
+		[SerializeField] string floorLayerName = "Default";
+		[SerializeField] ParticleSystem floorDust;
 		[Header("Sounds")]
-		public GameObject soundJump;
-		public GameObject soundWalk;
-		public float walkTime = 0.6f;
+		[SerializeField] GameObject soundJump;
+		[SerializeField] GameObject soundWalk;
+		[SerializeField] float walkTime = 0.6f;
+		
+		public Transform RotateTransform { get { return rotateTransform; } }
 		
 		public float FactorX { get; set; }
 		public float FactorZ { get; set; }
-		[System.NonSerialized]
-		public float globalFactor = 1f;
+		[System.NonSerialized] public float globalFactor = 1f;
 		
 		public bool OnFloor { get; private set; }
 		public Rigidbody Rbody { get; private set; }
@@ -82,13 +83,11 @@ namespace RatKing.Base {
 
 		void FixedUpdate() {
 			// standing on floor?
-			var pos = transform.position;
 			var h = Capsule.height * 0.5f; // - capsule.radius;
 			var d = Capsule.radius + legHeight;
 			var r = (Capsule.radius - 0.01f);
-			var c = pos + Vector3.up * (Capsule.center.y - h + r);
+			var c = Rbody.position + Vector3.up * (Capsule.center.y - h + r);
 			float dist = 1000f;
-			RaycastHit hit;
 			r *= innerCircleFactor;
 			var normal = Vector3.zero;
 			//var smallestDist = 1000f;
@@ -99,7 +98,7 @@ namespace RatKing.Base {
 					float f = 2f * Mathf.PI * i / numRays;
 					p += new Vector3(Mathf.Sin(f) * r, 0f, Mathf.Cos(f) * r);
 				}
-				if (Physics.Raycast(p, Vector3.down, out hit, d + floorDepth, floorLayerMask, QueryTriggerInteraction.Ignore)) {
+				if (Physics.Raycast(p, Vector3.down, out var hit, d + floorDepth, floorLayerMask, QueryTriggerInteraction.Ignore)) {
 					/*if (hit.distance < d)*/ { normal += hit.normal; }
 					var a = Vector3.Angle(hit.normal, Vector3.up);
 					//if (hit.distance < smallestDist) { smallestDist = hit.distance; }
@@ -113,8 +112,7 @@ namespace RatKing.Base {
 			OnFloor = diff <= legHeight;
 			mayJump = jumping > 0f;
 			if (!OnFloor && normal.sqrMagnitude > 0f) {
-				if (Vector3.Angle(normal, Vector3.up) < slopeMax) {
-				// failsave when stuck between two very steep slopes
+				if (Vector3.Angle(normal, Vector3.up) < slopeMax) { // failsave when stuck between two very steep slopes
 					//dist = smallestDist;
 					diff = legHeight * 0.5f; // legHeight; // dist - d;
 					OnFloor = true;
@@ -135,27 +133,23 @@ namespace RatKing.Base {
 				floorDust.enableEmission = onFloor && (new Vector2(rb.velocity.x, rb.velocity.z).sqrMagnitude > 10f);
 #endif
 			}
+			
 			if (OnFloor) {
-				pos.y -= diff * (diff > 0f ? 1f : 0.25f);
-				transform.position = pos;
-
-				Rbody.velocity = Vector3.zero;
-				Vector2 input = new Vector2(FactorX, FactorZ);
-				Vector2 inputDir = input.normalized;
-				float inputLength = Mathf.Min(input.magnitude, 1f);
-				float inputAngle = Vector2.Angle(Vector2.up, inputDir);
-				float speed = inputAngle > 90f ? Mathf.Lerp(speedWalkSideways, speedWalkBackwards, (inputAngle - 90f) / 90f) : Mathf.Lerp(speedWalk, speedWalkSideways, inputAngle / 90f);
+				var input = new Vector2(FactorX, FactorZ);
+				var inputDir = input.normalized;
+				var inputLength = Mathf.Min(input.magnitude, 1f);
+				var inputAngle = Vector2.Angle(Vector2.up, inputDir);
+				var speed = inputAngle > 90f ? Mathf.Lerp(speedWalkSideways, speedWalkBackwards, (inputAngle - 90f) / 90f) : Mathf.Lerp(speedWalk, speedWalkSideways, inputAngle / 90f);
 				inputAngle *= Mathf.Deg2Rad;
-				float xSpeed = inputLength * Mathf.Sin(inputAngle) * speed * Mathf.Sign(FactorX);
-				float zSpeed = inputLength * Mathf.Cos(inputAngle) * speed;
+				var xSpeed = inputLength * Mathf.Sin(inputAngle) * speed * Mathf.Sign(FactorX);
+				var zSpeed = inputLength * Mathf.Cos(inputAngle) * speed;
 
-				Vector3 velocityChange = new Vector3(
+				var newVel = new Vector3(
 					xSpeed * globalFactor,
-					0f,
+					-diff * (diff > 0f ? 1f : 0.25f) / Time.fixedDeltaTime,
 					zSpeed * globalFactor);
 
-				//rb.AddForce(transform.TransformDirection(velocityChange), ForceMode.VelocityChange);
-				Rbody.velocity = transform.TransformDirection(velocityChange);
+				Rbody.velocity = Quaternion.Euler(0f, rotateTransform.eulerAngles.y, 0f) * newVel;
 
 				if (xSpeed != 0f || zSpeed != 0f) {
 					if (walkTimer < Time.time) {
@@ -167,18 +161,19 @@ namespace RatKing.Base {
 			}
 			else {
 				if (moveInAirForceFactor > 0f) {
-					//rb.velocity = Vector3.zero;
-					Vector2 speedDir = new Vector2(FactorX, FactorZ).normalized;
-					Vector3 velocityChange = new Vector3(
+					var speedDir = new Vector2(FactorX, FactorZ).normalized;
+					var velocityChange = new Vector3(
 						FactorX * Mathf.Abs(speedDir.x) * speedWalkSideways * globalFactor * moveInAirForceFactor,
 						0f,
 						FactorZ * Mathf.Abs(speedDir.y) * (FactorZ > 0f ? speedWalk : speedWalkBackwards) * globalFactor * moveInAirForceFactor);
-					Rbody.AddForce(transform.TransformDirection(velocityChange), ForceMode.Force);
+					Rbody.AddForce(Quaternion.Euler(0f, rotateTransform.eulerAngles.y, 0f) * velocityChange, ForceMode.Force);
 				}
 				Rbody.velocity *= 0.98f;
 			}
 
 		}
+
+		//
 
 #if UNITY_EDITOR
 		void OnDrawGizmos() {
