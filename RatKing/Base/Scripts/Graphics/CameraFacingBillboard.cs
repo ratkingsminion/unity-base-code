@@ -23,7 +23,7 @@ namespace RatKing.Base {
 			public void Remove(CameraFacingBillboard bb) {
 				bbs.Remove(bb);
 			}
-			void Update() {
+			void LateUpdate() {
 				if (camT == null || !camT.gameObject.activeInHierarchy) { var cam = Camera.main; if (cam == null) { return; } camT = cam.transform; }
 				for (var iter = bbs.GetEnumerator(); iter.MoveNext(); ) {
 					var cur = iter.Current;
