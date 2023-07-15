@@ -8,19 +8,21 @@ namespace RatKing.Base {
 	[RequireComponent(typeof(CapsuleCollider))]
 	public class Creature : MonoBehaviour {
 		[Header("Movement")]
+		[SerializeField, Tooltip("Should be a transform attached to this game object, usually with the cam")] Transform rotateTransform = null;
 		[SerializeField] float speedWalk = 3.5f;
-		[SerializeField] float speedWalkSideways = 2.5f;
-		[SerializeField] float speedWalkBackwards = 1.5f;
+		[SerializeField] float speedWalkSideways = 3.0f;
+		[SerializeField] float speedWalkBackwards = 2.0f;
 		[SerializeField] float jumpForce = 300f;
 		[SerializeField] float moveInAirForceFactor = 1.0f;
-		[SerializeField] float slopeMax = 60f;
-		[SerializeField] Transform rotateTransform = null;
+		[SerializeField] float slopeMax = 55f;
+		[SerializeField] float diffSmoothFromTop = 0.5f;
+		[SerializeField] float diffSmoothFromBottom = 0.5f;
 		[Header("RayCasts")]
-		[SerializeField] int numRays = 64;
-		[SerializeField] float legHeight = 0.08f;
-		[SerializeField] float floorDepth = 0.08f;
+		[SerializeField] int numRays = 32;
+		[SerializeField] float legHeight = 0.2f;
+		[SerializeField] float floorDepth = 0.2f;
 		[SerializeField] float innerCircleFactor = 1f;
-		[SerializeField] string floorLayerName = "Default";
+		[SerializeField] LayerMask floorLayer = ~0;
 		[SerializeField] ParticleSystem floorDust;
 		[Header("Sounds")]
 		[SerializeField] GameObject soundJump;
@@ -36,13 +38,12 @@ namespace RatKing.Base {
 		public bool OnFloor { get; private set; }
 		public Rigidbody Rbody { get; private set; }
 		public CapsuleCollider Capsule { get; private set; }
-		
+
+		bool wasOnFloor;
 		float jumping = 0f;
-		bool mayJump;
+		bool allowJump = true;
 		float walkTimer = 0f;
 		
-		static int floorLayerMask = 1;
-
 #if UNITY_EDITOR
 		void OnValidate() {
 			if (speedWalk < 0f) speedWalk = 0f;
@@ -62,13 +63,12 @@ namespace RatKing.Base {
 		//
 
 		void Awake() {
-			floorLayerMask = 1 << LayerMask.NameToLayer(floorLayerName);
 			Capsule = GetComponentInChildren<CapsuleCollider>();
 			Rbody = GetComponent<Rigidbody>();
 		}
 
 		public void Jump(float factor = 1f) {
-			if (!OnFloor || mayJump || factor <= 0.1f) {
+			if (!OnFloor || !allowJump || factor <= 0.1f) {
 				return;
 			}
 			if (Physics.SphereCast(new Ray(transform.position + Vector3.up * (Capsule.center.y + Capsule.height * 0.5f - Capsule.radius * 2f), Vector3.up), Capsule.radius, Capsule.radius + 0.35f)) {
@@ -82,6 +82,8 @@ namespace RatKing.Base {
 		}
 
 		void FixedUpdate() {
+			wasOnFloor = OnFloor;
+
 			// standing on floor?
 			var h = Capsule.height * 0.5f; // - capsule.radius;
 			var d = Capsule.radius + legHeight;
@@ -98,7 +100,7 @@ namespace RatKing.Base {
 					float f = 2f * Mathf.PI * i / numRays;
 					p += new Vector3(Mathf.Sin(f) * r, 0f, Mathf.Cos(f) * r);
 				}
-				if (Physics.Raycast(p, Vector3.down, out var hit, d + floorDepth, floorLayerMask, QueryTriggerInteraction.Ignore)) {
+				if (Physics.Raycast(p, Vector3.down, out var hit, d + floorDepth, floorLayer, QueryTriggerInteraction.Ignore)) {
 					/*if (hit.distance < d)*/ { normal += hit.normal; }
 					var a = Vector3.Angle(hit.normal, Vector3.up);
 					//if (hit.distance < smallestDist) { smallestDist = hit.distance; }
@@ -109,9 +111,10 @@ namespace RatKing.Base {
 			Debug.DrawRay(c, normal.normalized * 2f, Color.white);
 #endif
 			float diff = dist - d;
-			OnFloor = diff <= legHeight;
-			mayJump = jumping > 0f;
-			if (!OnFloor && normal.sqrMagnitude > 0f) {
+			OnFloor = diff <= 0f || (diff <= legHeight && wasOnFloor);
+			allowJump = jumping <= 0f;
+
+			if (!OnFloor && diff <= 0f && normal.sqrMagnitude > 0f) {
 				if (Vector3.Angle(normal, Vector3.up) < slopeMax) { // failsave when stuck between two very steep slopes
 					//dist = smallestDist;
 					diff = legHeight * 0.5f; // legHeight; // dist - d;
@@ -119,7 +122,7 @@ namespace RatKing.Base {
 					//mayJump = false;
 				}
 			}
-			if (mayJump) {
+			if (!allowJump) {
 				// in order to prevent sliding on slopes (upwards), give jumping a bit of time
 				jumping -= Time.deltaTime;
 				OnFloor = false;
@@ -146,7 +149,7 @@ namespace RatKing.Base {
 
 				var newVel = new Vector3(
 					xSpeed * globalFactor,
-					-diff * (diff > 0f ? 1f : 0.25f) / Time.fixedDeltaTime,
+					-diff * (diff > 0f ? diffSmoothFromTop : diffSmoothFromBottom) / Time.fixedDeltaTime,
 					zSpeed * globalFactor);
 
 				Rbody.velocity = Quaternion.Euler(0f, rotateTransform.eulerAngles.y, 0f) * newVel;
