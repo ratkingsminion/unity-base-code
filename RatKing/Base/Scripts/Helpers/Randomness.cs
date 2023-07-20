@@ -40,6 +40,9 @@ namespace RatKing.Base {
 			}
 
 			// returns a value in the range of about [-0.347 .. 0.347]
+			public static float Noise(Vector3 v) {
+				return Noise(v.x, v.y, v.z);
+			}
 			public static float Noise(float x, float y, float z) {
 				// Skew input space to relative coordinate in simplex cell
 				s = (x + y + z) * onethird;
@@ -64,11 +67,17 @@ namespace RatKing.Base {
 			}
 
 			// normalized (goes [0..1], but only circa!)
+			public static float NormalizedNoise(Vector3 v) {
+				return (Noise(v) + 0.347f) * 1.4409f;
+			}
 			public static float NormalizedNoise(float x, float y, float z) {
 				return (Noise(x, y, z) + 0.347f) * 1.4409f;
 			}
 
 			// normalized (goes [-1..1], but only circa!)
+			public static float NoiseMinusPlus1(Vector3 v) {
+				return Noise(v) * 1.4409f;
+			}
 			public static float NoiseMinusPlus1(float x, float y, float z) {
 				return Noise(x, y, z) * 1.4409f;
 			}
@@ -115,6 +124,13 @@ namespace RatKing.Base {
 			static int b2_m(int N, int B) {
 				return N >> B & 1;
 			}
+		}
+
+		//
+
+		public static Vector2 OnUnitCircle() {
+			var angle = Random.value * Mathf.PI * 2f;
+			return new Vector2(Mathf.Sin(angle), Mathf.Cos(angle));
 		}
 	}
 
