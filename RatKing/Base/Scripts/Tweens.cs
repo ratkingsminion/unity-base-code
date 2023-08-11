@@ -350,6 +350,14 @@ namespace RatKing.Base {
 			newTweens.Clear();
 		}
 
+		public static bool Stop(Tween tween, bool withComplete = false) {
+			if (inst == null || tween == null) { return false; }
+			if (!curTweens.Remove(tween)) { return false; }
+			if (withComplete && tween.completeFunc != null) { tween.completeFunc(); }
+			PoolPushTween(tween);
+			return true;
+		}
+
 		public static bool Stop(int id, bool withComplete = false) {
 			if (inst == null) { return false; }
 			var removed = false;
