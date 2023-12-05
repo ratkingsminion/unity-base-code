@@ -26,9 +26,9 @@ namespace RatKing.Base {
 
 		public ConfigFile(string filename, char comment, string separator) {
 #if UNITY_EDITOR
-			var path = Application.dataPath + "/config.txt";
+			var path = Application.dataPath + "/" + filename;
 #else
-			var path = Application.dataPath + "/../config.txt";
+			var path = Application.dataPath + "/../" + filename;
 #endif
 			float valueNumber;
 
@@ -49,18 +49,17 @@ namespace RatKing.Base {
 					else {
 						var key = line[0].Trim().ToLower();
 						var value = trimmedLine.Substring(line[0].Length + separator.Length).Trim().ToLower();
-						if (value == "on" || value == "true") {
+						if (value == "yes" || value == "on" || value == "true") {
 							valuesBool[key] = true;
 						}
-						else if (value == "off" || value == "false") {
+						else if (value == "no" || value == "off" || value == "false") {
 							valuesBool[key] = false;
 						}
 						else if (float.TryParse(value, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out valueNumber)) {
 							valuesNumber[key] = valueNumber;
+							valuesBool[key] = valueNumber != 0;
 						}
-						else { // is string
-							valuesString[key] = trimmedLine.Substring(line[0].Length + separator.Length);
-						}
+						valuesString[key] = trimmedLine.Substring(line[0].Length + separator.Length);
 					}
 				}
 			}
