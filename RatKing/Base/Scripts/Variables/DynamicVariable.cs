@@ -14,6 +14,14 @@ namespace RatKing.Base {
 		string Unity3DGetButtonName();
 		bool Unity3DSetValue(Rect r);
 #endif
+#if UNITY_2022_1_OR_NEWER
+		public int GetInt() { return this is DynamicVarInt v ? v.Value : default; }
+		public float GetFloat() { return this is DynamicVarFloat v ? v.Value : default; }
+		public float GetNumber() { return this is DynamicVarFloat f ? f.Value : this is DynamicVarInt i ? i.Value : default; }
+		public string GetString() { return this is DynamicVarString v ? v.Value : default; }
+		public bool GetBool() { return this is DynamicVarBool v && v.Value; }
+		public Object GetObject() { return this is DynamicVarObject v ? v.Value : default; }
+#endif
 	}
 
 	[System.Serializable]
