@@ -24,6 +24,8 @@ namespace RatKing.Base {
 		[Header("Pooling")]
 		[SerializeField] int startCount = 3;
 		[SerializeField] int addCount = 1;
+		[Header("User Data")]
+		[SerializeField] DynamicVariables variables = new();
 
 		public AudioMixerGroup MixerGroup { get { return mixerGroup; } }
 		public AudioClip[] Clips { get { return clips; } }
@@ -40,6 +42,7 @@ namespace RatKing.Base {
 		public RangeFloat Distance3D { get { return distance3D; } }
 		public int PoolStartCount { get { return startCount; } }
 		public int PoolAddCount { get { return addCount; } }
+		public DynamicVariables UserData { get { return variables; } }
 		
 		public int CurPlayIndex { get; set; } = -1;
 

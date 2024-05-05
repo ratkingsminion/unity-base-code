@@ -22,6 +22,7 @@ namespace RatKing.Base {
 		SerializedProperty distance3D;
 		SerializedProperty startCount;
 		SerializedProperty addCount;
+		SerializedProperty variables;
 
 		//
 
@@ -39,6 +40,7 @@ namespace RatKing.Base {
 			distance3D = serializedObject.FindProperty("distance3D");
 			startCount = serializedObject.FindProperty("startCount");
 			addCount = serializedObject.FindProperty("addCount");
+			variables = serializedObject.FindProperty("variables");
 			StopAllClips();
 		}
 
@@ -82,6 +84,8 @@ namespace RatKing.Base {
 
 			EditorGUILayout.PropertyField(startCount);
 			EditorGUILayout.PropertyField(addCount);
+
+			EditorGUILayout.PropertyField(variables);
 
 			serializedObject.ApplyModifiedProperties();
 		}
