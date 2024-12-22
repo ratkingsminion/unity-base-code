@@ -36,7 +36,11 @@ namespace RatKing.Base {
 			else if (typeof(T) == typeof(int) && value is int i) { Variables.Add(new DynamicVarInt(id, i)); }
 			else if (typeof(T) == typeof(string)) { Variables.Add(new DynamicVarString(id, value is string s ? s : "")); }
 			else if (typeof(T) == typeof(bool) && value is bool b) { Variables.Add(new DynamicVarBool(id, b)); }
+#if UNITY_2020_1_OR_NEWER
 			else if (value is null) { Variables.Add(new DynamicVarObject(id, null)); }
+#else
+			else if (object.ReferenceEquals(value, null)) { Variables.Add(new DynamicVarObject(id, null)); }
+#endif
 			else if (value is Object) { Variables.Add(new DynamicVarObject(id, value as Object)); }
 			else { Debug.LogWarning("Dynamic variable " + id + " could not be set to type " + typeof(T)); }
 		}

@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -146,7 +147,11 @@ namespace RatKing.Base {
 			else if (typeof(T) == typeof(string)) { Variable = new DynamicVarString("set", value is string s ? s : ""); }
 			else if (typeof(T) == typeof(bool) && value is bool b) { Variable = new DynamicVarBool("set", b); }
 			else if (value is Object o) { Variable = new DynamicVarObject("set", o); }
+#if UNITY_2020_1_OR_NEWER
 			else if (value is null) { Variable = new DynamicVarObject("set", null); }
+#else
+			else if (value == null) { Variable = new DynamicVarObject("set", null); }
+#endif
 			else { Debug.LogWarning("Dynamic variable could not be set to this type"); }
 		}
 

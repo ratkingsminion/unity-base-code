@@ -121,18 +121,28 @@ namespace RatKing {
 
 		public static bool TryGetComponentInChildren<T>(this GameObject go, out T component, bool includeInactive = false) where T : Component { component = go.GetComponentInChildren<T>(includeInactive); if (component != null) { return true; } return false; }
 		public static bool TryGetComponentInChildren<T>(this Component c, out T component, bool includeInactive = false) where T : Component { component = c.gameObject.GetComponentInChildren<T>(includeInactive); if (component != null) { return true; } return false; }
+#if UNITY_2020_1_OR_NEWER
 		public static bool TryGetComponentInParent<T>(this GameObject go, out T component, bool includeInactive = false) where T : Component { component = go.gameObject.GetComponentInParent<T>(includeInactive); if (component != null) { return true; } return false; }
 		public static bool TryGetComponentInParent<T>(this Component c, out T component, bool includeInactive = false) where T : Component { component = c.gameObject.GetComponentInParent<T>(includeInactive); if (component != null) { return true; } return false; }
-	
+#else
+		public static bool TryGetComponentInParent<T>(this GameObject go, out T component) where T : Component { component = go.gameObject.GetComponentInParent<T>(); if (component != null) { return true; } return false; }
+		public static bool TryGetComponentInParent<T>(this Component c, out T component) where T : Component { component = c.gameObject.GetComponentInParent<T>(); if (component != null) { return true; } return false; }
+#endif
+
 		public static bool HasComponent<T>(this GameObject go) where T : Component { return go.GetComponent<T>() != null; }
 		public static bool HasComponent<T>(this Component c) where T : Component { return c.GetComponent<T>() != null; }
 		public static bool HasComponentInChildren<T>(this GameObject go, bool includeInactive = false) where T : Component { return go.GetComponentInChildren<T>(includeInactive) != null; }
 		public static bool HasComponentInChildren<T>(this Component c, bool includeInactive = false) where T : Component { return c.GetComponentInChildren<T>(includeInactive) != null; }
+#if UNITY_2020_1_OR_NEWER
 		public static bool HasComponentGetComponentInParent<T>(this GameObject go, bool includeInactive = false) where T : Component { return go.GetComponentInParent<T>(includeInactive) != null; }
 		public static bool HasComponentGetComponentInParent<T>(this Component c, bool includeInactive = false) where T : Component { return c.GetComponentInParent<T>(includeInactive) != null; }
+#else
+		public static bool HasComponentGetComponentInParent<T>(this GameObject go) where T : Component { return go.GetComponentInParent<T>() != null; }
+		public static bool HasComponentGetComponentInParent<T>(this Component c) where T : Component { return c.GetComponentInParent<T>() != null; }
+#endif
 
 		// for use in OnValidate()
-		
+
 		public static bool SetComponent<T, S>(this T validator, ref S component, bool onlyIfNull = true) where T : Component where S : Component {
 			if (validator == null) { return false; }
 			if (!onlyIfNull || component == null) { component = validator.GetComponent<S>(); }
@@ -143,12 +153,20 @@ namespace RatKing {
 			if (!onlyIfNull || component == null) { component = validator.GetComponentInChildren<S>(includeInactive); }
 			return !component.IsGone();
 		}
+#if UNITY_2020_1_OR_NEWER
 		public static bool SetComponentInParent<T, S>(this T validator, ref S component, bool onlyIfNull = true, bool includeInactive = false) where T : Component where S : Component {
 			if (validator == null) { return false; }
 			if (!onlyIfNull || component == null) { component = validator.GetComponentInParent<S>(includeInactive); }
 			return !component.IsGone();
 		}
-		
+#else
+		public static bool SetComponentInParent<T, S>(this T validator, ref S component, bool onlyIfNull = true) where T : Component where S : Component {
+			if (validator == null) { return false; }
+			if (!onlyIfNull || component == null) { component = validator.GetComponentInParent<S>(); }
+			return !component.IsGone();
+		}
+#endif
+
 		//
 
 		public static bool IsGone(this object Object) { return Object == null || Object.Equals(null); }
